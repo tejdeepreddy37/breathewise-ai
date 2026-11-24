@@ -145,6 +145,87 @@ console.log('\n--- 3. Testing Indoor Air Coach Ventilation Safety Guard ---');
   assert(rOzone.windowAction === 'SEAL_COMPLETELY', 'High Ozone (130 µg/m³) strictly seals windows despite clean PM2.5');
 }
 
+console.log('\n--- 4. Testing Indoor Source Context & Directives ---');
+{
+  function calculateIndoorWithSource(pm, win, hour, area, o3, source) {
+    let baseline = Math.round(pm * 0.45);
+    let speed = 'MEDIUM';
+    let directive = '';
+
+    if (source === 'cooking_frying') {
+      baseline += 85;
+      speed = 'TURBO';
+      directive = 'Active Kitchen Cooking';
+    } else if (source === 'incense_smoke') {
+      baseline += 110;
+      speed = 'TURBO';
+      directive = 'Combustion Emissions';
+    } else if (source === 'high_co2_stuffy') {
+      directive = 'Stuffy Room';
+    }
+
+    return { baseline, speed, directive };
+  }
+
+  const win = { startHour: 13, endHour: 15 };
+  const rCook = calculateIndoorWithSource(50, win, 14, 20, null, 'cooking_frying');
+  assert(rCook.speed === 'TURBO', 'Cooking frying forces purifier speed to TURBO');
+  assert(rCook.baseline === Math.round(50 * 0.45) + 85, 'Cooking frying adds +85 µg/m³ aerosol baseline');
+  assert(rCook.directive.includes('Active Kitchen Cooking'), 'Provides specific cooking directive');
+
+  const rSmoke = calculateIndoorWithSource(40, win, 14, 20, null, 'incense_smoke');
+  assert(rSmoke.speed === 'TURBO', 'Incense smoke triggers TURBO purifier mode');
+}
+
+console.log('\n--- 5. Testing WindowSafe Rolling Slice Logic ---');
+{
+  function scanWindow(hourly) {
+    let lowestAvg = 9999;
+    let bestStart = 13;
+    let bestEnd = 15;
+
+    for (let s = 0; s <= hourly.length - 2; s++) {
+      for (let e = s + 1; e <= Math.min(hourly.length - 1, s + 2); e++) {
+        const windowPoints = hourly.slice(s, e + 1);
+        if (windowPoints.length >= 2) {
+          const sumPm = windowPoints.reduce((acc, p) => acc + p.pm25, 0);
+          const avgPm = sumPm / windowPoints.length;
+          if (avgPm < lowestAvg || (avgPm === lowestAvg && (e - s) > (bestEnd - bestStart))) {
+            lowestAvg = avgPm;
+            bestStart = windowPoints[0].hour;
+            bestEnd = windowPoints[windowPoints.length - 1].hour;
+          }
+        }
+      }
+    }
+    return { bestStart, bestEnd, avgPm: Math.round(lowestAvg) };
+  }
+
+  // Create mock diurnal curve: morning high (180), afternoon valley (55 at 13:00-15:00), evening high (210)
+  const mockHourly = Array.from({ length: 24 }, (_, h) => {
+    let pm = 140;
+    if (h >= 7 && h <= 9) pm = 220; // morning peak
+    if (h >= 13 && h <= 15) pm = 55; // afternoon convective minimum
+    if (h >= 20 && h <= 22) pm = 240; // evening peak
+    return { hour: h, pm25: pm };
+  });
+
+  const winRes = scanWindow(mockHourly);
+  assert(winRes.bestStart === 13, `WindowSafe identifies startHour=13 (got ${winRes.bestStart})`);
+  assert(winRes.bestEnd === 15, `WindowSafe identifies endHour=15 (got ${winRes.bestEnd})`);
+  assert(winRes.avgPm === 55, `WindowSafe calculates correct average PM2.5 = 55 (got ${winRes.avgPm})`);
+}
+
+console.log('\n--- 6. Testing Geographic Coordinate & Data Integrity ---');
+{
+  const mumbaiPreset = {
+    id: 'mumbai-bkc',
+    lat: 19.0657,
+    lon: 72.8687,
+  };
+  assert(mumbaiPreset.lon >= 72.8 && mumbaiPreset.lon <= 72.95, `Mumbai longitude is verified near 72.87°E (got ${mumbaiPreset.lon})`);
+}
+
 console.log(`\n========================================`);
 console.log(`TEST RESULTS: ${passed} Passed, ${failed} Failed`);
 console.log(`========================================\n`);

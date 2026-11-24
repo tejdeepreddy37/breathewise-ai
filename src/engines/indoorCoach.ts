@@ -10,7 +10,7 @@
  * 3. Indoor baseline reflects building envelope infiltration (alpha ~ 0.45 for closed windows).
  */
 
-import { IndoorVentilationRecommendation, CleanAirWindow } from '../types/engines';
+import { IndoorVentilationRecommendation, CleanAirWindow, IndoorSourceType } from '../types/engines';
 
 export const VENTILATION_THRESHOLDS = {
   CLEAN_OUTDOOR_PM25_MAX: 30, // µg/m³ - Safe for continuous cross-ventilation (WHO/CPCB Satisfactory)
@@ -25,14 +25,27 @@ export function calculateIndoorRecommendations(
   cleanAirWindow: CleanAirWindow,
   currentHour = new Date().getHours(),
   roomAreaM2 = 20,
-  outdoorO3?: number
+  outdoorO3?: number,
+  indoorSource: IndoorSourceType = 'none'
 ): IndoorVentilationRecommendation {
   const safePm = Math.max(0, outdoorPm25 || 0);
   const safeO3 = outdoorO3 != null ? Math.max(0, outdoorO3) : null;
   const isWindowActive = currentHour >= cleanAirWindow.startHour && currentHour <= cleanAirWindow.endHour;
 
   // Estimated indoor baseline with closed windows (alpha = 0.45)
-  const baselineIndoor = Math.round(safePm * VENTILATION_THRESHOLDS.CLOSED_ENVELOPE_INFILTRATION_ALPHA);
+  let baselineIndoor = Math.round(safePm * VENTILATION_THRESHOLDS.CLOSED_ENVELOPE_INFILTRATION_ALPHA);
+
+  // Indoor source direct particulate contribution
+  let indoorSourceDirective: string | undefined = undefined;
+  if (indoorSource === 'cooking_frying') {
+    baselineIndoor += 85; // Cooking oil aerosols add heavy indoor particulate burden
+    indoorSourceDirective = 'Active Kitchen Cooking: Frying & searing generate intense aerosolized ultrafine oils (150–350 µg/m³). Keep interior kitchen doors closed to isolate bedrooms. Run dedicated range hood exhaust on MAXIMUM. Do NOT ventilate through the main living room.';
+  } else if (indoorSource === 'incense_smoke') {
+    baselineIndoor += 110;
+    indoorSourceDirective = 'Combustion Emissions: Burning incense, mosquito coils, or unvented heaters produces hazardous VOCs and ultrafine carbon soot. Extinguish active combustion immediately; run HEPA purifier with activated carbon stage.';
+  } else if (indoorSource === 'high_co2_stuffy') {
+    indoorSourceDirective = 'Stuffy Room / High CO2 Context: When closed rooms exceed 1,000–1,200 ppm CO2, cognitive fatigue and headaches occur. If outdoor PM2.5 is elevated, conduct a brief 5-minute restricted pulse flush, then immediately seal windows and run HEPA purifier on Turbo to scrub incoming dust.';
+  }
 
   let windowAction: IndoorVentilationRecommendation['windowAction'] = 'SEAL_COMPLETELY';
   let actionDirective = '';
@@ -86,16 +99,23 @@ export function calculateIndoorRecommendations(
   const estimatedPostCleanPm25 = Math.max(6, Math.round(baselineIndoor * 0.20));
 
   let recommendedSpeed: 'OFF' | 'LOW' | 'MEDIUM' | 'TURBO' = 'MEDIUM';
-  if (safePm > 200) recommendedSpeed = 'TURBO';
-  else if (safePm > 90) recommendedSpeed = 'MEDIUM';
-  else if (safePm > 35) recommendedSpeed = 'LOW';
-  else recommendedSpeed = 'OFF';
+  if (safePm > 200 || indoorSource === 'cooking_frying' || indoorSource === 'incense_smoke') {
+    recommendedSpeed = 'TURBO';
+  } else if (safePm > 90 || indoorSource === 'high_co2_stuffy') {
+    recommendedSpeed = 'MEDIUM';
+  } else if (safePm > 35) {
+    recommendedSpeed = 'LOW';
+  } else {
+    recommendedSpeed = 'OFF';
+  }
 
   return {
     safeWindowActive: isWindowActive,
     safeWindowText,
     outdoorPm25: safePm,
     outdoorO3: safeO3 ?? undefined,
+    indoorSource,
+    indoorSourceDirective,
     estimatedIndoorBaselinePm25: baselineIndoor,
     actionDirective,
     windowAction,

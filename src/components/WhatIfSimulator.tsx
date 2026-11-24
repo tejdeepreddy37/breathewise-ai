@@ -10,17 +10,42 @@ export const WhatIfSimulator: React.FC = () => {
   const [activity, setActivity] = useState<ActivityType>('outdoor_running');
   const [durationMinutes, setDurationMinutes] = useState<number>(45);
   const [maskType, setMaskType] = useState<keyof typeof MASK_EFFICIENCIES>('none');
-  const [useCleanWindow, setUseCleanWindow] = useState<boolean>(false);
+  const [timeSelection, setTimeSelection] = useState<'now' | 'window' | 'morning' | 'evening' | 'custom'>('now');
+  const [customHour, setCustomHour] = useState<number>(14);
 
-  // Active PM2.5 based on whether user selected current time or diurnal clean-air window
-  const activePm25 = useCleanWindow ? cleanAirWindow.averagePm25 : telemetry.current.pm25;
+  // Compute active PM2.5 based on time selection
+  let activePm25 = telemetry.current.pm25;
+  let timeLabel = `Current (${telemetry.current.pm25} µg/m³)`;
+
+  if (timeSelection === 'window') {
+    activePm25 = cleanAirWindow.averagePm25;
+    timeLabel = `${cleanAirWindow.displayWindow} (~${cleanAirWindow.averagePm25} µg/m³)`;
+  } else if (timeSelection === 'morning') {
+    const pt = telemetry.hourly.find((h) => h.hour === 8);
+    activePm25 = pt ? pt.pm25 : Math.round(telemetry.current.pm25 * 1.3);
+    timeLabel = `Morning Inversion 08:00 (~${activePm25} µg/m³)`;
+  } else if (timeSelection === 'evening') {
+    const pt = telemetry.hourly.find((h) => h.hour === 20);
+    activePm25 = pt ? pt.pm25 : Math.round(telemetry.current.pm25 * 1.35);
+    timeLabel = `Evening Peak 20:00 (~${activePm25} µg/m³)`;
+  } else if (timeSelection === 'custom') {
+    const pt = telemetry.hourly.find((h) => h.hour === customHour);
+    activePm25 = pt ? pt.pm25 : telemetry.current.pm25;
+    const hourDisplay = `${customHour % 12 === 0 ? 12 : customHour % 12}:00 ${customHour >= 12 ? 'PM' : 'AM'}`;
+    timeLabel = `${hourDisplay} (~${activePm25} µg/m³)`;
+  }
+
+  // Peak reference: worst daytime hour without protection
+  const peakPm25 = telemetry.hourly.length > 0
+    ? Math.max(...telemetry.hourly.map((h) => h.pm25), telemetry.current.pm25)
+    : telemetry.current.pm25 * 1.3;
 
   const currentResult = calculateInhaledDose(activePm25, durationMinutes, activity, maskType);
-  const baselineUnprotected = calculateInhaledDose(telemetry.current.pm25, durationMinutes, activity, 'none');
+  const peakUnprotected = calculateInhaledDose(peakPm25, durationMinutes, activity, 'none');
 
-  const massSavedVsWorstCase = +(baselineUnprotected.estimatedInhaledMassUg - currentResult.estimatedInhaledMassUg).toFixed(1);
-  const percentSaved = baselineUnprotected.estimatedInhaledMassUg > 0
-    ? Math.round((massSavedVsWorstCase / baselineUnprotected.estimatedInhaledMassUg) * 100)
+  const massSavedVsPeak = +(peakUnprotected.estimatedInhaledMassUg - currentResult.estimatedInhaledMassUg).toFixed(1);
+  const percentSavedVsPeak = peakUnprotected.estimatedInhaledMassUg > 0
+    ? Math.max(0, Math.round((massSavedVsPeak / peakUnprotected.estimatedInhaledMassUg) * 100))
     : 0;
 
   const activities: Array<{ id: ActivityType; label: string; lpm: number }> = [
@@ -114,33 +139,36 @@ export const WhatIfSimulator: React.FC = () => {
         {/* Time Window Switcher */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-            Time Slot Selected
+            Diurnal Exposure Time
           </label>
-          <div className="flex rounded-lg border border-cream-300 overflow-hidden text-xs">
-            <button
-              onClick={() => setUseCleanWindow(false)}
-              className={`flex-1 py-2 px-2 text-center font-medium transition-colors ${
-                !useCleanWindow
-                  ? 'bg-forest-500 text-white font-bold'
-                  : 'bg-white text-slate-700 hover:bg-cream-100'
-              }`}
-            >
-              Current Hour
-            </button>
-            <button
-              onClick={() => setUseCleanWindow(true)}
-              className={`flex-1 py-2 px-2 text-center font-medium transition-colors ${
-                useCleanWindow
-                  ? 'bg-forest-500 text-white font-bold'
-                  : 'bg-white text-slate-700 hover:bg-cream-100'
-              }`}
-            >
-              Diurnal Minimum
-            </button>
-          </div>
-          <div className="text-[10px] text-slate-500 mt-1 text-center">
-            {useCleanWindow ? `${cleanAirWindow.displayWindow} (~${cleanAirWindow.averagePm25} µg/m³)` : `Current: ${telemetry.current.pm25} µg/m³`}
-          </div>
+          <select
+            value={timeSelection}
+            onChange={(e) => setTimeSelection(e.target.value as any)}
+            className="w-full text-xs font-medium bg-white border border-cream-300 rounded-lg p-2 focus:ring-2 focus:ring-forest-500/20 cursor-pointer"
+          >
+            <option value="now">Current Hour ({telemetry.current.pm25} µg/m³)</option>
+            <option value="window">Diurnal Min: {cleanAirWindow.displayWindow} (~{cleanAirWindow.averagePm25} µg/m³)</option>
+            <option value="morning">Morning Inversion (08:00 Rush)</option>
+            <option value="evening">Evening Traffic Peak (20:00)</option>
+            <option value="custom">Custom 24-Hour Slider</option>
+          </select>
+          {timeSelection === 'custom' ? (
+            <div className="mt-1.5">
+              <input
+                type="range"
+                min="0"
+                max="23"
+                value={customHour}
+                onChange={(e) => setCustomHour(Number(e.target.value))}
+                className="w-full accent-forest-500 cursor-pointer"
+              />
+              <div className="text-[10px] text-slate-500 text-center font-medium">{timeLabel}</div>
+            </div>
+          ) : (
+            <div className="text-[10px] text-slate-500 mt-1 text-center truncate font-medium" title={timeLabel}>
+              {timeLabel}
+            </div>
+          )}
         </div>
 
       </div>
@@ -171,14 +199,14 @@ export const WhatIfSimulator: React.FC = () => {
           </div>
           <div className="flex items-baseline space-x-1.5 pt-1">
             <span className="text-3xl font-extrabold text-forest-700">
-              +{Math.max(0, massSavedVsWorstCase)}
+              +{Math.max(0, massSavedVsPeak)}
             </span>
-            <span className="text-xs text-forest-600 font-medium">µg PM2.5 ({percentSaved}%)</span>
+            <span className="text-xs text-forest-600 font-medium">µg PM2.5 ({percentSavedVsPeak}%)</span>
           </div>
           <div className="text-xs font-medium text-forest-700">
-            {massSavedVsWorstCase > 0
-              ? 'Avoided via barrier mask & window timing'
-              : 'Unmitigated baseline exposure'}
+            {massSavedVsPeak > 0
+              ? `Saved vs unmitigated peak (~${Math.round(peakPm25)} µg/m³)`
+              : 'Peak unmitigated baseline exposure'}
           </div>
         </div>
 

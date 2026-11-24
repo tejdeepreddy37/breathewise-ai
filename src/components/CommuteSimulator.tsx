@@ -146,20 +146,29 @@ export const CommuteSimulator: React.FC = () => {
       </div>
 
       {/* Synthesis Insight */}
-      <div className="bg-cream-100 p-3.5 rounded-xl border border-cream-200 flex items-start space-x-2 text-xs text-slate-700">
-        <Leaf className="w-4 h-4 text-forest-600 shrink-0 mt-0.5" />
-        <p>
-          <span className="font-semibold text-slatecharcoal-900">Transit Methodological Notice:</span> In dense Indian arterial traffic, road-level diesel exhaust concentrates particles ~30% above rooftop monitors. Metro transit calculations include a realistic 10-minute outdoor station connection at road-level exposure. Shifting a {distanceKm} km commute from motorcycle to AC Metro avoids an estimated{' '}
-          <strong className="text-forest-700 font-bold">
-            {Math.round(comparisons[0].inhaledDoseUg - comparisons[4].inhaledDoseUg)} µg
-          </strong>{' '}
-          of fine particulate intake while preventing{' '}
-          <strong className="text-forest-700 font-bold">
-            {(comparisons[0].carbonEmissionKg - comparisons[4].carbonEmissionKg).toFixed(1)} kg
-          </strong>{' '}
-          of vehicular CO2.
-        </p>
-      </div>
+      {(() => {
+        const bikeComp = comparisons.find((c) => c.mode === 'two_wheeler_open') || comparisons[0];
+        const metroComp = comparisons.find((c) => c.mode === 'ac_metro') || comparisons[4];
+        const doseSaved = Math.max(0, Math.round(bikeComp.inhaledDoseUg - metroComp.inhaledDoseUg));
+        const co2Saved = Math.max(0, +(bikeComp.carbonEmissionKg - metroComp.carbonEmissionKg).toFixed(1));
+
+        return (
+          <div className="bg-cream-100 p-3.5 rounded-xl border border-cream-200 flex items-start space-x-2 text-xs text-slate-700">
+            <Leaf className="w-4 h-4 text-forest-600 shrink-0 mt-0.5" />
+            <p>
+              <span className="font-semibold text-slatecharcoal-900">Transit Methodological Notice:</span> In dense Indian arterial traffic, road-level diesel exhaust concentrates particles ~30% above rooftop monitors. Metro transit calculations include a realistic 10-minute outdoor station connection at road-level exposure. Shifting a {distanceKm} km commute from motorcycle to AC Metro avoids an estimated{' '}
+              <strong className="text-forest-700 font-bold">
+                {doseSaved} µg
+              </strong>{' '}
+              of fine particulate intake while preventing{' '}
+              <strong className="text-forest-700 font-bold">
+                {co2Saved} kg
+              </strong>{' '}
+              of vehicular CO2.
+            </p>
+          </div>
+        );
+      })()}
     </div>
   );
 };

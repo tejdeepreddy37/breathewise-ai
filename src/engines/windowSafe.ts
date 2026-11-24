@@ -41,17 +41,17 @@ export function calculateCleanAirWindow(hourly: HourlyDataPoint[]): CleanAirWind
   let lowestAvg = 9999;
   let bestOzoneAvg = 0;
 
-  // Search continuous blocks of 2 to 3 hours across available data
+  // Search continuous sequential blocks of 2 to 3 hours across available data
   for (let s = 0; s <= hourly.length - 2; s++) {
-    for (let e = s + 2; e <= Math.min(hourly.length - 1, s + 3); e++) {
-      const windowPoints = hourly.filter((p) => p.hour >= s && p.hour <= e);
-      if (windowPoints.length > 0) {
+    for (let e = s + 1; e <= Math.min(hourly.length - 1, s + 2); e++) {
+      const windowPoints = hourly.slice(s, e + 1);
+      if (windowPoints.length >= 2) {
         const sumPm = windowPoints.reduce((acc, p) => acc + p.pm25, 0);
         const avgPm = sumPm / windowPoints.length;
-        if (avgPm < lowestAvg) {
+        if (avgPm < lowestAvg || (avgPm === lowestAvg && (e - s) > (bestEnd - bestStart))) {
           lowestAvg = avgPm;
-          bestStart = s;
-          bestEnd = e;
+          bestStart = windowPoints[0].hour;
+          bestEnd = windowPoints[windowPoints.length - 1].hour;
           const sumO3 = windowPoints.reduce((acc, p) => acc + (p.o3 || 0), 0);
           bestOzoneAvg = Math.round(sumO3 / windowPoints.length);
         }
@@ -59,7 +59,6 @@ export function calculateCleanAirWindow(hourly: HourlyDataPoint[]): CleanAirWind
     }
   }
 
-  const windowPoints = hourly.filter((p) => p.hour >= bestStart && p.hour <= bestEnd);
   const avgPm25 = Math.round(lowestAvg === 9999 ? 75 : lowestAvg);
   
   // Calculate verified CPCB AQI for the window average

@@ -42,7 +42,7 @@ export const INDIAN_CITIES_PRESETS: CityPreset[] = [
     name: 'Mumbai — BKC / Bandra',
     state: 'Maharashtra',
     lat: 19.0657,
-    lon: 77.8687,
+    lon: 72.8687,
     waqiStationId: 'mumbai/bkc',
     typicalSmogSeverity: 'High',
   },

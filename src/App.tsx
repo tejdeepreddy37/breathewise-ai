@@ -82,6 +82,9 @@ export const App: React.FC = () => {
                 <IndoorCoachView />
               </div>
             </div>
+
+            {/* Physiological What-If Exposure Sandbox */}
+            <WhatIfSimulator />
           </div>
         )}
 
@@ -133,7 +136,7 @@ export const App: React.FC = () => {
             <strong>BreatheWise AI</strong> • PromptWars Virtual Challenge 06: Urban Air Quality Assistant
           </div>
           <div className="text-[11px] text-slate-400">
-            Powered by Copernicus CAMS, Open-Meteo, CPCB Standards & Google Gemini 1.5
+            Powered by Copernicus CAMS, Open-Meteo, CPCB Standards & Google Gemini 2.5 Flash / Pro
           </div>
         </div>
       </footer>

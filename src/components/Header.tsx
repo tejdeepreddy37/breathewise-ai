@@ -108,24 +108,30 @@ export const Header: React.FC = () => {
             {/* Data Provenance & Freshness Badge */}
             <button
               onClick={() => setIsTransparencyOpen(true)}
-              className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors cursor-pointer"
+              className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors cursor-pointer ${
+                meta.isLive && !isCached
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                  : isCached
+                  ? 'bg-cream-100 text-slatecharcoal-800 border-cream-300 hover:bg-cream-200'
+                  : 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100'
+              }`}
               title="Click to inspect data provenance, units & mathematical formulas"
             >
               {meta.isLive && !isCached ? (
-                <span className="bg-emerald-50 text-emerald-800 border-emerald-200 flex items-center">
+                <>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mr-1.5" />
                   <span className="hidden sm:inline text-slate-500 mr-1">Source:</span> CAMS Model Grid
-                </span>
+                </>
               ) : isCached ? (
-                <span className="bg-cream-100 text-slatecharcoal-800 border-cream-300 flex items-center">
+                <>
                   <Clock className="w-3 h-3 text-slate-500 mr-1.5" />
                   <span>{meta.fetchTimestamp}</span>
-                </span>
+                </>
               ) : (
-                <span className="bg-amber-50 text-amber-900 border-amber-300 flex items-center">
+                <>
                   <WifiOff className="w-3 h-3 text-amber-700 mr-1.5" />
                   <span>Simulated Profile (Demo)</span>
-                </span>
+                </>
               )}
             </button>
 

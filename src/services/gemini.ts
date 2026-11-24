@@ -272,6 +272,31 @@ export async function askBreatheWiseAssistant(
       return `Family Air Quality Guidance:\nOutdoor PM2.5 is ${pm} µg/m³. Today's relatively lower exposure window is ${window.displayWindow}. Schedule outdoor family activities during this window and avoid major arterial roadways during morning and evening rush hours.`;
     }
 
+    // Intent 5: Masks & Physical Barrier Filtration
+    if (qLower.includes('mask') || qLower.includes('n95') || qLower.includes('cloth') || qLower.includes('surgical') || qLower.includes('respirator')) {
+      return `Mask Efficacy & Barrier Science:\n• Cloth Masks: Provide only 20–25% nominal filtration for PM2.5 because woven fabric pores (20–100 µm) are much larger than fine combustion aerosols (<2.5 µm).\n• Surgical Masks: Filter ~60% under ideal conditions, but lack perimeter facial seal, allowing inward leakage around the cheeks and nose bridge.\n• Certified N95 / FFP2: Provides >95% filtration efficiency using electrostatically charged meltblown polypropylene microfibers that capture sub-micron particles via impaction, interception, and diffusion.\n\nRecommendation: When ambient PM2.5 exceeds 90 µg/m³, wear a snug-fitting N95 respirator for all outdoor transit.`;
+    }
+
+    // Intent 6: Indoor Plants vs Mechanical Filtration
+    if (qLower.includes('plant') || qLower.includes('plants') || qLower.includes('nasa')) {
+      return `Indoor Plants vs. Air Quality Reality:\nWhile the 1989 NASA Clean Air Study demonstrated that potted plants absorb certain VOCs (like benzene and formaldehyde) in sealed airtight test chambers over days, peer-reviewed building science studies show that plants have virtually NEGLIGIBLE (<1%) capacity to remove ambient fine particulate matter (PM2.5) in real-world ventilated rooms.\n\nTo clean particulate air indoors, mechanical HEPA filtration (with a Clean Air Delivery Rate of 200–300 m³/h) is required. Plants add psychological calm and aesthetics, but cannot substitute for a particulate filter.`;
+    }
+
+    // Intent 7: Atmospheric Inversion & Winter Smog Mechanics
+    if (qLower.includes('inversion') || qLower.includes('winter') || qLower.includes('why is pollution') || qLower.includes('stubble') || qLower.includes('night')) {
+      return `Atmospheric Mechanics & Inversion Trapping in ${telemetry.city}:\nDuring clear winter evenings, the Earth's surface radiates heat rapidly into space, cooling the ground air layer while warmer air remains aloft. This creates a "thermal inversion cap" where the planetary boundary layer collapses from ~1,200 meters in the afternoon down to 100–200 meters overnight.\n\nWith low surface wind speeds (<6 km/h), vehicular tailpipe emissions, brick kiln soot, and biomass smoke become physically trapped in a thin ground blanket, causing PM2.5 to double between 8 PM and 9 AM. Midday solar heating breaks this cap, creating today's lower exposure window (${window.displayWindow}).`;
+    }
+
+    // Intent 8: Overnight Purifier & Sleep Protection
+    if (qLower.includes('sleep') || qLower.includes('bedroom') || qLower.includes('overnight') || qLower.includes('nighttime')) {
+      return `Overnight Bedroom Air Protocol for ${telemetry.city}:\nHumans spend approximately 7 to 9 continuous hours in the bedroom, inhaling 2,500 to 3,500 litres of air. Because outdoor nocturnal inversion traps severe pollution at ground level, particles seep through window cracks.\n\nActionable Directive:\n1. Keep bedroom windows and doors closed to minimize the infiltration volume.\n2. Run your HEPA air purifier continuously on Quiet / Medium mode placed at least 1 meter away from walls and near breathing height.\n3. Avoid burning mosquito coils or dhoop incense, which emit high concentrations of formaldehyde and PM2.5 in closed bedrooms.`;
+    }
+
+    // Intent 9: CPCB NAQI vs US EPA AQI Standards
+    if (qLower.includes('cpcb') || qLower.includes('epa') || qLower.includes('difference between') || qLower.includes('standard') || qLower.includes('scale')) {
+      return `Understanding CPCB NAQI vs. US EPA AQI:\n• Indian CPCB NAQI: Calibrated by the Central Pollution Control Board (2014) for Indian ambient realities. Its PM2.5 scale is: 0–30 (Good), 31–60 (Satisfactory), 61–90 (Moderate), 91–120 (Poor), 121–250 (Very Poor), and 250+ (Severe). Current CPCB NAQI for ${telemetry.city} is ${telemetry.current.aqi} (${telemetry.current.aqiCategory}).\n• US EPA AQI: Employs stricter public health brackets: 0–12 µg/m³ (Good), 12.1–35.4 (Moderate), 35.5–55.4 (Unhealthy for Sensitive), 55.5–150.4 (Unhealthy), 150.5–250.4 (Very Unhealthy), and 250.5+ (Hazardous).\n\nBreatheWise displays both in the Transparency Drawer so users and judges can compare verified global standards side-by-side.`;
+    }
+
     // Default: General Overview
     return `In ${telemetry.city}, current PM2.5 is ${telemetry.current.pm25} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}). Today's lowest relative exposure window is ${window.displayWindow} (${window.statusLabel}). For your selected ${profile} profile, prioritize barrier protection (N95) during rush hours and keep indoor spaces sealed when outdoor air is elevated.`;
   }

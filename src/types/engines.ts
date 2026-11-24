@@ -47,11 +47,15 @@ export interface CommuteComparison {
   assumptions: string;
 }
 
+export type IndoorSourceType = 'none' | 'cooking_frying' | 'incense_smoke' | 'high_co2_stuffy';
+
 export interface IndoorVentilationRecommendation {
   safeWindowActive: boolean;
   safeWindowText: string;
   outdoorPm25: number;
   outdoorO3?: number;
+  indoorSource?: IndoorSourceType;
+  indoorSourceDirective?: string;
   estimatedIndoorBaselinePm25: number; // with infiltration ratio ~0.45
   actionDirective: string;
   windowAction: 'SEAL_COMPLETELY' | 'CRACK_FLUSH_NOW' | 'OPEN_CROSS_VENTILATE' | 'INSUFFICIENT_DATA';
