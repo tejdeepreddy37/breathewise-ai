@@ -45,84 +45,83 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cream-50 flex flex-col font-sans text-slatecharcoal-900 pb-20 md:pb-12 selection:bg-forest-100 selection:text-forest-700">
+    <div className="min-h-screen bg-[#FAFBF8] flex flex-col font-sans text-slatecharcoal-900 pb-20 md:pb-12 selection:bg-emerald-100 selection:text-emerald-800">
       <Header />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 overflow-x-hidden">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-5 overflow-x-hidden">
         
-        {/* Desktop Segmented Navigation Pills */}
-        <div className="hidden md:flex items-center space-x-1.5 bg-cream-200/60 p-1.5 rounded-2xl border border-cream-200/80 w-fit shadow-2xs">
-          {desktopTabs.map((t) => {
-            const isActive = activeTab === t.id;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setActiveTab(t.id as any)}
-                className={`flex items-center space-x-2 py-2 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-white text-forest-700 shadow-soft ring-1 ring-cream-300/60'
-                    : 'text-slate-600 hover:text-slatecharcoal-900 hover:bg-white/50'
-                }`}
-              >
-                {t.icon}
-                <span>{t.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
         {/* View Switcher based on activeTab */}
         {activeTab === 'overview' && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            {/* Signature Clean-Air Directive Hero */}
+          <div className="space-y-5 animate-in fade-in duration-200">
+            {/* Signature Clean-Air Directive Hero (Exact Image 2 Match) */}
             <HeroDirective />
 
-            {/* Scientific Telemetry Strip */}
+            {/* Scientific Telemetry Strip (Exact Image 2 Match) */}
             <MetricsStrip />
 
-            {/* Two-Column Grid: Diurnal Chart + AI Living Plan */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className="lg:col-span-7 space-y-6">
+            {/* Exact 2x2 Grid Matching Image 2 */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* Row 1 Left: WindowSafe Diurnal Forecast */}
+              <div className="w-full">
                 <DiurnalChart />
+              </div>
+
+              {/* Row 1 Right: What-If Exposure Sandbox */}
+              <div className="w-full">
+                <WhatIfSimulator />
+              </div>
+
+              {/* Row 2 Left: Commute Exposure & Eco-Swap */}
+              <div className="w-full">
                 <CommuteSimulator />
               </div>
-              <div className="lg:col-span-5 space-y-6">
-                <AiLivingPlanCard />
+
+              {/* Row 2 Right: Indoor Envelope & Air Coach */}
+              <div className="w-full">
                 <IndoorCoachView />
               </div>
             </div>
 
-            {/* Physiological What-If Exposure Sandbox */}
-            <WhatIfSimulator />
+            {/* AI Living Plan Assistant Card */}
+            <div className="pt-2">
+              <AiLivingPlanCard />
+            </div>
           </div>
         )}
 
         {activeTab === 'commute' && (
-          <div className="space-y-6 animate-in fade-in duration-200">
+          <div className="space-y-5 animate-in fade-in duration-200">
             <HeroDirective />
             <CommuteSimulator />
           </div>
         )}
 
         {activeTab === 'indoor' && (
-          <div className="space-y-6 animate-in fade-in duration-200">
+          <div className="space-y-5 animate-in fade-in duration-200">
             <HeroDirective />
             <IndoorCoachView />
           </div>
         )}
 
         {activeTab === 'simulator' && (
-          <div className="space-y-6 animate-in fade-in duration-200">
+          <div className="space-y-5 animate-in fade-in duration-200">
             <HeroDirective />
             <WhatIfSimulator />
           </div>
         )}
 
         {activeTab === 'assistant' && (
-          <div className="space-y-6 animate-in fade-in duration-200">
+          <div className="space-y-5 animate-in fade-in duration-200">
             <HeroDirective />
-            <AiAssistantFeed />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              <div className="lg:col-span-5">
+                <AiLivingPlanCard />
+              </div>
+              <div className="lg:col-span-7">
+                <AiAssistantFeed />
+              </div>
+            </div>
           </div>
         )}
 

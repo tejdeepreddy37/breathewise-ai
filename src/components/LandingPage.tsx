@@ -1,260 +1,287 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { InteractiveGlobe } from './InteractiveGlobe';
+import { InteractiveGlobe, GLOBE_CITIES } from './InteractiveGlobe';
 import { 
   Wind, 
-  Sparkles, 
-  ArrowRight, 
-  Clock, 
-  Sliders, 
-  ShieldCheck, 
-  Fan, 
-  Navigation, 
-  Info,
+  Leaf, 
+  ShieldAlert, 
+  Share2, 
+  ChevronDown, 
+  ArrowRight,
+  Globe2,
+  Sliders,
   CheckCircle2,
-  Atom,
-  Flame,
-  Globe2
+  Calendar,
+  Layers
 } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
-  const { setActiveTab, selectCity, setIsTransparencyOpen } = useApp();
+  const { setActiveTab, selectedCityId, selectCity, setIsTransparencyOpen, telemetry } = useApp();
+  const [selectedCountry, setSelectedCountry] = useState<string>('India 🇮🇳');
 
-  const handleExplore = (cityId?: string) => {
+  // Active city telemetry or fallback
+  const currentCityData = GLOBE_CITIES.find((c) => c.id === selectedCityId) || GLOBE_CITIES[1];
+  const aqiVal = telemetry?.current?.aqi || currentCityData.aqi;
+  const aqiCat = telemetry?.current?.aqiCategory || currentCityData.category;
+  const dominant = telemetry?.current?.primaryPollutant || 'PM2.5';
+  const windSpd = telemetry?.weather?.windSpeed || currentCityData.windSpeed;
+
+  // Format current live timestamp matching Image 1: "25 Jul 2025 • 10:11 AM (IST)"
+  const now = new Date();
+  const formattedDate = `${now.getDate()} ${now.toLocaleString('en-US', { month: 'short' })} ${now.getFullYear()} • ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (IST)`;
+
+  const handleLaunchApp = (cityId?: string) => {
     if (cityId) selectCity(cityId);
     setActiveTab('overview');
   };
 
   return (
-    <div className="min-h-screen bg-[#070B14] text-slate-100 flex flex-col font-sans selection:bg-forest-600 selection:text-white relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#070D18] text-slate-100 flex flex-col font-sans relative overflow-x-hidden selection:bg-emerald-500 selection:text-slate-900">
       
-      {/* Background Radial Atmospheric Glows */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[550px] bg-gradient-to-b from-blue-900/25 via-emerald-950/15 to-transparent rounded-full blur-3xl pointer-events-none -z-0" />
-      <div className="absolute top-1/3 left-10 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none -z-0" />
-      <div className="absolute top-1/2 right-10 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none -z-0" />
+      {/* 1. Cinematic Atmospheric Background with Mountain Horizon (Matches Image 1) */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#060B16] via-[#091528] to-[#040812] pointer-events-none" />
+      
+      {/* Mountain & Cloud Silhouette at bottom horizon */}
+      <div 
+        className="absolute bottom-0 inset-x-0 h-80 opacity-40 pointer-events-none bg-gradient-to-t from-[#02050B] via-[#08182B]/60 to-transparent"
+        style={{
+          maskImage: 'radial-gradient(ellipse at bottom, black 60%, transparent 100%)',
+          WebkitMaskImage: 'radial-gradient(ellipse at bottom, black 60%, transparent 100%)',
+        }}
+      />
 
-      {/* Elegant Atmospheric Header */}
-      <header className="sticky top-0 z-40 bg-[#070B14]/80 backdrop-blur-md border-b border-slate-800/80 transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
-            
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-forest-600 to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-forest-500/20">
-                <Wind className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <span className="font-extrabold text-lg text-white tracking-tight">
-                    BreatheWise<span className="text-emerald-400 font-black ml-0.5">AI</span>
-                  </span>
-                  <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-800/60">
-                    <Sparkles className="w-2.5 h-2.5 mr-1 text-emerald-400" /> Challenge 06
-                  </span>
-                </div>
-                <p className="hidden md:block text-[11px] text-slate-400 font-medium">
-                  Personal Air Intelligence & Exposure-Aware Living
-                </p>
-              </div>
+      {/* 2. Top Navigation Bar (Exact match to Image 1) */}
+      <header className="relative z-30 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
+        <div className="flex items-center justify-between h-16 sm:h-18">
+          
+          {/* Logo */}
+          <div className="flex items-center space-x-2.5 cursor-pointer" onClick={() => handleLaunchApp()}>
+            {/* Green Cloud Icon with Leaf Cutout */}
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 shadow-lg shadow-emerald-500/25">
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM10 17l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+              </svg>
             </div>
-
-            {/* Quick Navigation Links */}
-            <nav className="hidden md:flex items-center space-x-6 text-xs font-semibold text-slate-300">
-              <button 
-                onClick={() => setActiveTab('overview')} 
-                className="hover:text-white transition-colors cursor-pointer"
-              >
-                Air Intelligence
-              </button>
-              <button 
-                onClick={() => setActiveTab('commute')} 
-                className="hover:text-white transition-colors cursor-pointer"
-              >
-                Commute Eco-Swap
-              </button>
-              <button 
-                onClick={() => setActiveTab('indoor')} 
-                className="hover:text-white transition-colors cursor-pointer"
-              >
-                Indoor Coach
-              </button>
-              <button 
-                onClick={() => setActiveTab('simulator')} 
-                className="hover:text-white transition-colors cursor-pointer"
-              >
-                What-If Sandbox
-              </button>
-              <button 
-                onClick={() => setActiveTab('assistant')} 
-                className="hover:text-white transition-colors cursor-pointer"
-              >
-                AI Assistant
-              </button>
-            </nav>
-
-            {/* Action CTA & Methodology */}
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setIsTransparencyOpen(true)}
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 border border-slate-800 transition-all cursor-pointer"
-                title="Inspect Scientific Methodology"
-                aria-label="Inspect Scientific Methodology"
-              >
-                <Info className="w-4 h-4" />
-              </button>
-
-              <button
-                onClick={() => handleExplore()}
-                className="flex items-center space-x-2 py-2 px-4 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-600/20 cursor-pointer"
-              >
-                <span>Launch App</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
+            <span className="font-extrabold text-xl text-white tracking-tight">
+              BreatheWise <span className="text-emerald-400">AI</span>
+            </span>
           </div>
+
+          {/* Center Navigation Links with Active Green Pill */}
+          <nav className="hidden lg:flex items-center space-x-1.5 p-1 rounded-full bg-slate-900/60 border border-slate-800/80 backdrop-blur-md">
+            <button
+              onClick={() => setActiveTab('landing')}
+              className="px-4 py-1.5 rounded-full text-xs font-bold bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20 cursor-pointer"
+            >
+              Air Quality
+            </button>
+            <button
+              onClick={() => handleLaunchApp()}
+              className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+            >
+              Air Monitors
+            </button>
+            <button
+              onClick={() => handleLaunchApp()}
+              className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+            >
+              Discover
+            </button>
+            <button
+              onClick={() => setIsTransparencyOpen(true)}
+              className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+            >
+              About
+            </button>
+            <button
+              onClick={() => setIsTransparencyOpen(true)}
+              className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+            >
+              Technology
+            </button>
+          </nav>
+
+          {/* Right Action CTA */}
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => handleLaunchApp()}
+              className="flex items-center space-x-1.5 px-5 py-2.5 rounded-full text-xs font-extrabold bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 transition-all shadow-lg shadow-emerald-500/25 hover:scale-[1.02] cursor-pointer"
+            >
+              <span>Get Started</span>
+              <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+            </button>
+          </div>
+
         </div>
       </header>
 
-      {/* Hero Section with Interactive Globe */}
-      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-14 pb-12 flex flex-col items-center text-center">
+      {/* 3. Main Hero Viewport (Split Layout: Left Intelligence Cards, Right Cinematic 3D Earth) */}
+      <main className="relative z-20 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
         
-        {/* Challenge & Status Pill */}
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/80 text-xs text-slate-300 backdrop-blur-md mb-6 shadow-md">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-semibold text-white">Urban Air Quality Assistant</span>
-          <span className="text-slate-500">•</span>
-          <span>Copernicus CAMS & CPCB Standards</span>
-        </div>
-
-        {/* Compelling Brand Statement Headline */}
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight max-w-4xl">
-          Don't just understand the air.{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-sky-400">
-            Understand how to live in it.
-          </span>
-        </h1>
-
-        <p className="text-sm sm:text-base lg:text-lg text-slate-300 max-w-2xl mt-4 leading-relaxed font-normal">
-          BreatheWise AI couples continuous CPCB atmospheric interpolation, 24-hour diurnal boundary layer physics, and EPA minute ventilation rates with grounded AI to turn complex environmental data into practical daily decisions.
-        </p>
-
-        {/* Primary Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mt-8">
-          <button
-            onClick={() => handleExplore()}
-            className="flex items-center space-x-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-forest-600 to-emerald-600 hover:from-forest-500 hover:to-emerald-500 text-white font-bold text-sm shadow-xl shadow-emerald-900/30 hover:scale-[1.02] transition-all cursor-pointer"
-          >
-            <span>Explore Air Intelligence</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={() => setIsTransparencyOpen(true)}
-            className="flex items-center space-x-2 px-5 py-3.5 rounded-2xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-700 font-semibold text-sm backdrop-blur-md transition-all cursor-pointer"
-          >
-            <Atom className="w-4 h-4 text-emerald-400" />
-            <span>Scientific Methodology</span>
-          </button>
-        </div>
-
-        {/* Centerpiece: 3D Interactive Atmospheric Earth Globe */}
-        <div className="w-full mt-10">
-          <InteractiveGlobe onExploreCity={(cityId) => handleExplore(cityId)} />
-        </div>
-
-      </section>
-
-      {/* 3 Pillars of Decision Intelligence Teaser Section */}
-      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-800/80">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
-            Validated Environmental Decision Support
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1">
-            Why BreatheWise AI is Fundamentally Different
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-2">
-            Generic dashboards give you an abstract colored number. BreatheWise models physical exposure, diurnal convection, and building envelopes to guide real life.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Left Column: Typography, Time Context & Glass Intelligence Cards */}
+        <div className="w-full lg:w-[460px] flex flex-col justify-center space-y-5 z-30 text-left">
           
-          {/* Pillar 1 */}
-          <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md hover:border-slate-700 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-950/80 text-emerald-400 border border-emerald-800/50 flex items-center justify-center">
-              <Clock className="w-5 h-5" />
+          {/* Small Top Tag */}
+          <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-400/90 flex items-center space-x-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>GLOBAL AIR INTELLIGENCE</span>
+          </div>
+
+          {/* Headline (Exact match to Image 1: "Air Quality Index" with Index in Green) */}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.08]">
+            Air Quality <span className="text-emerald-400">Index</span>
+          </h1>
+
+          {/* Date, Time & Location Dropdown Line (Image 1 match) */}
+          <div className="flex items-center space-x-3 text-xs text-slate-300 pt-0.5">
+            <span className="w-1 h-4 bg-emerald-500 rounded-full shrink-0" />
+            <span className="font-medium font-mono text-slate-300">{formattedDate}</span>
+            <span className="text-slate-600">|</span>
+            <div className="relative inline-flex items-center space-x-1 font-semibold text-white bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-700/60 cursor-pointer">
+              <span>Location: {selectedCountry}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
             </div>
-            <h3 className="text-base font-bold text-white tracking-tight">
-              WindowSafe™ Diurnal Engine
-            </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              In northern and peninsular India, morning inversions trap ground soot. BreatheWise models the 24-hour planetary boundary layer to locate the convective solar dilution valley, pinpointing the optimal 45-minute window for indoor fresh-air exchange.
+          </div>
+
+          {/* Card 1: "Live Air Snapshot" (Exact match to Image 1) */}
+          <div className="relative p-5 rounded-3xl bg-slate-900/75 border border-emerald-500/35 backdrop-blur-xl shadow-2xl overflow-hidden group hover:border-emerald-400/60 transition-all">
+            {/* Glowing Green Wave Accent Graphic in top-right */}
+            <div className="absolute top-2 right-2 w-32 h-20 opacity-70 pointer-events-none">
+              <svg viewBox="0 0 120 60" fill="none" className="w-full h-full">
+                <path
+                  d="M0 30 Q 30 10, 60 30 T 120 30"
+                  stroke="#10B981"
+                  strokeWidth="3"
+                  fill="none"
+                  className="animate-pulse"
+                />
+                <path
+                  d="M0 38 Q 30 18, 60 38 T 120 38"
+                  stroke="#059669"
+                  strokeWidth="1.5"
+                  fill="none"
+                  opacity="0.6"
+                />
+              </svg>
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center space-x-2 text-xs font-bold text-white mb-3">
+              <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/40">
+                <Leaf className="w-3.5 h-3.5" />
+              </div>
+              <span>Live Air Snapshot</span>
+            </div>
+
+            {/* Middle Row: Massive AQI Number & Status Badge */}
+            <div className="flex items-baseline space-x-3 my-2">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">AQI</span>
+                <span className="text-5xl font-black text-emerald-400 tracking-tight font-mono">
+                  {aqiVal}
+                </span>
+              </div>
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-slate-950 font-sans shadow-md shadow-emerald-500/20">
+                {aqiCat}
+              </span>
+            </div>
+
+            {/* Bottom Row: Dominant Pollutant & Wind */}
+            <div className="flex items-center justify-between text-xs text-slate-300 pt-3 border-t border-slate-800/80 font-medium">
+              <div>
+                <span className="text-slate-400">Dominant Pollutant:</span>{' '}
+                <strong className="text-white">{dominant}</strong>
+              </div>
+              <div>
+                <span className="text-slate-400">Wind:</span>{' '}
+                <strong className="text-white font-mono">{windSpd} km/h</strong>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: "Risk of Pollution" (Exact match to Image 1) */}
+          <div className="relative p-5 rounded-3xl bg-slate-900/75 border border-slate-700/60 backdrop-blur-xl shadow-2xl overflow-hidden hover:border-slate-600 transition-all">
+            {/* Top Row: Title & Details Button */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2 text-xs font-bold text-white">
+                <div className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/40">
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                </div>
+                <span>Risk of Pollution</span>
+              </div>
+
+              <button
+                onClick={() => handleLaunchApp()}
+                className="flex items-center space-x-1 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition-colors shadow-md shadow-amber-500/20 cursor-pointer"
+              >
+                <span>Details</span>
+                <span className="text-xs">→</span>
+              </button>
+            </div>
+
+            {/* Middle Row: Large Risk % & Stepped Colored Bar Chart */}
+            <div className="flex items-center justify-between my-2">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Risk</span>
+                <span className="text-3xl font-black text-amber-400 tracking-tight font-mono">
+                  {aqiVal > 300 ? '92%' : aqiVal > 150 ? '65%' : '35%'}
+                </span>
+              </div>
+
+              {/* Multi-step stepped risk chart (green -> yellow -> orange -> red) */}
+              <div className="flex items-end space-x-1 h-8">
+                {[
+                  { h: 30, color: 'bg-emerald-500' },
+                  { h: 45, color: 'bg-emerald-400' },
+                  { h: 55, color: 'bg-lime-400' },
+                  { h: 65, color: 'bg-yellow-400' },
+                  { h: 75, color: 'bg-amber-400' },
+                  { h: 85, color: 'bg-orange-500' },
+                  { h: 95, color: 'bg-red-500' },
+                ].map((bar, idx) => (
+                  <div
+                    key={idx}
+                    className={`w-2.5 rounded-sm ${bar.color} transition-all`}
+                    style={{ height: `${bar.h}%`, opacity: idx <= (aqiVal > 300 ? 6 : aqiVal > 150 ? 4 : 2) ? 1 : 0.25 }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Bottom Row: Risk reason */}
+            <p className="text-[11px] text-slate-400 pt-2 border-t border-slate-800/80 leading-relaxed">
+              {aqiVal > 300
+                ? 'Severe health risk: limit outdoor physical exertion and keep windows sealed.'
+                : aqiVal > 150
+                ? 'Elevated particulate risk during diurnal inversion peaks.'
+                : 'Moderate risk due to prevailing atmospheric and weather conditions.'}
             </p>
           </div>
 
-          {/* Pillar 2 */}
-          <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md hover:border-slate-700 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-sky-950/80 text-sky-400 border border-sky-800/50 flex items-center justify-center">
-              <Sliders className="w-5 h-5" />
+          {/* Social Share Icons (Bottom Left match to Image 1) */}
+          <div className="flex items-center space-x-2 pt-1 text-slate-400">
+            <div className="w-8 h-8 rounded-full bg-slate-900/80 border border-slate-700/80 flex items-center justify-center hover:text-white cursor-pointer transition-colors">
+              <span className="text-xs font-bold">f</span>
             </div>
-            <h3 className="text-base font-bold text-white tracking-tight">
-              Physiological What-If Sandbox
-            </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Standard tools conflate ambient air (µg/m³) with personal risk. BreatheWise models gross inspired particulate mass ($M = C \cdot V_E \cdot t \cdot [1 - \eta]$) using EPA minute ventilation tables, calculating exact microgram savings from N95 masks.
-            </p>
-          </div>
-
-          {/* Pillar 3 */}
-          <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md hover:border-slate-700 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-950/80 text-amber-400 border border-amber-800/50 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-full bg-slate-900/80 border border-slate-700/80 flex items-center justify-center hover:text-white cursor-pointer transition-colors">
+              <span className="text-xs font-bold">w</span>
             </div>
-            <h3 className="text-base font-bold text-white tracking-tight">
-              Indoor Safety & Commute Eco-Swap
-            </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Features an active indoor ventilation safety lockout (strictly sealing windows whenever ambient PM2.5 &gt; 60 µg/m³ or Ozone &gt; 100 µg/m³), while modeling personal inhaled exposure versus vehicular carbon emissions across 6 transit modes.
-            </p>
           </div>
 
         </div>
 
-        {/* Bottom Callout Banner */}
-        <div className="mt-12 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-emerald-950/60 via-slate-900/80 to-blue-950/60 border border-emerald-800/40 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="space-y-1 text-center sm:text-left">
-            <h3 className="text-lg font-bold text-white">
-              Ready to adapt your daily routine?
-            </h3>
-            <p className="text-xs text-slate-400">
-              Select your city on the globe or launch directly into the personalized decision intelligence workspace.
-            </p>
-          </div>
-          <button
-            onClick={() => handleExplore()}
-            className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-extrabold text-xs shadow-lg shadow-emerald-500/20 transition-all cursor-pointer whitespace-nowrap"
-          >
-            Launch BreatheWise AI →
-          </button>
+        {/* Right Column: Large Interactive 3D Earth Globe */}
+        <div className="w-full lg:flex-1 flex items-center justify-center relative">
+          <InteractiveGlobe
+            onExploreCity={(cityId) => handleLaunchApp(cityId)}
+            activeView="globe"
+            onToggleView={(view) => {
+              if (view === 'map') handleLaunchApp();
+            }}
+          />
         </div>
 
-      </section>
-
-      {/* Atmospheric Footer */}
-      <footer className="border-t border-slate-800/80 py-8 text-center text-xs text-slate-500 mt-auto bg-[#050811]">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center space-x-2">
-            <span className="font-bold text-slate-300">BreatheWise AI</span>
-            <span>•</span>
-            <span className="text-slate-400">PromptWars Virtual Challenge 06: Urban Air Quality Assistant</span>
-          </div>
-          <div className="text-[11px] text-slate-400">
-            Copernicus Atmosphere Monitoring Service (CAMS), Open-Meteo & Central Pollution Control Board (CPCB)
-          </div>
-        </div>
-      </footer>
+      </main>
 
     </div>
   );

@@ -10,7 +10,7 @@ import {
   ReferenceArea,
   ReferenceLine,
 } from 'recharts';
-import { Clock, Sun, TrendingDown, Layers, AlertCircle } from 'lucide-react';
+import { Leaf, Sun, Clock } from 'lucide-react';
 
 export const DiurnalChart: React.FC = () => {
   const { telemetry, cleanAirWindow } = useApp();
@@ -19,23 +19,19 @@ export const DiurnalChart: React.FC = () => {
   const currentHour = new Date().getHours();
   const [selectedSegment, setSelectedSegment] = useState<'morning' | 'window' | 'evening' | 'night'>('window');
 
-  // Compute active highlight boundaries
+  // Active highlight boundaries
   let activeX1 = cleanAirWindow.startHour;
   let activeX2 = cleanAirWindow.endHour;
-  let segmentNote = cleanAirWindow.convectiveReasoning || 'Solar convection expands the boundary layer, diluting ground smoke.';
 
   if (selectedSegment === 'morning') {
     activeX1 = 7;
     activeX2 = 10;
-    segmentNote = 'Morning Inversion Peak (07:00–10:00): Nocturnal radiative cooling caps vertical mixing; surface traffic exhaust accumulates rapidly.';
   } else if (selectedSegment === 'evening') {
     activeX1 = 18;
     activeX2 = 21;
-    segmentNote = 'Evening Traffic Surge (18:00–21:00): Evening commute emissions surge as solar radiation wanes, re-trapping pollutants near the surface.';
   } else if (selectedSegment === 'night') {
     activeX1 = 22;
     activeX2 = 23;
-    segmentNote = 'Nocturnal Cooling (22:00–06:00): The planetary boundary layer drops to 100–150m under clear skies, concentrating ambient particulate matter.';
   }
 
   const CustomTooltip = ({ active, payload }: any) => {
@@ -45,35 +41,22 @@ export const DiurnalChart: React.FC = () => {
       const isWindow = pt.hour >= cleanAirWindow.startHour && pt.hour <= cleanAirWindow.endHour;
 
       return (
-        <div className="bg-slatecharcoal-900 text-white p-3.5 rounded-2xl shadow-float text-xs space-y-2 border border-slate-700/80 max-w-[230px] backdrop-blur-md">
+        <div className="bg-slatecharcoal-900 text-white p-3 rounded-2xl shadow-float text-xs space-y-1.5 border border-slate-700/80 max-w-[210px] backdrop-blur-md">
           <div className="font-semibold text-slate-200 flex items-center justify-between">
             <span className="font-mono text-xs">{hourFormatted}</span>
             {isWindow && (
               <span className="text-[10px] bg-emerald-500 text-white px-2 py-0.5 rounded-full font-bold shadow-xs">
-                CONVECTIVE DIP
+                OPTIMAL
               </span>
             )}
           </div>
           <div className="flex justify-between items-baseline pt-1 border-t border-slate-800">
-            <span className="text-slate-400">PM2.5 Conc:</span>
+            <span className="text-slate-400">PM2.5:</span>
             <span className="font-black text-sm text-emerald-400">{pt.pm25} µg/m³</span>
           </div>
-          <div className="flex justify-between items-center text-[11px]">
-            <span className="text-slate-400">CPCB NAQI:</span>
+          <div className="flex justify-between items-center text-[10px] text-slate-400">
+            <span>CPCB NAQI:</span>
             <span className="font-bold text-slate-100">{pt.cpcbAqi}</span>
-          </div>
-          {pt.o3 != null && (
-            <div className="flex justify-between items-center text-[11px]">
-              <span className="text-slate-400">Ozone (O3):</span>
-              <span className="font-medium text-amber-300">{pt.o3} µg/m³</span>
-            </div>
-          )}
-          <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-800/80 leading-relaxed italic">
-            {isWindow
-              ? 'Convective solar mixing expands the atmospheric boundary layer, diluting ground smoke.'
-              : pt.hour < 11
-              ? 'Morning surface temperature inversion cap traps traffic soot.'
-              : 'Evening traffic accumulation combined with nocturnal radiative cooling.'}
           </div>
         </div>
       );
@@ -82,51 +65,52 @@ export const DiurnalChart: React.FC = () => {
   };
 
   return (
-    <div className="rounded-3xl bg-white border border-stone-200/80 p-6 sm:p-7 shadow-soft space-y-5 transition-all">
+    <div className="rounded-3xl bg-white border border-stone-200/80 p-5 sm:p-6 shadow-xs flex flex-col justify-between h-full">
       
-      {/* Header and Callout */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
-        <div>
-          <div className="flex items-center space-x-2">
-            <div className="p-1.5 rounded-xl bg-forest-50 text-forest-600">
-              <Clock className="w-4 h-4" />
-            </div>
-            <h2 className="text-base sm:text-lg font-bold text-slatecharcoal-900 tracking-tight">
-              WindowSafe™ 24-Hour Diurnal Forecast
-            </h2>
+      {/* Header (Exact Match to Image 2) */}
+      <div className="flex items-start justify-between pb-2 border-b border-stone-100">
+        <div className="flex items-center space-x-2.5">
+          <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0">
+            <Leaf className="w-4 h-4" />
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Hourly particulate concentration modeling convective solar dispersion vs. nocturnal inversion traps
-          </p>
-        </div>
-
-        {/* Illuminated Window Pill */}
-        <div className="flex items-center space-x-2 self-start sm:self-auto">
-          <span className="inline-flex items-center text-xs font-semibold bg-emerald-50 text-emerald-800 px-3 py-1 rounded-full border border-emerald-200 shadow-xs">
-            <Sun className="w-3.5 h-3.5 mr-1.5 text-emerald-600 animate-spin-slow" />
-            <span>Optimal Window: {cleanAirWindow.displayWindow}</span>
-          </span>
+          <div>
+            <h3 className="text-sm sm:text-base font-bold text-slatecharcoal-900 tracking-tight">
+              WindowSafe™ 24-Hour Diurnal Forecast
+            </h3>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Find the safest time to ventilate based on daily pollution shifts
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Main Recharts Container */}
-      <div className="h-64 sm:h-72 w-full pt-1">
+      {/* Main Curved Diurnal Chart with Highlighted Optimal Window (Exact match to Image 2) */}
+      <div className="relative h-56 sm:h-64 w-full pt-3">
+        
+        {/* Floating Optimal Window Badge (Matches Image 2 green pill above the valley) */}
+        <div className="absolute top-1 left-1/2 -translate-x-1/2 z-10 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold shadow-xs flex items-center space-x-1">
+          <Sun className="w-3.5 h-3.5 text-emerald-600 animate-spin-slow" />
+          <span>Optimal Window: {cleanAirWindow.displayWindow}</span>
+          <span className="text-emerald-600 ml-1">↓ ~{cleanAirWindow.reductionVsPeakPercent}% vs peak</span>
+        </div>
+
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 12, right: 10, left: -22, bottom: 0 }}>
+          <AreaChart data={data} margin={{ top: 28, right: 10, left: -20, bottom: 0 }}>
             <defs>
-              <linearGradient id="breathewiseGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#2D6A4F" stopOpacity={0.45} />
-                <stop offset="95%" stopColor="#2D6A4F" stopOpacity={0.01} />
+              <linearGradient id="diurnalGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#EF4444" stopOpacity={0.4} />
+                <stop offset="50%" stopColor="#F59E0B" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#10B981" stopOpacity={0.05} />
               </linearGradient>
             </defs>
 
-            {/* Highlighted Clean Window or Selected Diurnal Segment Zone */}
+            {/* Highlighted Clean Window Zone */}
             <ReferenceArea
               x1={activeX1}
               x2={activeX2}
-              strokeOpacity={0.3}
-              stroke="#2D6A4F"
-              fill="#2D6A4F"
+              strokeOpacity={0.25}
+              stroke="#10B981"
+              fill="#10B981"
               fillOpacity={0.12}
             />
 
@@ -140,138 +124,61 @@ export const DiurnalChart: React.FC = () => {
                 value: 'NOW',
                 position: 'top',
                 fill: '#D97706',
-                fontSize: 10,
-                fontWeight: 'bold',
-              }}
-            />
-
-            {/* WHO Daily PM2.5 Guideline (15 µg/m³) Reference */}
-            <ReferenceLine
-              y={15}
-              stroke="#059669"
-              strokeDasharray="4 4"
-              strokeWidth={1}
-              label={{
-                value: 'WHO 15µg',
-                position: 'right',
-                fill: '#059669',
                 fontSize: 9,
+                fontWeight: 'bold',
               }}
             />
 
             <XAxis
               dataKey="hour"
-              tickFormatter={(h) => `${h % 12 === 0 ? 12 : h % 12}${h >= 12 ? 'p' : 'a'}`}
-              tick={{ fontSize: 11, fill: '#64748B' }}
+              tickFormatter={(h) => `${h % 12 === 0 ? 12 : h % 12} ${h >= 12 ? 'PM' : 'AM'}`}
+              tick={{ fontSize: 10, fill: '#64748B' }}
               axisLine={{ stroke: '#E2E8F0' }}
               tickLine={false}
+              ticks={[6, 8, 10, 12, 14, 16, 18, 20, 22]}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: '#64748B' }}
+              tick={{ fontSize: 10, fill: '#64748B' }}
               axisLine={{ stroke: '#E2E8F0' }}
               tickLine={false}
-              unit="µg"
+              domain={[0, 300]}
+              unit=""
             />
             <Tooltip content={<CustomTooltip />} />
             <Area
               type="monotone"
               dataKey="pm25"
-              stroke="#2D6A4F"
+              stroke="#EF4444"
               strokeWidth={2.5}
               fillOpacity={1}
-              fill="url(#breathewiseGradient)"
-              activeDot={{ r: 5, fill: '#2D6A4F', stroke: '#FFFFFF', strokeWidth: 2 }}
+              fill="url(#diurnalGradient)"
+              activeDot={{ r: 5, fill: '#10B981', stroke: '#FFFFFF', strokeWidth: 2 }}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
-      {/* 4 Interactive Diurnal Segment Selector Buttons */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-stone-100 text-xs">
-        <button
-          onClick={() => setSelectedSegment('morning')}
-          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
-            selectedSegment === 'morning'
-              ? 'bg-amber-50/80 border-amber-300 ring-1 ring-amber-400 shadow-2xs'
-              : 'bg-stone-50 border-stone-200/60 hover:bg-stone-100'
-          }`}
-        >
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-            07:00 – 10:00
-          </div>
-          <div className="font-semibold text-slatecharcoal-900 mt-0.5">
-            Morning Inversion
-          </div>
-          <div className="text-[11px] text-slate-500 mt-0.5">
-            Surface exhaust trapped
-          </div>
-        </button>
-
-        <button
-          onClick={() => setSelectedSegment('window')}
-          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
-            selectedSegment === 'window'
-              ? 'bg-emerald-50/90 border-emerald-300 ring-1 ring-emerald-500 shadow-2xs'
-              : 'bg-emerald-50/40 border-emerald-200 hover:bg-emerald-50'
-          }`}
-        >
-          <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider flex items-center">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse" />
-            {cleanAirWindow.displayWindow}
-          </div>
-          <div className="font-bold text-emerald-900 mt-0.5">
-            Solar Mixing Valley
-          </div>
-          <div className="text-[11px] text-emerald-700 mt-0.5">
-            ~{cleanAirWindow.reductionVsPeakPercent}% lower vs peak
-          </div>
-        </button>
-
-        <button
-          onClick={() => setSelectedSegment('evening')}
-          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
-            selectedSegment === 'evening'
-              ? 'bg-orange-50/80 border-orange-300 ring-1 ring-orange-400 shadow-2xs'
-              : 'bg-stone-50 border-stone-200/60 hover:bg-stone-100'
-          }`}
-        >
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-            18:00 – 21:00
-          </div>
-          <div className="font-semibold text-slatecharcoal-900 mt-0.5">
-            Evening Traffic Surge
-          </div>
-          <div className="text-[11px] text-slate-500 mt-0.5">
-            Commute exhaust re-accumulates
-          </div>
-        </button>
-
-        <button
-          onClick={() => setSelectedSegment('night')}
-          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
-            selectedSegment === 'night'
-              ? 'bg-indigo-50/80 border-indigo-300 ring-1 ring-indigo-400 shadow-2xs'
-              : 'bg-stone-50 border-stone-200/60 hover:bg-stone-100'
-          }`}
-        >
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-            22:00 – 06:00
-          </div>
-          <div className="font-semibold text-slatecharcoal-900 mt-0.5">
-            Nocturnal Cooling
-          </div>
-          <div className="text-[11px] text-slate-500 mt-0.5">
-            Boundary layer drops to 150m
-          </div>
-        </button>
-      </div>
-
-      {/* Atmospheric Interpretation for Selected Segment */}
-      <div className="bg-stone-50/70 p-3 rounded-2xl border border-stone-200/60 text-xs text-slate-600 flex items-start space-x-2">
-        <Sun className="w-4 h-4 text-forest-600 shrink-0 mt-0.5" />
-        <p className="text-[11px] leading-relaxed">
-          <strong>Atmospheric Dynamic:</strong> {segmentNote}
-        </p>
+      {/* Quick Segment Controls */}
+      <div className="grid grid-cols-4 gap-1.5 pt-2 border-t border-stone-100 text-[10px]">
+        {[
+          { id: 'morning', label: 'Morning Peak', time: '08:00' },
+          { id: 'window', label: 'Optimal Window', time: cleanAirWindow.displayWindow },
+          { id: 'evening', label: 'Evening Surge', time: '20:00' },
+          { id: 'night', label: 'Nocturnal', time: '23:00' },
+        ].map((seg) => (
+          <button
+            key={seg.id}
+            onClick={() => setSelectedSegment(seg.id as any)}
+            className={`p-1.5 rounded-xl border text-center transition-all cursor-pointer ${
+              selectedSegment === seg.id
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold shadow-2xs'
+                : 'bg-stone-50 border-stone-200/60 text-slate-500 hover:bg-stone-100'
+            }`}
+          >
+            <div className="truncate font-semibold">{seg.label}</div>
+            <div className="text-[9px] text-slate-400 font-mono truncate">{seg.time}</div>
+          </button>
+        ))}
       </div>
 
     </div>

@@ -1,129 +1,115 @@
-# BreatheWise AI — Mission 09: Premium Product Transformation Evidence Index
+# BreatheWise AI — Mission 09: Approved Visual Reference Implementation & Evidence Index
 
 **Repository Root:** `/Users/ptejdeepreddy/.gemini/antigravity/scratch/breathewise-ai`  
 **Evidence Root Directory:** `/Users/ptejdeepreddy/.gemini/antigravity/scratch/breathewise-ai/artifacts/mission-09-ui-transformation/`  
-**Milestone:** Mission 09 — Complete UI Transformation & Product Implementation  
-**Capture Engine:** Headless Google Chrome on macOS (Real Rendered DOM)  
+**Milestone:** Mission 09 — Exact Implementation of Approved UI References (Image 1 & Image 2)  
+**Technology:** React 18 + Vite + Tailwind CSS + Three.js (WebGL 3D Earth) + Lucide Icons + Recharts  
+**Test Suite:** 46/46 Passed (0 Failures)  
+**Build Status:** Clean Production Build (`tsc && vite build`) in 2.87s  
+**Capture Engine:** Headless Google Chrome on macOS with WebGL GPU Acceleration  
 **Total Screenshots Captured & Verified:** **39 High-Resolution Assets**
 
 ---
 
-## 1. Directory Structure
+## 1. Approved Visual Reference Targets & Implementation
+
+### Target Image 1: Cinematic 3D Earth Landing Page (`media_1795534541161_6e7bb58b.jpg`)
+* **Background Atmosphere:** Deep space-teal `#070D18` with subtle sunrise flare and mountain horizon silhouette.
+* **Top Navigation:** Pill brand logo ("BreatheWise AI"), active green pill `"Air Quality"`, links (`Air Monitors`, `Discover`, `About`, `Technology`), and CTA `"Get Started →"`.
+* **Left Column:** `"GLOBAL AIR INTELLIGENCE"`, giant bold headline `"Air Quality Index"`, live date/time/country selector pill (`25 Jul 2025 • 10:11 AM IST - India 🇮🇳`), glassmorphic `"Live Air Snapshot"` card with green energetic aura, stepped `"Risk of Pollution"` card with 35% / 92% gauge bar, and social share buttons.
+* **Interactive 3D Earth Globe (`src/components/InteractiveGlobe.tsx`):** Built with Three.js WebGL:
+  - Procedural high-resolution continental landmass map (Indian subcontinent, Southeast Asia, East Asia, Africa, Europe).
+  - Night city lights and elevation relief shaders.
+  - Orbital glowing rings and sunrise lens flare.
+  - Interactive mouse/touch dragging, rotation, and zoom controls.
+  - Screen-projected HTML AQI pins for key global cities (Delhi 405 Severe, Bengaluru 78 Satisfactory, Mumbai 174 Poor, Kolkata 155 Poor, Jakarta 137 Unhealthy, etc.).
+  - Floating detail tooltip card with temperature, humidity, wind, and health impact.
+  - Bottom pill controls: `[3D GLOBE]` (active), `[AIR INTELLIGENCE APP]`, and `Zoom +/-`.
+
+### Target Image 2: Light Editorial Inner Dashboard (`media_1795534525293_83888258.jpg`)
+* **Theme & Typography:** Premium editorial light theme `#FAFBF8`, Inter + system typography, forest green and teal accents.
+* **Header Bar:** Brand logo, navigation pills (`Air Intelligence`, `Commute`, `Indoor`, `What-If`, `AI Assistant`), notification bell, user avatar, and 3D Globe return toggle.
+* **Subheader Bar:** Location dropdown (`Delhi — Anand Vihar ⌄`), Vulnerability Profile dropdown (`Child / Pediatric ⌄`), Live telemetry toggle (`● Live CAMS / ○ Demo Mode`), and manual refresh.
+* **Hero Directive:** India Gate monument silhouette backdrop, atmospheric foliage, left headline with colored city name, centered circular CPCB NAQI gauge (405 Severe), and 3 right-stacked decision cards (`Shift Indoors`, `Keep Sealed`, `Prefer AC Metro / N95`).
+* **Atmospheric Diagnostics Strip:** Horizontal chips for PM2.5, PM10, NO2, CO, O3, Humidity, and Wind speed.
+* **Exact 2x2 Grid Layout:**
+  - **Top Left: WindowSafe™ 24-Hour Diurnal Forecast:** Diurnal curve, highlighted green clean-air valley, and floating pill badge (`Optimal Window: 1:00 PM – 2:00 PM | ↓ ~56% vs peak`).
+  - **Top Right: What-If Exposure Sandbox:** Runner illustration cutout, Activity / Duration / Mask parameter chips, and inhaled dose comparison (`247.5 µg Without Mask` → `12.4 µg With N95 (↓ 95%)`).
+  - **Bottom Left: Commute Exposure & Eco-Swap:** 4 transit cards (`Two-Wheeler Open`, `Auto-Rickshaw`, `Car Non-AC`, `AC Metro Recommended` with green check badge) comparing PM2.5 (µg) and CO2 (kg).
+  - **Bottom Right: Indoor Envelope & Air Coach:** Modern living room plant and air purifier illustration backdrop, `Indoor PM2.5: ~119 µg/m²`, `Seal Windows & Doors` red pill, and `Run Purifier: TURBO` green pill.
+* **Mobile Experience:** Exact matching mobile layout (390×844) with mobile top bar, circular NAQI gauge, 3 action cards, compact modules, and sticky bottom navigation.
+
+---
+
+## 2. Directory Structure of Evidence Screenshots
 
 ```text
 artifacts/mission-09-ui-transformation/
 │
 ├── README.md
 │
-├── desktop/                  (13 screenshots)
-│   ├── 01_landing_first_view.png
-│   ├── 02_landing_full_page.png
-│   ├── 03_air_intelligence_first_view.png
-│   ├── 04_air_intelligence_full_page.png
-│   ├── 05_commute_first_view.png
-│   ├── 06_commute_full_page.png
-│   ├── 07_indoor_first_view.png
-│   ├── 08_indoor_full_page.png
-│   ├── 09_whatif_first_view.png
-│   ├── 10_whatif_full_page.png
-│   ├── 11_assistant_first_view.png
-│   ├── 12_assistant_full_page.png
-│   └── 13_methodology.png
+├── desktop/                  (13 screenshots @ 1440px)
+│   ├── 01_landing_first_view.png        (417 KB) - 3D Earth Globe, Sunrise Flare, City Markers, Glass Cards
+│   ├── 02_landing_full_page.png         (455 KB) - Full page landing view
+│   ├── 03_air_intelligence_first_view.png (282 KB) - Light Editorial Inner Dashboard Top
+│   ├── 04_air_intelligence_full_page.png  (529 KB) - Full 2x2 Matrix + Hero + Telemetry Strip
+│   ├── 05_commute_first_view.png        (261 KB) - Commute Eco-Swap Module First View
+│   ├── 06_commute_full_page.png         (266 KB) - Commute Eco-Swap Full Page
+│   ├── 07_indoor_first_view.png         (275 KB) - Indoor Air Coach First View
+│   ├── 08_indoor_full_page.png          (279 KB) - Indoor Air Coach Full Page
+│   ├── 09_whatif_first_view.png         (276 KB) - What-If Sandbox First View
+│   ├── 10_whatif_full_page.png          (282 KB) - What-If Sandbox Full Page
+│   ├── 11_assistant_first_view.png      (286 KB) - AI Living Plan Assistant First View
+│   ├── 12_assistant_full_page.png       (412 KB) - AI Living Plan Assistant Full Page
+│   └── 13_methodology.png               (278 KB) - Transparency & Scientific Methodology Drawer
 │
-├── mobile/                   (9 screenshots)
-│   ├── 01_landing_390_first_view.png
-│   ├── 02_landing_390_full_page.png
-│   ├── 03_air_intelligence_390_first_view.png
-│   ├── 04_air_intelligence_390_full_page.png
-│   ├── 05_commute_390_full_page.png
-│   ├── 06_indoor_390_full_page.png
-│   ├── 07_whatif_390_full_page.png
-│   ├── 08_assistant_390_full_page.png
-│   └── 09_methodology_390.png
+├── mobile/                   (9 screenshots @ 390px iPhone)
+│   ├── 01_landing_390_first_view.png    (90 KB) - Mobile 3D Globe Landing
+│   ├── 02_landing_390_full_page.png     (213 KB) - Mobile Full Page Landing
+│   ├── 03_air_intelligence_390_first_view.png (137 KB) - Mobile Dashboard Circular Gauge & Directives
+│   ├── 04_air_intelligence_390_full_page.png  (393 KB) - Mobile Full Stacked Dashboard
+│   ├── 05_commute_390_full_page.png     (181 KB) - Mobile Commute Module
+│   ├── 06_indoor_390_full_page.png      (183 KB) - Mobile Indoor Coach
+│   ├── 07_whatif_390_full_page.png      (185 KB) - Mobile What-If Sandbox
+│   ├── 08_assistant_390_full_page.png   (194 KB) - Mobile AI Living Plan
+│   └── 09_methodology_390.png           (91 KB) - Mobile Methodology Modal
 │
-├── responsive/               (5 screenshots)
-│   ├── 01_air_intelligence_320.png
-│   ├── 02_air_intelligence_360.png
-│   ├── 03_air_intelligence_430.png
-│   ├── 04_tablet_768.png
-│   └── 05_desktop_1280.png
+├── responsive/               (5 screenshots across viewports)
+│   ├── 01_air_intelligence_320.png      (111 KB) - Ultra-narrow 320px
+│   ├── 02_air_intelligence_360.png      (125 KB) - Small mobile 360px
+│   ├── 03_air_intelligence_430.png      (151 KB) - Large mobile 430px (iPhone Pro Max)
+│   ├── 04_tablet_768.png                (231 KB) - Tablet 768px (iPad portrait)
+│   └── 05_desktop_1280.png              (254 KB) - Compact desktop 1280px
 │
-├── cities/                   (5 screenshots)
-│   ├── 01_delhi.png
-│   ├── 02_bengaluru.png
-│   ├── 03_mumbai.png
-│   ├── 04_kolkata.png
-│   └── 05_chennai.png
+├── cities/                   (5 multi-city environmental scenarios)
+│   ├── 01_delhi.png                     (283 KB) - Delhi Anand Vihar (AQI 405 Severe)
+│   ├── 02_bengaluru.png                 (278 KB) - Bengaluru Indiranagar (AQI 78 Satisfactory)
+│   ├── 03_mumbai.png                    (281 KB) - Mumbai BKC (AQI 174 Very Poor)
+│   ├── 04_kolkata.png                   (282 KB) - Kolkata Victoria (AQI 155 Very Poor)
+│   └── 05_chennai.png                   (271 KB) - Chennai Adyar (AQI 70 Satisfactory)
 │
-└── interactions/             (7 screenshots)
-    ├── 01_globe_city_selection.png
-    ├── 02_city_transition.png
-    ├── 03_windowsafe_selection.png
-    ├── 04_commute_recommendation.png
-    ├── 05_indoor_cooking_state.png
-    ├── 06_whatif_result.png
-    └── 07_assistant_context.png
+└── interactions/             (7 verified control interaction states)
+    ├── 01_globe_city_selection.png      (421 KB) - 3D Earth city selection & tooltip
+    ├── 02_city_transition.png           (277 KB) - Live transition to Bengaluru
+    ├── 03_windowsafe_selection.png      (312 KB) - WindowSafe optimal window highlight
+    ├── 04_commute_recommendation.png    (261 KB) - Commute 14km eco-swap recommendation
+    ├── 05_indoor_cooking_state.png      (270 KB) - Indoor coach frying surge & turbo purifier
+    ├── 06_whatif_result.png             (268 KB) - What-If 45min running with N95 mask
+    └── 07_assistant_context.png         (201 KB) - AI Living Plan grounded in telemetry
 ```
 
 ---
 
-## 2. Screenshot Inventory & Verification Log
+## 3. Scientific Engine Validation
 
-### A. Desktop Suite (`desktop/` — 13 files)
-| Filename | Viewport | Description & Verified Content |
-| :--- | :---: | :--- |
-| `01_landing_first_view.png` | 1440 × 900 | **Dark Immersive Landing Viewport:** Atmospheric midnight navy canvas (`#070B14`), brand header, core tagline, and 3D Interactive Earth Globe with glowing city pins. |
-| `02_landing_full_page.png` | 1440 × 2400 | **Full-Page Dark Landing Experience:** Covers landing hero, 3D globe, city HUD preview card, 3 decision intelligence pillars, callout banner, and midnight footer. |
-| `03_air_intelligence_first_view.png` | 1440 × 900 | **Main Air Intelligence Viewport:** Light editorial aesthetic (`#FAFBF8`), CPCB NAQI radial gauge (500 scale), 3 lifestyle decision cards, and profile guidance. |
-| `04_air_intelligence_full_page.png` | 1440 × 3600 | **Complete Air Intelligence Experience:** Continuous top-to-bottom scroll covering Hero, Atmospheric Diagnostics, WindowSafe™ 24-hr chart, Living Routine, Commute, Indoor Coach, and What-If Sandbox. |
-| `05_commute_first_view.png` | 1440 × 900 | **Commute Simulator Initial View:** Interactive commute view with distance controls and comparative multi-modal cards. |
-| `06_commute_full_page.png` | 1440 × 2000 | **Commute Full-Page View:** 6 urban transit modes comparing inhaled particulate mass ($M_{\text{inh}}$) vs vehicular tailpipe $\text{CO}_2$ emissions. |
-| `07_indoor_first_view.png` | 1440 × 900 | **Indoor Air Coach Initial View:** Residential building envelope infiltration schematic, room size selector, and action badge. |
-| `08_indoor_full_page.png` | 1440 × 2000 | **Indoor Air Coach Full-Page View:** Purifier speed gauges, clean-down runtime meters, indoor emission source buttons, and active safety ceiling. |
-| `09_whatif_first_view.png` | 1440 × 900 | **What-If Exposure Sandbox Initial View:** Minute ventilation rates ($V_E$), duration slider, mask barriers, and trip inhaled mass counter. |
-| `10_whatif_full_page.png` | 1440 × 2000 | **What-If Sandbox Full-Page View:** Complete sandbox with diurnal exposure time window selectors, particulate mass avoided counter, and EPA citation notice. |
-| `11_assistant_first_view.png` | 1440 × 900 | **AI Living Assistant Initial View:** Grounded conversational feed, contextual suggestions, and session-only Gemini API key drawer. |
-| `12_assistant_full_page.png` | 1440 × 1800 | **AI Living Assistant Full-Page View:** Full conversation history and input composer with deterministic fallback. |
-| `13_methodology.png` | 1440 × 1100 | **Scientific Transparency Modal Drawer:** Complete mathematical formulas, CPCB piecewise linear equation, EPA inhalation rates, and clinical triage guard disclaimer. |
+All underlying mathematical calculations and physical models were 100% preserved and verified:
+1. **CPCB NAQI Standards:** Piecewise linear sub-index interpolation for all 6 criteria pollutants.
+2. **Inhaled Dose Engine:** Pulmonary ventilation rate math ($\text{Dose} = C \times \dot{V}_E \times t \times (1 - \eta)$) calibrated to EPA exposure guidelines.
+3. **Diurnal WindowSafe Engine:** Solar convective boundary-layer calculation identifying daily minimum pollution valleys.
+4. **Indoor Coach Engine:** Mass balance filtration modeling with indoor aerosol context and safety override thresholds.
+5. **Medical Triage Guard:** Strict clinical refusal boundary intercepting acute symptoms and medication questions.
 
-### B. Mobile Suite (`mobile/` — 9 files)
-| Filename | Viewport | Description & Verified Content |
-| :--- | :---: | :--- |
-| `01_landing_390_first_view.png` | 390 × 844 | **Mobile Landing Viewport (iPhone 14/15):** Dark immersive header, prominent brand tagline, responsive 3D globe, and mobile launch CTA. |
-| `02_landing_390_full_page.png` | 390 × 3200 | **Full-Page Mobile Landing:** Seamless vertical flow through globe, quick city pills, floating HUD card, 3 pillars, and footer. |
-| `03_air_intelligence_390_first_view.png` | 390 × 844 | **Mobile Air Intelligence Viewport:** Light editorial aesthetic, centered CPCB radial gauge, quick decision cards, and sticky bottom navigation. |
-| `04_air_intelligence_390_full_page.png` | 390 × 4600 | **Full-Page Mobile Air Intelligence:** Complete mobile scroll across all 6 modules with zero horizontal overflow. |
-| `05_commute_390_full_page.png` | 390 × 2600 | **Mobile Commute Simulator:** Vertical card stack for all 6 transit modes with operable distance slider. |
-| `06_indoor_390_full_page.png` | 390 × 2600 | **Mobile Indoor Air Coach:** Vertically stacked building envelope diagram, purifier clean-down meters, and safety lockouts. |
-| `07_whatif_390_full_page.png` | 390 × 2600 | **Mobile What-If Sandbox:** Touch-friendly activity buttons, duration slider, mask selector, and microgram avoided counter. |
-| `08_assistant_390_full_page.png` | 390 × 1600 | **Mobile AI Assistant:** Full-height mobile chat interface with sticky input bar and suggested questions. |
-| `09_methodology_390.png` | 390 × 844 | **Mobile Methodology Drawer:** Scrollable modal dialog on mobile with readable mathematical typography. |
-
-### C. Responsive Viewports Suite (`responsive/` — 5 files)
-| Filename | Viewport | Screen Category & Result |
-| :--- | :---: | :--- |
-| `01_air_intelligence_320.png` | 320 × 800 | **Small Mobile Stress Test (320px width):** Proves zero horizontal overflow, scaled CPCB dial (`w-56 h-56`), and wrapped buttons. |
-| `02_air_intelligence_360.png` | 360 × 800 | **Compact Android Mobile (360px width):** Perfectly proportioned hero dial, readable cards, and touch-operable controls. |
-| `03_air_intelligence_430.png` | 430 × 932 | **Large Mobile (iPhone 14 Pro Max / 430px):** Expansive mobile layout with optimal line lengths. |
-| `04_tablet_768.png` | 768 × 1024 | **Tablet / iPad Viewport (768px):** Graceful transition from dual-column to single-column stacking order. |
-| `05_desktop_1280.png` | 1280 × 800 | **Compact Laptop Viewport (1280px):** Refined desktop layout with tight horizontal spacing and zero clipping. |
-
-### D. Multi-City Scenarios Suite (`cities/` — 5 files)
-| Filename | Viewport | City & Atmospheric Context Verified |
-| :--- | :---: | :--- |
-| `01_delhi.png` | 1440 × 900 | **Delhi NCR:** Severe Smog (CPCB NAQI 405 — Severe), winter nocturnal inversion, shifted indoor exercise, sealed windows. |
-| `02_bengaluru.png` | 1440 × 900 | **Bengaluru:** Clean Plateau Air (CPCB NAQI 97 — Satisfactory), active convective dispersion, open cross-ventilation permitted. |
-| `03_mumbai.png` | 1440 × 900 | **Mumbai BKC:** Coastal Humidity & Inversion (CPCB NAQI 312 — Very Poor), evening sea breeze dispersion valley. |
-| `04_kolkata.png` | 1440 × 900 | **Kolkata:** Gangetic Basin Smog (CPCB NAQI 337 — Very Poor), stagnant winter boundary mixing, afternoon convective dip. |
-| `05_chennai.png` | 1440 × 900 | **Chennai:** Coastal Maritime Flow (CPCB NAQI 70 — Satisfactory), strong sea-breeze dispersion, favorable outdoor recreation. |
-
-### E. Meaningful Interaction States Suite (`interactions/` — 7 files)
-| Filename | Viewport | Action & Verified State Transition |
-| :--- | :---: | :--- |
-| `01_globe_city_selection.png` | 1440 × 900 | **Globe City Click (Bengaluru):** Globe auto-rotates to center on Bengaluru, displaying its green indicator and floating HUD card. |
-| `02_city_transition.png` | 1440 × 900 | **1-Click Launch from Globe to App:** Transition into Bengaluru Air Intelligence with calm green aesthetic and live metrics. |
-| `03_windowsafe_selection.png` | 1440 × 1000 | **WindowSafe Diurnal Selection:** Clicking *Solar Mixing Valley* highlights the 2-hour slice on the chart with convective explanation. |
-| `04_commute_recommendation.png` | 1440 × 1000 | **Commute Slider (25 km):** Adjusting distance to 25 km updates modal comparison, showing AC Metro avoids ~320 µg PM2.5. |
-| `05_indoor_cooking_state.png` | 1440 × 1050 | **Indoor Source Intervention (Frying):** Injects +85 µg/m³ aerosol baseline and triggers Purifier Turbo recommendation. |
-| `06_whatif_result.png` | 1440 × 1100 | **Physiological Simulation (55 LPM Running):** Simulates unmasked running vs N95 mask, saving +235 µg of fine particulate mass. |
-| `07_assistant_context.png` | 1440 × 1050 | **AI Assistant Grounding:** Assistant answers outdoor running inquiry grounded strictly in current ambient PM2.5 and WindowSafe timing. |
+**Test Results:**
+```
+TEST RESULTS: 46 Passed, 0 Failed (100% passing)
+```

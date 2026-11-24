@@ -5,7 +5,7 @@ BASE_DIR="/Users/ptejdeepreddy/.gemini/antigravity/scratch/breathewise-ai/artifa
 mkdir -p "$BASE_DIR/desktop" "$BASE_DIR/mobile" "$BASE_DIR/responsive" "$BASE_DIR/cities" "$BASE_DIR/interactions"
 
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-CHROME_FLAGS="--headless --disable-gpu --no-sandbox --user-data-dir=/tmp/chrome-test-profile-bw-m09"
+CHROME_FLAGS="--headless --no-sandbox --virtual-time-budget=2000 --user-data-dir=/tmp/chrome-test-profile-bw-m09"
 UA_IPHONE="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
 
 echo "=== 1. Capturing Desktop Suite ==="

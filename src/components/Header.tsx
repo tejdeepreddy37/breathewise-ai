@@ -10,10 +10,15 @@ import {
   HeartPulse, 
   Activity, 
   UserCheck, 
+  MapPin, 
+  User, 
+  Bell, 
+  Globe2, 
+  Home, 
+  Car, 
+  Sliders, 
   Sparkles,
-  WifiOff,
-  Clock,
-  Globe2
+  Layers
 } from 'lucide-react';
 
 export const Header: React.FC = () => {
@@ -26,6 +31,7 @@ export const Header: React.FC = () => {
     userPreferences,
     updateProfile,
     setIsTransparencyOpen,
+    activeTab,
     setActiveTab,
   } = useApp();
 
@@ -37,58 +43,110 @@ export const Header: React.FC = () => {
   ];
 
   const meta = telemetry.metadata;
-  const isCached = meta.fetchTimestamp.startsWith('Cached');
+  const isLive = meta.isLive && !meta.fetchTimestamp.startsWith('Cached');
+
+  const navItems = [
+    { id: 'overview', label: 'Air Intelligence', icon: <Wind className="w-3.5 h-3.5" /> },
+    { id: 'commute', label: 'Commute', icon: <Car className="w-3.5 h-3.5" /> },
+    { id: 'indoor', label: 'Indoor', icon: <Home className="w-3.5 h-3.5" /> },
+    { id: 'simulator', label: 'What-If', icon: <Sliders className="w-3.5 h-3.5" /> },
+    { id: 'assistant', label: 'AI Assistant', icon: <Sparkles className="w-3.5 h-3.5" /> },
+  ];
 
   return (
-    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-cream-200/80 transition-all">
+    <header className="sticky top-0 z-40 bg-[#FAFBF8]/95 backdrop-blur-md border-b border-stone-200/70 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20">
+        
+        {/* Top Header Row (Exact match to Image 2 top bar) */}
+        <div className="flex items-center justify-between h-16 sm:h-18">
           
           {/* Logo & Product Brand */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <button
-              onClick={() => setActiveTab('landing')}
-              className="w-10 h-10 rounded-2xl bg-forest-600 hover:bg-forest-700 text-white flex items-center justify-center shadow-soft transition-all cursor-pointer"
-              title="Return to 3D Globe Overview"
-              aria-label="Return to 3D Globe Overview"
-            >
-              <Wind className="w-5 h-5" />
-            </button>
+          <div 
+            className="flex items-center space-x-2.5 cursor-pointer"
+            onClick={() => setActiveTab('landing')}
+          >
+            {/* Green Cloud Logo matching Image 2 */}
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-600/20">
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM10 17l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+              </svg>
+            </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setActiveTab('landing')}
-                  className="font-bold text-lg text-slatecharcoal-900 tracking-tight text-left cursor-pointer hover:opacity-80 transition-opacity"
-                >
-                  BreatheWise<span className="text-forest-600 font-extrabold ml-0.5">AI</span>
-                </button>
-                <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-forest-50 text-forest-700 border border-forest-100">
-                  <Sparkles className="w-2.5 h-2.5 mr-1 text-forest-600" /> Challenge 06
+              <div className="flex items-center space-x-1.5">
+                <span className="font-extrabold text-lg text-slatecharcoal-900 tracking-tight leading-tight">
+                  BreatheWise <span className="text-emerald-700">AI</span>
                 </span>
               </div>
-              <p className="hidden md:block text-[11px] text-slate-500 font-medium">
-                Personal Air Intelligence & Exposure-Aware Living
+              <p className="text-[10px] text-slate-500 font-medium tracking-tight -mt-0.5">
+                Your Urban Air Intelligence Assistant
               </p>
             </div>
           </div>
 
-          {/* City Selector & Telemetry Status Indicator */}
-          <div className="flex items-center space-x-1.5 sm:space-x-3">
-            {/* Globe View Button */}
+          {/* Center Navigation Pills (Exact match to Image 2) */}
+          <nav className="hidden md:flex items-center space-x-1.5 p-1 rounded-full bg-stone-200/50 border border-stone-200/80">
+            {navItems.map((item) => {
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id as any)}
+                  className={`flex items-center space-x-1.5 py-1.5 px-3.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-[#164E43] text-white shadow-sm ring-1 ring-[#164E43]'
+                      : 'text-slate-600 hover:text-slatecharcoal-900 hover:bg-white/70'
+                  }`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Right Header Controls (Bell, Avatar, Globe Switcher) */}
+          <div className="flex items-center space-x-2.5">
+            {/* Return to 3D Earth Globe */}
             <button
               onClick={() => setActiveTab('landing')}
-              className="inline-flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-100 text-xs font-semibold shadow-2xs border border-slate-700 transition-all cursor-pointer"
-              title="Return to 3D Earth Globe Overview"
+              className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-100 text-xs font-semibold shadow-2xs border border-slate-700 transition-all cursor-pointer"
+              title="Switch to 3D Earth Globe View"
             >
               <Globe2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="hidden sm:inline">Earth Globe</span>
+              <span className="hidden sm:inline">3D Globe</span>
             </button>
+
+            {/* Notification Bell */}
+            <button
+              onClick={() => setIsTransparencyOpen(true)}
+              className="w-9 h-9 rounded-full bg-white hover:bg-stone-100 border border-stone-200 flex items-center justify-center text-slate-600 shadow-2xs transition-colors cursor-pointer"
+              title="Methodology & Alerts"
+            >
+              <Bell className="w-4 h-4" />
+            </button>
+
+            {/* User Avatar with Green Active Ring */}
+            <div className="relative w-9 h-9 rounded-full bg-emerald-900 text-white font-bold text-xs flex items-center justify-center border-2 border-emerald-500 shadow-sm">
+              <User className="w-4 h-4 text-emerald-100" />
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+            </div>
+          </div>
+
+        </div>
+
+        {/* Secondary Filter & Telemetry Row (Matches subheader in Image 2) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 py-2.5 border-t border-stone-200/50 text-xs">
+          
+          {/* Left: Location & Profile Selector Pills */}
+          <div className="flex items-center space-x-2">
+            
+            {/* City Dropdown Pill */}
             <div className="relative">
               <select
                 aria-label="Select Target City"
                 value={selectedCityId}
                 onChange={(e) => selectCity(e.target.value)}
-                className="appearance-none bg-cream-50 hover:bg-cream-100/80 text-slatecharcoal-900 text-xs sm:text-sm font-semibold py-2 pl-3 pr-7 sm:pl-3.5 sm:pr-8 rounded-xl border border-cream-200/90 focus:outline-none focus:ring-2 focus:ring-forest-500/20 focus:border-forest-500 cursor-pointer transition-all shadow-2xs"
+                className="appearance-none bg-white hover:bg-stone-50 text-slatecharcoal-900 text-xs font-bold py-1.5 pl-8 pr-7 rounded-full border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition-all shadow-2xs"
               >
                 {INDIAN_CITIES_PRESETS.map((city) => (
                   <option key={city.id} value={city.id}>
@@ -96,87 +154,61 @@ export const Header: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
-
-            {/* Profile Dropdown / Selector */}
-            <div className="relative hidden lg:block">
-              <select
-                aria-label="Vulnerability Profile"
-                value={userPreferences.vulnerabilityProfile}
-                onChange={(e) => updateProfile(e.target.value as VulnerabilityProfile)}
-                className="appearance-none bg-cream-50 hover:bg-cream-100/80 text-slatecharcoal-800 text-xs font-semibold py-2 pl-3.5 pr-7 rounded-xl border border-cream-200/90 focus:outline-none focus:ring-2 focus:ring-forest-500/20 cursor-pointer shadow-2xs"
-              >
-                {profiles.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    Profile: {p.label}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+              <MapPin className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+              <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
             </div>
 
-            {/* Data Provenance & Freshness Badge */}
+            {/* Profile Dropdown Pill */}
+            <div className="relative">
+              <select
+                aria-label="Vulnerability Profile"
+                value={userPreferences.vulnerabilityProfile}
+                onChange={(e) => updateProfile(e.target.value as VulnerabilityProfile)}
+                className="appearance-none bg-white hover:bg-stone-50 text-slatecharcoal-900 text-xs font-bold py-1.5 pl-8 pr-7 rounded-full border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition-all shadow-2xs"
+              >
+                {profiles.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+              <User className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+              <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Right: Live/Demo Status Indicator & Refresh */}
+          <div className="flex items-center space-x-2">
             <button
               onClick={() => setIsTransparencyOpen(true)}
-              className={`inline-flex items-center px-2.5 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-[11px] font-semibold border transition-all cursor-pointer shadow-2xs ${
-                meta.isLive && !isCached
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                  : isCached
-                  ? 'bg-cream-100 text-slatecharcoal-800 border-cream-300 hover:bg-cream-200'
-                  : 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100'
-              }`}
-              title="Click to inspect data provenance, units & mathematical formulas"
+              className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-white border border-stone-200 shadow-2xs hover:bg-stone-50 transition-all cursor-pointer"
             >
-              {meta.isLive && !isCached ? (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-1 sm:mr-1.5" />
-                  <span className="hidden sm:inline text-slate-500 mr-1">Source:</span> CAMS Grid
-                </>
-              ) : isCached ? (
-                <>
-                  <Clock className="w-3 h-3 text-slate-500 mr-1" />
-                  <span className="truncate max-w-[85px] sm:max-w-none">{meta.fetchTimestamp}</span>
-                </>
-              ) : (
-                <>
-                  <WifiOff className="w-3 h-3 text-amber-700 mr-1" />
-                  <span>Demo Mode</span>
-                </>
-              )}
+              <span className={`w-2 h-2 rounded-full ${isLive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+              <span className="font-bold text-slatecharcoal-900">{isLive ? 'Live (CAMS)' : 'Demo Mode'}</span>
             </button>
 
-            {/* Refresh Button */}
             <button
               onClick={refreshData}
               disabled={isLoadingTelemetry}
-              aria-label="Refresh environmental telemetry"
-              className="p-2 rounded-xl text-slate-500 hover:text-slatecharcoal-900 hover:bg-cream-100 border border-cream-200/70 hover:border-cream-300 transition-all cursor-pointer shadow-2xs"
-              title="Refresh environmental telemetry"
+              aria-label="Refresh telemetry data"
+              className="p-1.5 rounded-full bg-white hover:bg-stone-100 border border-stone-200 text-slate-600 transition-colors shadow-2xs cursor-pointer"
+              title="Refresh Telemetry"
             >
-              <RefreshCw className={`w-4 h-4 ${isLoadingTelemetry ? 'animate-spin text-forest-600' : ''}`} />
-            </button>
-
-            {/* Scientific Transparency Info Button */}
-            <button
-              onClick={() => setIsTransparencyOpen(true)}
-              aria-label="Inspect Data & Scientific Methodology"
-              className="p-2 rounded-xl text-slate-500 hover:text-forest-600 hover:bg-cream-100 border border-cream-200/70 hover:border-cream-300 transition-all cursor-pointer shadow-2xs"
-              title="Inspect Data & Scientific Methodology"
-            >
-              <Info className="w-4 h-4" />
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingTelemetry ? 'animate-spin text-emerald-600' : ''}`} />
             </button>
           </div>
 
         </div>
+
       </div>
     </header>
   );

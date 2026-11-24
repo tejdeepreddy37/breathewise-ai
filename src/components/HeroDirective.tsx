@@ -1,241 +1,199 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { 
-  Sun, 
-  ShieldCheck, 
-  ArrowDownRight, 
-  AlertTriangle, 
-  Activity, 
-  DoorClosed, 
-  DoorOpen, 
-  Train, 
-  Sparkles,
-  Info
-} from 'lucide-react';
+import { Activity, DoorClosed, DoorOpen, Train } from 'lucide-react';
 
 export const HeroDirective: React.FC = () => {
-  const { telemetry, cleanAirWindow, userPreferences, livingPlan } = useApp();
+  const { telemetry, cleanAirWindow } = useApp();
 
   const pm = telemetry.current.pm25;
   const aqi = telemetry.current.aqi;
   const aqiCat = telemetry.current.aqiCategory;
   const primaryPollutant = telemetry.current.primaryPollutant || 'PM2.5';
-  
+  const cityName = telemetry.city;
+
   const isSevere = pm > 120 || aqi > 300;
   const isPoor = pm > 60 && pm <= 120;
   const isGood = pm <= 30 && aqi <= 50;
-  const isModerate = !isSevere && !isPoor && !isGood;
 
-  // Semantic color accents
-  const theme = isSevere
-    ? {
-        ringColor: '#991B1B', // Severe crimson red
-        glowClass: 'ambient-glow-severe',
-        badgeBg: 'bg-rose-50 text-rose-800 border-rose-200',
-        dialBg: 'bg-rose-50/40 border-rose-100',
-        statusColor: 'text-rose-700',
-        windowPillBg: 'bg-rose-50 text-rose-900 border-rose-200',
-      }
-    : isPoor
-    ? {
-        ringColor: '#EA580C', // Orange poor
-        glowClass: 'ambient-glow-moderate',
-        badgeBg: 'bg-orange-50 text-orange-800 border-orange-200',
-        dialBg: 'bg-orange-50/40 border-orange-100',
-        statusColor: 'text-orange-700',
-        windowPillBg: 'bg-amber-50 text-amber-900 border-amber-200',
-      }
-    : isModerate
-    ? {
-        ringColor: '#D97706', // Moderate amber
-        glowClass: 'ambient-glow-moderate',
-        badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
-        dialBg: 'bg-amber-50/40 border-amber-100',
-        statusColor: 'text-amber-700',
-        windowPillBg: 'bg-amber-50 text-amber-900 border-amber-200',
-      }
-    : {
-        ringColor: '#2D6A4F', // Good forest green
-        glowClass: 'ambient-glow-good',
-        badgeBg: 'bg-forest-50 text-forest-700 border-forest-200',
-        dialBg: 'bg-forest-50/50 border-forest-100',
-        statusColor: 'text-forest-700',
-        windowPillBg: 'bg-forest-50 text-forest-800 border-forest-200',
-      };
+  // Semantic color mapping
+  const statusColor = isSevere ? '#DC2626' : isPoor ? '#EA580C' : isGood ? '#10B981' : '#D97706';
+  const statusBg = isSevere ? 'bg-rose-500' : isPoor ? 'bg-orange-500' : isGood ? 'bg-emerald-500' : 'bg-amber-500';
 
   // SVG Radial Dial Math (500 scale)
   const normalizedAqi = Math.max(0, Math.min(500, aqi));
-  const radius = 58;
+  const radius = 62;
   const circumference = 2 * Math.PI * radius;
-  // Fill proportion around the circle (e.g. 80% arc)
   const strokeDashoffset = circumference - (normalizedAqi / 500) * circumference;
 
-  // WHO guideline exceedance ratio (WHO 24-hr PM2.5 = 15 µg/m³)
-  const whoRatio = +(pm / 15).toFixed(1);
-
-  // Quick Action Directives
-  const outdoorAction = isSevere
-    ? { label: 'Outdoor Exercise', value: 'Shift Indoors', icon: <Activity className="w-3.5 h-3.5 text-rose-600" />, ok: false }
-    : isPoor
-    ? { label: 'Outdoor Exercise', value: 'Use Best Window', icon: <Activity className="w-3.5 h-3.5 text-amber-600" />, ok: null }
-    : { label: 'Outdoor Exercise', value: 'Favorable Today', icon: <Activity className="w-3.5 h-3.5 text-forest-600" />, ok: true };
-
-  const ventilationAction = pm > 60 || (telemetry.current.o3 && telemetry.current.o3 > 100)
-    ? { label: 'Window Ventilation', value: 'Keep Sealed', icon: <DoorClosed className="w-3.5 h-3.5 text-rose-600" />, ok: false }
-    : { label: 'Window Ventilation', value: 'Safe to Flush', icon: <DoorOpen className="w-3.5 h-3.5 text-forest-600" />, ok: true };
-
-  const commuteAction = isSevere || isPoor
-    ? { label: 'Commute Protocol', value: 'Prefer AC Metro / N95', icon: <Train className="w-3.5 h-3.5 text-sky-600" />, ok: true }
-    : { label: 'Commute Protocol', value: 'Standard Transit', icon: <Train className="w-3.5 h-3.5 text-forest-600" />, ok: true };
-
   return (
-    <div className={`relative overflow-hidden rounded-3xl bg-white border border-stone-200/80 p-5 sm:p-8 lg:p-10 shadow-soft transition-all ${theme.glowClass}`}>
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-stone-50 via-white to-stone-50 border border-stone-200/80 p-6 sm:p-8 lg:p-10 shadow-sm">
       
-      {/* Background Subtle Ambient Shape */}
-      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full opacity-30 pointer-events-none blur-3xl" style={{ backgroundColor: theme.ringColor }} />
+      {/* 1. Atmospheric Foliage & Monument Silhouette Background Graphic (Matches Image 2) */}
+      <div className="absolute top-0 left-0 w-64 h-64 opacity-25 pointer-events-none -ml-8 -mt-8">
+        {/* Soft green botanical leafy tree overlay */}
+        <svg viewBox="0 0 200 200" fill="none" className="w-full h-full text-emerald-800">
+          <path
+            d="M0,0 Q60,20 80,70 T20,120 Q0,80 0,0 Z M40,0 Q100,30 110,80 T60,140 Q30,90 40,0 Z M80,0 Q140,40 140,90 T90,150 Q60,90 80,0 Z"
+            fill="currentColor"
+            opacity="0.35"
+          />
+        </svg>
+      </div>
 
-      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8 lg:gap-12">
+      {/* India Gate / Monument Silhouette in Background Center (Matches Image 2) */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-80 h-32 opacity-15 pointer-events-none flex items-end justify-center">
+        <svg viewBox="0 0 160 80" fill="none" className="w-full h-full text-stone-700">
+          {/* Monument Archway Silhouette */}
+          <path
+            d="M20,80 L20,30 L30,25 L30,15 L40,15 L40,80 M120,80 L120,15 L130,15 L130,25 L140,30 L140,80 M40,25 Q80,20 120,25 M40,35 Q80,15 120,35 L120,80 L100,80 L100,50 Q80,35 60,50 L60,80 L40,80 Z"
+            fill="currentColor"
+          />
+        </svg>
+      </div>
+
+      {/* 2. Main 3-Column Hero Grid: Left Text, Center Radial Dial, Right Quick Decision Cards */}
+      <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-8">
         
-        {/* Left Column: Actionable Living Directive */}
-        <div className="flex-1 space-y-4">
-          
-          {/* Top Pill Row: Clean Window Indicator & Context */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${theme.windowPillBg} shadow-xs`}>
-              <Sun className="w-3.5 h-3.5 mr-1.5 animate-spin-slow" />
-              <span>{cleanAirWindow.statusLabel}: {cleanAirWindow.displayWindow}</span>
-            </span>
+        {/* Left Column: Headline and Context */}
+        <div className="flex-1 text-center lg:text-left space-y-2.5 max-w-md">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slatecharcoal-900 tracking-tight leading-tight">
+            {isSevere
+              ? 'Severe Particulate Episode in '
+              : isPoor
+              ? 'Elevated Air Pollution in '
+              : 'Acceptable Air Quality in '}
+            <span style={{ color: statusColor }}>{cityName}</span>
+          </h1>
 
-            {cleanAirWindow.reductionVsPeakPercent > 0 && (
-              <span className="inline-flex items-center text-xs font-medium text-slate-700 bg-stone-100/80 px-2.5 py-1 rounded-full border border-stone-200">
-                <ArrowDownRight className="w-3.5 h-3.5 mr-1 text-emerald-600 font-bold" />
-                <span>~{cleanAirWindow.reductionVsPeakPercent}% lower exposure vs peak</span>
-              </span>
-            )}
-
-            <span className="text-[11px] text-slate-500 font-medium pl-1">
-              {telemetry.metadata.isSimulated
-                ? 'Simulated Diurnal Profile (Demo)'
-                : 'Copernicus CAMS 0.25° Model Grid'}
-            </span>
-          </div>
-
-          {/* Ozone Risk Warning Banner if active */}
-          {cleanAirWindow.ozoneRiskWarning && (
-            <div className="flex items-center space-x-2 text-xs bg-amber-50 text-amber-900 px-3 py-2 rounded-xl border border-amber-200 shadow-xs">
-              <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
-              <span className="text-[11px] font-medium leading-relaxed">{cleanAirWindow.ozoneRiskWarning}</span>
-            </div>
-          )}
-
-          {/* Main Editorial Headline */}
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slatecharcoal-900 tracking-tight leading-tight">
-              {livingPlan?.summaryTitle || (isSevere 
-                ? `Severe Particulate Episode in ${telemetry.city} — Limit Outdoor Exertion`
-                : `Acceptable Atmospheric Quality in ${telemetry.city}`)}
-            </h1>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mt-2 font-normal">
-              {livingPlan?.summaryBody || cleanAirWindow.convectiveReasoning}
-            </p>
-          </div>
-
-          {/* 3 Quick Lifestyle Decision Pills */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-            {[outdoorAction, ventilationAction, commuteAction].map((act, i) => (
-              <div 
-                key={i} 
-                className="flex items-center space-x-2.5 p-2.5 sm:p-3 rounded-2xl bg-stone-50/80 border border-stone-200/60 hover:bg-white hover:border-stone-300 transition-all shadow-xs"
-              >
-                <div className="p-1.5 rounded-xl bg-white shadow-xs border border-stone-200/50">
-                  {act.icon}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">
-                    {act.label}
-                  </div>
-                  <div className="text-xs font-bold text-slatecharcoal-900 truncate">
-                    {act.value}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Vulnerability Profile Micro-Advisory */}
-          <div className="flex items-start space-x-2.5 text-xs bg-stone-50/90 p-3 rounded-2xl border border-stone-200/80">
-            <ShieldCheck className="w-4 h-4 text-forest-600 shrink-0 mt-0.5" />
-            <div className="leading-relaxed">
-              <span className="font-semibold text-slatecharcoal-900 capitalize">
-                {userPreferences.vulnerabilityProfile.replace('_', ' ')} Profile:
-              </span>{' '}
-              <span className="text-slate-700">
-                {livingPlan?.vulnerabilityGuidance?.actionableStep ||
-                  'Keep intense aerobic activities scheduled for the lower exposure window.'}
-              </span>
-            </div>
-          </div>
-
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+            {isSevere
+              ? 'Air quality is severely degraded due to high PM2.5 and stagnant morning conditions. Limit outdoor exertion and keep indoor spaces sealed.'
+              : isPoor
+              ? 'Moderate to high particulate levels observed. Optimize outdoor activity for the clean-air convective valley.'
+              : 'Atmospheric conditions are favorable for outdoor recreation and controlled residential ventilation.'}
+          </p>
         </div>
 
-        {/* Right Column: Prominent Circular Atmospheric AQI Dial */}
-        <div className="flex flex-col items-center lg:items-end justify-center shrink-0 w-full sm:w-auto">
-          <div className={`relative flex flex-col items-center justify-center p-4 sm:p-6 rounded-3xl ${theme.dialBg} border shadow-soft w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72 transition-all`}>
+        {/* Center Column: Circular Radial AQI Gauge (Exact Match to Image 2) */}
+        <div className="shrink-0 flex items-center justify-center my-2 lg:my-0">
+          <div className="relative flex items-center justify-center w-56 h-56 sm:w-64 sm:h-64">
             
+            {/* Soft Ambient Radial Aura Glow */}
+            <div
+              className="absolute inset-0 rounded-full blur-2xl opacity-35"
+              style={{ backgroundColor: statusColor }}
+            />
+
             {/* SVG Circular Radial Progress */}
-            <svg className="w-44 h-44 sm:w-48 sm:h-48 lg:w-52 lg:h-52 -rotate-90 transform" viewBox="0 0 140 140">
-              {/* Background Track */}
+            <svg className="w-52 h-52 sm:w-60 sm:h-60 -rotate-90 transform" viewBox="0 0 160 160">
+              {/* Outer Subtle Aura Track */}
               <circle
-                cx="70"
-                cy="70"
-                r={radius}
-                className="stroke-stone-200/80"
-                strokeWidth="10"
+                cx="80"
+                cy="80"
+                r={radius + 4}
+                stroke={statusColor}
+                strokeWidth="1.5"
+                strokeOpacity="0.25"
                 fill="none"
               />
-              {/* Active AQI Arc */}
+              {/* Background Track */}
               <circle
-                cx="70"
-                cy="70"
+                cx="80"
+                cy="80"
                 r={radius}
-                stroke={theme.ringColor}
-                strokeWidth="10"
+                className="stroke-stone-200"
+                strokeWidth="9"
+                fill="none"
+              />
+              {/* Active Progress Arc */}
+              <circle
+                cx="80"
+                cy="80"
+                r={radius}
+                stroke={statusColor}
+                strokeWidth="9"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
                 strokeLinecap="round"
                 fill="none"
                 className="transition-all duration-1000 ease-out"
+                style={{
+                  filter: `drop-shadow(0 0 6px ${statusColor}80)`,
+                }}
               />
             </svg>
 
             {/* Centered Dial Information */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center select-none">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 CPCB NAQI
               </span>
-              <span className="text-4xl sm:text-5xl font-black text-slatecharcoal-900 tracking-tight my-0.5">
+              <span className="text-4xl sm:text-5xl font-black text-slatecharcoal-900 tracking-tight my-0.5 font-mono">
                 {aqi}
               </span>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold ${theme.badgeBg}`}>
+              <span className={`px-3 py-0.5 rounded-full text-xs font-black text-white ${statusBg} shadow-xs`}>
                 {aqiCat}
               </span>
-              <div className="text-[11px] text-slate-500 font-medium mt-1">
-                Dominant: <strong className="text-slatecharcoal-900">{primaryPollutant}</strong>
-              </div>
-            </div>
-
-            {/* Bottom Mini Metric Inside Dial */}
-            <div className="mt-1 pt-1.5 border-t border-stone-200/60 w-full flex justify-between items-center text-[10px] text-slate-500 px-2">
-              <span>PM2.5: <strong className="text-slatecharcoal-900 font-bold">{pm} µg/m³</strong></span>
-              <span className="font-semibold text-slate-600">
-                {whoRatio > 1 ? `${whoRatio}× WHO 24h Benchmark` : 'WHO Compliant'}
+              <span className="text-[11px] text-slate-500 font-medium mt-1">
+                Dominant: {primaryPollutant}
               </span>
             </div>
 
           </div>
         </div>
 
+        {/* Right Column: 3 Stacked White Decision Cards (Exact Match to Image 2) */}
+        <div className="w-full lg:w-72 flex flex-col space-y-2.5">
+          
+          {/* Card 1: Outdoor Exercise */}
+          <div className="flex items-center space-x-3 p-3.5 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:shadow-sm transition-all">
+            <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shrink-0">
+              <Activity className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Outdoor Exercise
+              </div>
+              <div className="text-xs font-extrabold text-rose-600">
+                {isSevere ? 'Shift Indoors' : isPoor ? 'Use Best Window' : 'Favorable Today'}
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Window Ventilation */}
+          <div className="flex items-center space-x-3 p-3.5 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:shadow-sm transition-all">
+            <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100 shrink-0">
+              {pm > 60 ? <DoorClosed className="w-4 h-4" /> : <DoorOpen className="w-4 h-4" />}
+            </div>
+            <div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Window Ventilation
+              </div>
+              <div className="text-xs font-extrabold text-rose-600">
+                {pm > 60 ? 'Keep Sealed' : 'Safe to Flush'}
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Commute Protection */}
+          <div className="flex items-center space-x-3 p-3.5 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:shadow-sm transition-all">
+            <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-100 shrink-0">
+              <Train className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Commute Protection
+              </div>
+              <div className="text-xs font-extrabold text-teal-700">
+                {isSevere || isPoor ? 'Prefer AC Metro / N95' : 'Standard Transit'}
+              </div>
+            </div>
+          </div>
+
+        </div>
+
       </div>
+
     </div>
   );
 };

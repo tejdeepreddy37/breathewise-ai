@@ -1,433 +1,714 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import * as THREE from 'three';
 import { useApp } from '../context/AppContext';
-import { INDIAN_CITIES_PRESETS } from '../data/cities';
 
-interface CityMarker {
+export interface GlobeCity {
   id: string;
   name: string;
-  shortName: string;
+  country: string;
   lat: number;
   lon: number;
   aqi: number;
   category: string;
   color: string;
+  temp: number;
+  humidity: number;
+  windSpeed: number;
+  description: string;
 }
 
-const GLOBE_CITIES: CityMarker[] = [
-  { id: 'delhi-anand-vihar', name: 'Delhi NCR', shortName: 'Delhi', lat: 28.6469, lon: 77.3160, aqi: 405, category: 'Severe', color: '#EF4444' },
-  { id: 'bengaluru-indiranagar', name: 'Bengaluru', shortName: 'Bengaluru', lat: 12.9784, lon: 77.6408, aqi: 97, category: 'Satisfactory', color: '#10B981' },
-  { id: 'mumbai-bkc', name: 'Mumbai BKC', shortName: 'Mumbai', lat: 19.0657, lon: 72.8687, aqi: 312, category: 'Very Poor', color: '#F97316' },
-  { id: 'kolkata-victoria', name: 'Kolkata', shortName: 'Kolkata', lat: 22.5448, lon: 88.3426, aqi: 337, category: 'Very Poor', color: '#F59E0B' },
-  { id: 'chennai-adyar', name: 'Chennai', shortName: 'Chennai', lat: 13.0012, lon: 80.2565, aqi: 70, category: 'Satisfactory', color: '#06B6D4' },
-  { id: 'hyderabad-sanathnagar', name: 'Hyderabad', shortName: 'Hyderabad', lat: 17.4578, lon: 78.4428, aqi: 142, category: 'Moderate', color: '#EAB308' },
-  { id: 'pune-shivajinagar', name: 'Pune', shortName: 'Pune', lat: 18.5308, lon: 73.8475, aqi: 135, category: 'Moderate', color: '#EAB308' },
+export const GLOBE_CITIES: GlobeCity[] = [
+  {
+    id: 'delhi-anand-vihar',
+    name: 'Delhi NCR',
+    country: 'India',
+    lat: 28.6469,
+    lon: 77.3160,
+    aqi: 405,
+    category: 'Severe',
+    color: '#EF4444', // Red
+    temp: 19,
+    humidity: 68,
+    windSpeed: 6.0,
+    description: 'Severe winter smog with thermal inversion',
+  },
+  {
+    id: 'bengaluru-indiranagar',
+    name: 'Bengaluru',
+    country: 'India',
+    lat: 12.9784,
+    lon: 77.6408,
+    aqi: 78,
+    category: 'Satisfactory',
+    color: '#10B981', // Green
+    temp: 24,
+    humidity: 52,
+    windSpeed: 13.2,
+    description: 'Moderate plateau ventilation with steady airflow',
+  },
+  {
+    id: 'mumbai-bkc',
+    name: 'Mumbai BKC',
+    country: 'India',
+    lat: 19.0657,
+    lon: 72.8687,
+    aqi: 174,
+    category: 'Very Poor',
+    color: '#EF4444', // Red
+    temp: 28,
+    humidity: 74,
+    windSpeed: 11.0,
+    description: 'Coastal humidity with evening sea breeze',
+  },
+  {
+    id: 'kolkata-victoria',
+    name: 'Kolkata',
+    country: 'India',
+    lat: 22.5448,
+    lon: 88.3426,
+    aqi: 155,
+    category: 'Very Poor',
+    color: '#F97316', // Orange
+    temp: 23,
+    humidity: 78,
+    windSpeed: 7.0,
+    description: 'Gangetic basin winter stagnation',
+  },
+  {
+    id: 'chennai-adyar',
+    name: 'Chennai',
+    country: 'India',
+    lat: 13.0012,
+    lon: 80.2565,
+    aqi: 70,
+    category: 'Satisfactory',
+    color: '#10B981', // Green
+    temp: 29,
+    humidity: 82,
+    windSpeed: 18.0,
+    description: 'Maritime sea-breeze ventilation',
+  },
+  {
+    id: 'hyderabad-sanathnagar',
+    name: 'Hyderabad',
+    country: 'India',
+    lat: 17.4578,
+    lon: 78.4428,
+    aqi: 132,
+    category: 'Moderate',
+    color: '#F59E0B', // Amber
+    temp: 26,
+    humidity: 55,
+    windSpeed: 9.5,
+    description: 'Deccan plateau moderate air quality',
+  },
+  {
+    id: 'pune-shivajinagar',
+    name: 'Pune',
+    country: 'India',
+    lat: 18.5308,
+    lon: 73.8475,
+    aqi: 112,
+    category: 'Moderate',
+    color: '#F59E0B', // Amber
+    temp: 25,
+    humidity: 58,
+    windSpeed: 8.0,
+    description: 'Western Ghats rain-shadow valley',
+  },
+  {
+    id: 'jakarta-indonesia',
+    name: 'Jakarta',
+    country: 'Indonesia',
+    lat: -6.2088,
+    lon: 106.8456,
+    aqi: 137,
+    category: 'Unhealthy for sensitive people',
+    color: '#F97316',
+    temp: 34,
+    humidity: 50,
+    windSpeed: 13.2,
+    description: 'Tropical urban vehicular accumulation',
+  },
 ];
 
-// Pre-generated continental landmass dot-matrix coordinates (lat, lon in degrees)
-function generateLandmassPoints(): Array<[number, number]> {
-  const points: Array<[number, number]> = [];
-  
-  // Helper to add a cluster with density
-  const addCluster = (latMin: number, latMax: number, lonMin: number, lonMax: number, step = 4, filter?: (lat: number, lon: number) => boolean) => {
-    for (let lat = latMin; lat <= latMax; lat += step) {
-      for (let lon = lonMin; lon <= lonMax; lon += step) {
-        if (!filter || filter(lat, lon)) {
-          points.push([lat, lon]);
-        }
-      }
-    }
-  };
-
-  // Indian Subcontinent (High resolution)
-  addCluster(8, 35, 68, 92, 2.5, (lat, lon) => {
-    // Rough triangle of peninsular India
-    if (lat < 22) {
-      const centerLon = 78;
-      const width = (lat - 8) * 1.5 + 4;
-      return Math.abs(lon - centerLon) < width;
-    }
-    return true;
-  });
-
-  // East & Southeast Asia
-  addCluster(10, 50, 95, 135, 3.5);
-  // Japan & Korea
-  addCluster(30, 45, 126, 145, 3);
-  // Middle East
-  addCluster(12, 38, 40, 65, 3.5);
-  // Europe
-  addCluster(36, 65, -10, 40, 3.5);
-  // Africa
-  addCluster(-35, 36, -16, 50, 4, (lat, lon) => {
-    if (lat < 0) return lon > 10 && lon < 40;
-    return true;
-  });
-  // Australia
-  addCluster(-38, -12, 115, 152, 4);
-  // North America
-  addCluster(25, 65, -125, -70, 4.5);
-  // South America
-  addCluster(-50, 10, -80, -35, 4.5, (lat, lon) => {
-    if (lat < -20) return lon < -55;
-    return true;
-  });
-
-  return points;
+// Helper: Convert lat/lon to 3D Cartesian coordinates on sphere of radius R
+function latLonToVector3(lat: number, lon: number, radius: number): THREE.Vector3 {
+  const phi = (90 - lat) * (Math.PI / 180);
+  const theta = (lon + 180) * (Math.PI / 180);
+  const x = -(radius * Math.sin(phi) * Math.cos(theta));
+  const z = radius * Math.sin(phi) * Math.sin(theta);
+  const y = radius * Math.cos(phi);
+  return new THREE.Vector3(x, y, z);
 }
 
-const LANDMASS_POINTS = generateLandmassPoints();
+// Generate realistic procedural Earth texture with continents, elevation relief, and night city lights
+function createEarthCanvasTexture(): THREE.CanvasTexture {
+  const width = 2048;
+  const height = 1024;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return new THREE.CanvasTexture(canvas);
 
-export const InteractiveGlobe: React.FC<{ onExploreCity?: (cityId: string) => void }> = ({ onExploreCity }) => {
+  // Deep ocean blue-teal base
+  const oceanGrad = ctx.createLinearGradient(0, 0, 0, height);
+  oceanGrad.addColorStop(0, '#041026');
+  oceanGrad.addColorStop(0.3, '#06203D');
+  oceanGrad.addColorStop(0.5, '#082B4E');
+  oceanGrad.addColorStop(0.7, '#06203D');
+  oceanGrad.addColorStop(1, '#041026');
+  ctx.fillStyle = oceanGrad;
+  ctx.fillRect(0, 0, width, height);
+
+  // Continental landmasses coordinates helper (lat, lon) -> (x, y)
+  const mapPoint = (lat: number, lon: number): [number, number] => {
+    const x = ((lon + 180) / 360) * width;
+    const y = ((90 - lat) / 180) * height;
+    return [x, y];
+  };
+
+  const drawLandmass = (coords: Array<[number, number]>, fill = '#1A4D43', stroke = '#246B5C') => {
+    ctx.beginPath();
+    coords.forEach(([lat, lon], idx) => {
+      const [x, y] = mapPoint(lat, lon);
+      if (idx === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  };
+
+  // Indian Subcontinent
+  drawLandmass([
+    [36, 74], [35, 78], [32, 79], [28, 88], [27, 89], [22, 90], [21, 87],
+    [16, 82], [13, 80], [10, 80], [8, 77], [10, 76], [15, 74], [19, 73],
+    [23, 69], [25, 68], [30, 71], [33, 72], [36, 74]
+  ], '#205E50', '#2E806D');
+
+  // Sri Lanka
+  drawLandmass([[9.5, 80.5], [8.5, 81.5], [6.5, 81.5], [6.5, 80], [8, 79.5]], '#205E50', '#2E806D');
+
+  // Southeast Asia & Indonesia
+  drawLandmass([
+    [22, 98], [20, 107], [15, 108], [11, 103], [8, 103], [1, 104], [6, 100], [15, 96], [22, 98]
+  ], '#1B5446');
+  drawLandmass([[-5, 105], [-6, 106], [-7.5, 110], [-8, 114], [-7, 114], [-6, 108]], '#1B5446');
+  drawLandmass([[5, 115], [4, 118], [0, 118], [-3, 115], [-2, 110], [1, 109]], '#1B5446');
+
+  // East Asia & China
+  drawLandmass([
+    [40, 120], [42, 130], [38, 128], [32, 122], [22, 114], [22, 108], [28, 98], [38, 90], [48, 85], [45, 110], [40, 120]
+  ], '#225B4C');
+
+  // Middle East & Arabian Peninsula
+  drawLandmass([
+    [32, 35], [30, 48], [25, 56], [23, 59], [15, 54], [12, 44], [16, 42], [28, 34], [32, 35]
+  ], '#3B4E38', '#4C6648');
+
+  // Africa
+  drawLandmass([
+    [36, 10], [32, 32], [22, 37], [12, 51], [5, 48], [-10, 40], [-25, 33], [-34, 19], [-30, 17],
+    [-15, 12], [0, 9], [5, 2], [5, -5], [10, -14], [15, -17], [28, -13], [36, -5], [36, 10]
+  ], '#26594B', '#347564');
+
+  // Europe
+  drawLandmass([
+    [36, -6], [43, -9], [48, -5], [52, 2], [55, 8], [58, 15], [60, 28], [55, 38], [45, 36], [40, 26], [38, 22], [36, 15], [36, -6]
+  ], '#2A6658', '#388270');
+
+  // Australia
+  drawLandmass([
+    [-12, 131], [-15, 136], [-12, 142], [-24, 153], [-37, 150], [-38, 140], [-35, 116], [-22, 114], [-15, 124], [-12, 131]
+  ], '#38573E', '#4B7354');
+
+  // Americas (Simplified contours)
+  drawLandmass([
+    [50, -125], [55, -95], [45, -65], [30, -80], [25, -97], [30, -115], [40, -124], [50, -125]
+  ], '#22594D');
+  drawLandmass([
+    [10, -75], [5, -52], [-10, -36], [-23, -43], [-40, -62], [-55, -68], [-35, -72], [-5, -80], [10, -75]
+  ], '#1E5246');
+
+  // Add luminous city light dots in populated regions
+  ctx.fillStyle = '#FDE047';
+  const addCityGlow = (lat: number, lon: number, r: number) => {
+    const [x, y] = mapPoint(lat, lon);
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, r * 4);
+    grad.addColorStop(0, 'rgba(254, 240, 138, 0.9)');
+    grad.addColorStop(0.3, 'rgba(245, 158, 11, 0.5)');
+    grad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r * 4, 0, Math.PI * 2);
+    ctx.fill();
+  };
+
+  // Major Indian and Asian city lights clusters
+  addCityGlow(28.6, 77.2, 5); // Delhi
+  addCityGlow(19.0, 72.8, 5); // Mumbai
+  addCityGlow(13.0, 77.6, 4); // Bengaluru
+  addCityGlow(22.5, 88.3, 4); // Kolkata
+  addCityGlow(13.0, 80.2, 4); // Chennai
+  addCityGlow(17.4, 78.4, 3.5); // Hyderabad
+  addCityGlow(18.5, 73.8, 3.5); // Pune
+  addCityGlow(25.0, 85.0, 3); // Gangetic belt
+  addCityGlow(31.5, 74.3, 3); // Lahore/Punjab
+  addCityGlow(-6.2, 106.8, 4); // Jakarta
+  addCityGlow(1.3, 103.8, 3.5); // Singapore
+  addCityGlow(13.7, 100.5, 3.5); // Bangkok
+  addCityGlow(31.2, 121.4, 4); // Shanghai
+  addCityGlow(35.6, 139.6, 4.5); // Tokyo
+  addCityGlow(25.2, 55.3, 3.5); // Dubai
+  addCityGlow(51.5, -0.1, 4); // London
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  return texture;
+}
+
+export const InteractiveGlobe: React.FC<{
+  onExploreCity?: (cityId: string) => void;
+  activeView?: 'globe' | 'map';
+  onToggleView?: (view: 'globe' | 'map') => void;
+}> = ({ onExploreCity, activeView = 'globe', onToggleView }) => {
   const { selectedCityId, selectCity } = useApp();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasMountRef = useRef<HTMLDivElement>(null);
 
-  // Rotation angles (radians)
-  // Initial center on India: lat ~ 20°N, lon ~ 78°E
-  const [rotY, setRotY] = useState<number>(-78 * (Math.PI / 180));
-  const [rotX, setRotX] = useState<number>(20 * (Math.PI / 180));
+  // Screen-projected positions for HTML markers
+  const [markerPositions, setMarkerPositions] = useState<
+    Array<{ city: GlobeCity; x: number; y: number; isVisible: boolean }>
+  >([]);
+
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [hoveredCity, setHoveredCity] = useState<CityMarker | null>(null);
+  const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  const rotYRef = useRef(rotY);
-  const rotXRef = useRef(rotX);
-  const isDraggingRef = useRef(isDragging);
-  const hoveredCityRef = useRef(hoveredCity);
+  // Three.js internal objects
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const globeGroupRef = useRef<THREE.Group | null>(null);
+  const cloudMeshRef = useRef<THREE.Mesh | null>(null);
 
-  rotYRef.current = rotY;
-  rotXRef.current = rotX;
-  isDraggingRef.current = isDragging;
-  hoveredCityRef.current = hoveredCity;
+  const GLOBE_RADIUS = 2.4;
 
-  // Auto-center on selected city if prop changes
-  const centerOnCity = useCallback((city: CityMarker) => {
-    const targetRotY = -city.lon * (Math.PI / 180);
-    const targetRotX = city.lat * (Math.PI / 180);
-    setRotY(targetRotY);
-    setRotX(targetRotX);
-  }, []);
-
-  // Main Canvas Render Loop
+  // Initialize Three.js scene
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const container = canvasMountRef.current;
+    if (!container) return;
 
-    let animId: number;
-    let pulsePhase = 0;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
 
-    const render = () => {
-      // Auto-rotation when not dragging
-      if (!isDraggingRef.current) {
-        setRotY((prev) => prev - 0.002);
-      }
-      pulsePhase = (pulsePhase + 0.04) % (Math.PI * 2);
+    // 1. Scene & Camera
+    const scene = new THREE.Scene();
+    sceneRef.current = scene;
 
-      const dpr = window.devicePixelRatio || 1;
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
+    camera.position.set(0, 0, 7.2);
+    cameraRef.current = camera;
 
-      if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-        canvas.width = width * dpr;
-        canvas.height = height * dpr;
-      }
+    // 2. WebGL Renderer with High-DPI & Antialiasing
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    container.innerHTML = '';
+    container.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
 
-      ctx.save();
-      ctx.scale(dpr, dpr);
-      ctx.clearRect(0, 0, width, height);
+    // 3. Globe Group containing Earth, Atmosphere, and Orbitals
+    const globeGroup = new THREE.Group();
+    // Default rotation focused on India (lat ~20°N, lon ~78°E)
+    globeGroup.rotation.y = THREE.MathUtils.degToRad(-78);
+    globeGroup.rotation.x = THREE.MathUtils.degToRad(18);
+    scene.add(globeGroup);
+    globeGroupRef.current = globeGroup;
 
-      const cx = width / 2;
-      const cy = height / 2;
-      const R = Math.min(width, height) * 0.42;
+    // 4. Earth Sphere with Procedural Map Texture
+    const earthGeometry = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64);
+    const earthTexture = createEarthCanvasTexture();
+    const earthMaterial = new THREE.MeshStandardMaterial({
+      map: earthTexture,
+      roughness: 0.65,
+      metalness: 0.15,
+      color: 0xffffff,
+    });
+    const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+    globeGroup.add(earthMesh);
 
-      const currentRotY = rotYRef.current;
-      const currentRotX = rotXRef.current;
+    // 5. Cloud Layer (Subtle outer transparent sphere)
+    const cloudGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 1.015, 48, 48);
+    const cloudMaterial = new THREE.MeshStandardMaterial({
+      color: 0x93c5fd,
+      transparent: true,
+      opacity: 0.18,
+      blending: THREE.AdditiveBlending,
+      roughness: 0.9,
+    });
+    const cloudMesh = new THREE.Mesh(cloudGeometry, cloudMaterial);
+    globeGroup.add(cloudMesh);
+    cloudMeshRef.current = cloudMesh;
 
-      // 1. Outer Deep Atmospheric Glow
-      const glowGrad = ctx.createRadialGradient(cx, cy, R * 0.8, cx, cy, R * 1.35);
-      glowGrad.addColorStop(0, 'rgba(30, 58, 138, 0.4)');
-      glowGrad.addColorStop(0.5, 'rgba(16, 185, 129, 0.15)');
-      glowGrad.addColorStop(1, 'rgba(10, 15, 29, 0)');
-      ctx.fillStyle = glowGrad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, R * 1.35, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 2. Dark Planetary Body
-      const sphereGrad = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.35, R * 0.1, cx, cy, R);
-      sphereGrad.addColorStop(0, '#1E293B');
-      sphereGrad.addColorStop(0.5, '#0F172A');
-      sphereGrad.addColorStop(0.9, '#0A0F1D');
-      sphereGrad.addColorStop(1, '#050811');
-      ctx.fillStyle = sphereGrad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, R, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 3. Atmospheric Rim Highlight
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // 3D Projection Math Helper
-      const project = (latDeg: number, lonDeg: number) => {
-        const latRad = latDeg * (Math.PI / 180);
-        const lonRad = lonDeg * (Math.PI / 180);
-
-        // Spherical to 3D Cartesian
-        const x0 = R * Math.cos(latRad) * Math.sin(lonRad + currentRotY);
-        const y0 = -R * Math.sin(latRad);
-        const z0 = R * Math.cos(latRad) * Math.cos(lonRad + currentRotY);
-
-        // Pitch tilt by rotX
-        const x = x0;
-        const y = y0 * Math.cos(currentRotX) - z0 * Math.sin(currentRotX);
-        const z = y0 * Math.sin(currentRotX) + z0 * Math.cos(currentRotX);
-
-        return { x: cx + x, y: cy + y, z };
-      };
-
-      // 4. Parallels & Meridians Graticule Lines
-      ctx.strokeStyle = 'rgba(148, 163, 184, 0.12)';
-      ctx.lineWidth = 0.75;
-
-      // Latitude circles (-60, -30, 0, 30, 60)
-      [-60, -30, 0, 30, 60].forEach((lat) => {
-        ctx.beginPath();
-        let first = true;
-        for (let lon = -180; lon <= 180; lon += 5) {
-          const pt = project(lat, lon);
-          if (pt.z > 0) {
-            if (first) {
-              ctx.moveTo(pt.x, pt.y);
-              first = false;
-            } else {
-              ctx.lineTo(pt.x, pt.y);
-            }
-          } else {
-            first = true;
-          }
+    // 6. Atmospheric Glow Outer Shell
+    const glowGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 1.08, 48, 48);
+    const glowMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        glowColor: { value: new THREE.Color(0x38bdf8) },
+      },
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
-        ctx.stroke();
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        uniform vec3 glowColor;
+        void main() {
+          float intensity = pow(0.65 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.5);
+          gl_FragColor = vec4(glowColor, intensity * 0.7);
+        }
+      `,
+      blending: THREE.AdditiveBlending,
+      side: THREE.BackSide,
+      transparent: true,
+    });
+    const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
+    globeGroup.add(glowMesh);
+
+    // 7. Glowing Orbital Rings around the Earth (Image 1 aesthetic)
+    const createOrbitalRing = (radiusX: number, radiusY: number, tiltX: number, tiltY: number, colorHex: number) => {
+      const curve = new THREE.EllipseCurve(0, 0, radiusX, radiusY, 0, 2 * Math.PI, false, 0);
+      const points = curve.getPoints(100);
+      const ringGeom = new THREE.BufferGeometry().setFromPoints(
+        points.map((p) => new THREE.Vector3(p.x, p.y, 0))
+      );
+      const ringMat = new THREE.LineBasicMaterial({
+        color: colorHex,
+        transparent: true,
+        opacity: 0.45,
+        blending: THREE.AdditiveBlending,
       });
-
-      // Longitude meridians (every 45 deg)
-      for (let lon = -180; lon < 180; lon += 45) {
-        ctx.beginPath();
-        let first = true;
-        for (let lat = -80; lat <= 80; lat += 5) {
-          const pt = project(lat, lon);
-          if (pt.z > 0) {
-            if (first) {
-              ctx.moveTo(pt.x, pt.y);
-              first = false;
-            } else {
-              ctx.lineTo(pt.x, pt.y);
-            }
-          } else {
-            first = true;
-          }
-        }
-        ctx.stroke();
-      }
-
-      // 5. Continental Dot-Matrix Landmass Points
-      LANDMASS_POINTS.forEach(([lat, lon]) => {
-        const pt = project(lat, lon);
-        if (pt.z > 0) {
-          // Perspective opacity based on z depth
-          const depthNorm = Math.max(0.1, pt.z / R);
-          ctx.fillStyle = `rgba(148, 163, 184, ${depthNorm * 0.45})`;
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, 1.2 * depthNorm, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      });
-
-      // 6. City Markers (Glow rings, pulse, and labels)
-      GLOBE_CITIES.forEach((city) => {
-        const pt = project(city.lat, city.lon);
-        if (pt.z > 0) {
-          const isSelected = city.id === selectedCityId;
-          const isHovered = hoveredCityRef.current?.id === city.id;
-          const depthAlpha = Math.max(0.4, pt.z / R);
-
-          // Pulsating outer warning ring
-          const pulseR = 4 + Math.sin(pulsePhase) * 3 + (isSelected ? 4 : 0);
-          ctx.strokeStyle = city.color;
-          ctx.lineWidth = isSelected ? 2 : 1.2;
-          ctx.globalAlpha = depthAlpha * (0.4 + Math.sin(pulsePhase) * 0.3);
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, pulseR, 0, Math.PI * 2);
-          ctx.stroke();
-
-          // Solid Center Node
-          ctx.globalAlpha = depthAlpha;
-          ctx.fillStyle = city.color;
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, isSelected ? 4.5 : 3, 0, Math.PI * 2);
-          ctx.fill();
-
-          // City Label & AQI Badge
-          ctx.font = isSelected ? 'bold 11px Inter, sans-serif' : '10px Inter, sans-serif';
-          ctx.fillStyle = isSelected ? '#FFFFFF' : 'rgba(241, 245, 249, 0.85)';
-          const textX = pt.x + 8;
-          const textY = pt.y + 3;
-          ctx.fillText(city.shortName, textX, textY);
-
-          // Small AQI pill badge
-          ctx.font = 'bold 9px Inter, monospace';
-          ctx.fillStyle = city.color;
-          ctx.fillText(`${city.aqi}`, textX + ctx.measureText(city.shortName).width + 5, textY);
-          ctx.globalAlpha = 1.0;
-        }
-      });
-
-      ctx.restore();
-      animId = requestAnimationFrame(render);
+      const ringLine = new THREE.Line(ringGeom, ringMat);
+      ringLine.rotation.x = tiltX;
+      ringLine.rotation.y = tiltY;
+      return ringLine;
     };
 
-    animId = requestAnimationFrame(render);
-    return () => cancelAnimationFrame(animId);
-  }, [selectedCityId]);
+    globeGroup.add(createOrbitalRing(GLOBE_RADIUS * 1.45, GLOBE_RADIUS * 1.45, Math.PI / 3, Math.PI / 6, 0x10b981));
+    globeGroup.add(createOrbitalRing(GLOBE_RADIUS * 1.35, GLOBE_RADIUS * 1.35, -Math.PI / 4, Math.PI / 4, 0x38bdf8));
 
-  // Mouse & Touch Interaction Handlers
-  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // 8. Lighting System (Sunrise flare effect from top-left)
+    const ambientLight = new THREE.AmbientLight(0x0f172a, 1.2);
+    scene.add(ambientLight);
+
+    // Primary Sun directional light (matches sunrise flare on top-left of Image 1)
+    const sunLight = new THREE.DirectionalLight(0xfffbeb, 3.2);
+    sunLight.position.set(-6, 4, 5);
+    scene.add(sunLight);
+
+    // Subtle blue rim light from bottom-right
+    const rimLight = new THREE.DirectionalLight(0x0284c7, 1.8);
+    rimLight.position.set(6, -3, -2);
+    scene.add(rimLight);
+
+    // 9. Resize Observer
+    const handleResize = () => {
+      if (!container || !renderer || !camera) return;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // 10. Animation & Render Loop
+    let animId: number;
+    const animate = () => {
+      animId = requestAnimationFrame(animate);
+
+      // Subtle slow auto-rotation when user is not dragging
+      if (!isDragging && globeGroup) {
+        globeGroup.rotation.y -= 0.0012;
+      }
+      if (cloudMesh) {
+        cloudMesh.rotation.y -= 0.0016;
+      }
+
+      // Project 3D City Coordinates onto 2D Canvas Screen Pixels
+      if (container && camera && globeGroup) {
+        const rect = container.getBoundingClientRect();
+        const positions: Array<{ city: GlobeCity; x: number; y: number; isVisible: boolean }> = [];
+
+        GLOBE_CITIES.forEach((city) => {
+          const localVec = latLonToVector3(city.lat, city.lon, GLOBE_RADIUS);
+          // Apply globeGroup world transform
+          const worldVec = localVec.clone().applyMatrix4(globeGroup.matrixWorld);
+
+          // Ray from camera to globe center
+          const cameraToCenter = new THREE.Vector3().subVectors(new THREE.Vector3(0, 0, 0), camera.position);
+          const cameraToMarker = new THREE.Vector3().subVectors(worldVec, camera.position);
+
+          // Dot product determines if marker is on front hemisphere visible to camera
+          const normal = worldVec.clone().normalize();
+          const viewDir = camera.position.clone().sub(worldVec).normalize();
+          const dot = normal.dot(viewDir);
+          const isVisible = dot > 0.05;
+
+          // Project to 2D NDC coordinates (-1 to 1)
+          worldVec.project(camera);
+          const screenX = ((worldVec.x + 1) * rect.width) / 2;
+          const screenY = ((-worldVec.y + 1) * rect.height) / 2;
+
+          positions.push({ city, x: screenX, y: screenY, isVisible });
+        });
+
+        setMarkerPositions(positions);
+      }
+
+      renderer.render(scene, camera);
+    };
+
+    animate();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener('resize', handleResize);
+      renderer.dispose();
+      if (container) container.innerHTML = '';
+    };
+  }, []);
+
+  // Center Globe on a specific city
+  const rotateToCity = useCallback((city: GlobeCity) => {
+    if (!globeGroupRef.current) return;
+    const targetY = THREE.MathUtils.degToRad(-city.lon);
+    const targetX = THREE.MathUtils.degToRad(city.lat * 0.7);
+
+    // Smooth transition
+    const startY = globeGroupRef.current.rotation.y;
+    const startX = globeGroupRef.current.rotation.x;
+    const startTime = performance.now();
+    const duration = 600;
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const t = Math.min(1, elapsed / duration);
+      const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+      if (globeGroupRef.current) {
+        globeGroupRef.current.rotation.y = startY + (targetY - startY) * ease;
+        globeGroupRef.current.rotation.x = startX + (targetX - startX) * ease;
+      }
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, []);
+
+  // Pointer Drag Interaction Handlers
+  const handlePointerDown = (e: React.PointerEvent) => {
     setIsDragging(true);
-    setDragStart({ x: e.clientX, y: e.clientY });
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
 
-  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (isDragging) {
-      const dx = e.clientX - dragStart.x;
-      const dy = e.clientY - dragStart.y;
-      setRotY((prev) => prev + dx * 0.005);
-      setRotX((prev) => Math.max(-0.9, Math.min(0.9, prev - dy * 0.005)));
-      setDragStart({ x: e.clientX, y: e.clientY });
-    } else {
-      // Check hit test on city markers
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging || !globeGroupRef.current) return;
+    const dx = e.clientX - dragStartRef.current.x;
+    const dy = e.clientY - dragStartRef.current.y;
 
-      const cx = rect.width / 2;
-      const cy = rect.height / 2;
-      const R = Math.min(rect.width, rect.height) * 0.42;
+    globeGroupRef.current.rotation.y += dx * 0.005;
+    globeGroupRef.current.rotation.x = Math.max(
+      -0.85,
+      Math.min(0.85, globeGroupRef.current.rotation.x + dy * 0.005)
+    );
 
-      let found: CityMarker | null = null;
-      for (const city of GLOBE_CITIES) {
-        const latRad = city.lat * (Math.PI / 180);
-        const lonRad = city.lon * (Math.PI / 180);
-        const x0 = R * Math.cos(latRad) * Math.sin(lonRad + rotYRef.current);
-        const y0 = -R * Math.sin(latRad);
-        const z0 = R * Math.cos(latRad) * Math.cos(lonRad + rotYRef.current);
-        const y = y0 * Math.cos(rotXRef.current) - z0 * Math.sin(rotXRef.current);
-        const z = y0 * Math.sin(rotXRef.current) + z0 * Math.cos(rotXRef.current);
-
-        if (z > 0) {
-          const screenX = cx + x0;
-          const screenY = cy + y;
-          const dist = Math.hypot(mouseX - screenX, mouseY - screenY);
-          if (dist < 22) {
-            found = city;
-            break;
-          }
-        }
-      }
-      setHoveredCity(found);
-    }
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
   };
 
-  const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const handlePointerUp = (e: React.PointerEvent) => {
     setIsDragging(false);
     try {
       (e.target as HTMLElement).releasePointerCapture(e.pointerId);
     } catch {}
-
-    // If it was a quick click without much drag, select hovered city
-    if (hoveredCity) {
-      selectCity(hoveredCity.id);
-      centerOnCity(hoveredCity);
-    }
   };
 
-  const currentCityData = GLOBE_CITIES.find((c) => c.id === selectedCityId) || GLOBE_CITIES[0];
+  // Zoom controls
+  const handleZoom = (delta: number) => {
+    if (!cameraRef.current) return;
+    const newZ = Math.max(5.0, Math.min(10.5, cameraRef.current.position.z + delta));
+    cameraRef.current.position.z = newZ;
+    setZoomLevel(+(7.2 / newZ).toFixed(2));
+  };
+
+  const activeCity = GLOBE_CITIES.find((c) => c.id === selectedCityId) || GLOBE_CITIES[1]; // Bengaluru or selected
 
   return (
-    <div className="relative flex flex-col items-center justify-center w-full max-w-4xl mx-auto">
-      {/* 3D Canvas */}
-      <div className="relative w-full aspect-square max-w-[500px] sm:max-w-[560px] lg:max-w-[620px] mx-auto cursor-grab active:cursor-grabbing select-none">
-        <canvas
-          ref={canvasRef}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          className="w-full h-full touch-none"
-        />
+    <div
+      ref={containerRef}
+      className="relative w-full h-[580px] sm:h-[660px] lg:h-[720px] overflow-hidden select-none"
+    >
+      {/* 1. Atmospheric Sunrise Flare Backdrop (matches Image 1 upper-left glow) */}
+      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-amber-400/30 via-orange-500/20 to-transparent rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 left-1/3 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white/40 rounded-full blur-2xl pointer-events-none" />
 
-        {/* Ambient Top Glow Tag */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-700/80 text-[11px] text-slate-300 font-medium backdrop-blur-md shadow-lg pointer-events-none flex items-center space-x-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Interactive Earth Telemetry • Drag to Rotate</span>
-        </div>
-      </div>
+      {/* 2. WebGL Canvas Mounting Point */}
+      <div
+        ref={canvasMountRef}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        className="absolute inset-0 cursor-grab active:cursor-grabbing touch-none z-10"
+      />
 
-      {/* Quick City Navigation Filter Pills */}
-      <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-2 z-10 px-4">
-        {GLOBE_CITIES.slice(0, 5).map((city) => {
+      {/* 3. Screen-Projected Interactive City Markers & Floating Card */}
+      <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+        {markerPositions.map(({ city, x, y, isVisible }) => {
+          if (!isVisible) return null;
           const isSelected = city.id === selectedCityId;
+
           return (
-            <button
+            <div
               key={city.id}
-              onClick={() => {
-                selectCity(city.id);
-                centerOnCity(city);
+              style={{
+                left: `${x}px`,
+                top: `${y}px`,
+                transform: 'translate(-50%, -50%)',
               }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center space-x-2 ${
-                isSelected
-                  ? 'bg-slate-800 text-white border border-slate-600 shadow-md ring-1 ring-forest-400/50'
-                  : 'bg-slate-900/60 text-slate-400 border border-slate-800 hover:text-slate-200 hover:bg-slate-800/80'
-              }`}
+              className="absolute pointer-events-auto cursor-pointer group"
+              onClick={(e) => {
+                e.stopPropagation();
+                selectCity(city.id);
+                rotateToCity(city);
+              }}
             >
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: city.color }} />
-              <span>{city.shortName}</span>
-              <span className="text-[10px] font-mono opacity-80">{city.aqi}</span>
-            </button>
+              {/* Outer Pulsating Warning Ring */}
+              <div
+                className="absolute -inset-2 rounded-full animate-ping opacity-60"
+                style={{ backgroundColor: city.color }}
+              />
+
+              {/* Glowing Badge with AQI Number (Exact match to Image 1) */}
+              <div
+                className={`relative flex items-center justify-center font-extrabold text-[11px] font-mono px-2 py-0.5 rounded-full border shadow-lg transition-transform ${
+                  isSelected
+                    ? 'ring-4 ring-emerald-400 scale-125 z-30'
+                    : 'group-hover:scale-115'
+                }`}
+                style={{
+                  backgroundColor: `${city.color}`,
+                  color: '#FFFFFF',
+                  borderColor: 'rgba(255, 255, 255, 0.6)',
+                  boxShadow: `0 0 16px ${city.color}80`,
+                }}
+              >
+                {city.aqi}
+              </div>
+
+              {/* Pulsating Base Target Dot */}
+              <div
+                className="w-2 h-2 rounded-full mx-auto mt-0.5 shadow-md"
+                style={{ backgroundColor: city.color }}
+              />
+
+              {/* Floating City Info Popover (matches exact popup in Image 1) */}
+              {isSelected && (
+                <div
+                  className="absolute bottom-7 left-1/2 -translate-x-1/2 w-64 p-3 rounded-2xl bg-slate-900/95 border border-slate-700/80 backdrop-blur-xl shadow-2xl text-left pointer-events-auto animate-in fade-in zoom-in-95 duration-200 z-40"
+                  style={{ boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)' }}
+                >
+                  <div className="flex items-center justify-between text-xs font-semibold text-slate-300 pb-1.5 border-b border-slate-800">
+                    <span className="flex items-center space-x-1">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: city.color }} />
+                      <span className="font-bold text-white">{city.name}, {city.country}</span>
+                    </span>
+                    <button
+                      onClick={() => onExploreCity && onExploreCity(city.id)}
+                      className="text-[10px] text-emerald-400 hover:text-emerald-300 font-bold ml-1 cursor-pointer"
+                    >
+                      Air Quality ›
+                    </button>
+                  </div>
+
+                  <div className="flex items-center space-x-2 my-2">
+                    <span
+                      className="text-xs font-bold px-2 py-0.5 rounded-md text-white font-mono"
+                      style={{ backgroundColor: city.color }}
+                    >
+                      {city.aqi} AQI
+                    </span>
+                    <span className="text-xs font-semibold text-slate-200 truncate">
+                      {city.category}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800 font-mono">
+                    <span>☀️ {city.temp} °C</span>
+                    <span>💧 {city.humidity}%</span>
+                    <span>💨 {city.windSpeed} km/h</span>
+                  </div>
+                </div>
+              )}
+            </div>
           );
         })}
       </div>
 
-      {/* Selected City Float HUD Card */}
-      <div className="w-full max-w-md mt-6 p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-700/70 backdrop-blur-md shadow-2xl flex items-center justify-between gap-4 z-10">
-        <div className="space-y-1">
-          <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: currentCityData.color }} />
-            <h4 className="font-bold text-sm sm:text-base text-white tracking-tight">
-              {currentCityData.name}
-            </h4>
-            <span
-              className="text-[10px] font-extrabold px-2 py-0.5 rounded-full"
-              style={{ backgroundColor: `${currentCityData.color}20`, color: currentCityData.color }}
-            >
-              {currentCityData.category}
-            </span>
-          </div>
-          <p className="text-xs text-slate-400">
-            CPCB NAQI Index: <strong className="text-white font-mono">{currentCityData.aqi}</strong> • Model Telemetry Active
-          </p>
+      {/* 4. Bottom Controls Pill Bar (Exact match to Image 1) */}
+      <div className="absolute bottom-6 inset-x-0 flex items-center justify-center space-x-3 z-30 pointer-events-auto">
+        <div className="flex items-center space-x-1.5 p-1 rounded-full bg-slate-900/85 border border-slate-700/80 backdrop-blur-xl shadow-2xl">
+          <button
+            onClick={() => onToggleView && onToggleView('globe')}
+            className={`flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              activeView === 'globe'
+                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 ring-1 ring-emerald-400'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <span className="text-sm">🧊</span>
+            <span>3D GLOBE</span>
+          </button>
+
+          <button
+            onClick={() => onExploreCity && onExploreCity(selectedCityId)}
+            className="flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all cursor-pointer"
+          >
+            <span className="text-sm">🗺️</span>
+            <span>AIR INTELLIGENCE APP</span>
+          </button>
         </div>
 
-        <button
-          onClick={() => onExploreCity && onExploreCity(currentCityData.id)}
-          className="px-4 py-2.5 rounded-xl bg-forest-600 hover:bg-forest-500 text-white text-xs font-bold transition-all shadow-lg hover:shadow-forest-500/25 cursor-pointer whitespace-nowrap shrink-0 flex items-center space-x-1.5"
-        >
-          <span>Explore Air</span>
-          <span>→</span>
-        </button>
+        {/* Zoom Controls */}
+        <div className="flex items-center space-x-1 px-3 py-1.5 rounded-full bg-slate-900/85 border border-slate-700/80 backdrop-blur-xl text-xs font-semibold text-slate-300 shadow-xl">
+          <span className="text-[10px] uppercase font-bold text-slate-400 mr-1">Zoom</span>
+          <button
+            onClick={() => handleZoom(-0.8)}
+            className="w-6 h-6 rounded-full hover:bg-slate-800 flex items-center justify-center text-white font-bold cursor-pointer transition-colors"
+            title="Zoom In"
+          >
+            +
+          </button>
+          <button
+            onClick={() => handleZoom(0.8)}
+            className="w-6 h-6 rounded-full hover:bg-slate-800 flex items-center justify-center text-white font-bold cursor-pointer transition-colors"
+            title="Zoom Out"
+          >
+            −
+          </button>
+        </div>
       </div>
     </div>
   );
