@@ -29,7 +29,7 @@ export const MetricsStrip: React.FC = () => {
       color: pm25Val > 120 ? 'bg-rose-500' : pm25Val > 60 ? 'bg-amber-500' : 'bg-emerald-500',
       textColor: pm25Val > 120 ? 'text-rose-700' : pm25Val > 60 ? 'text-amber-700' : 'text-emerald-700',
       status: pm25Val > 120 ? 'Severe' : pm25Val > 60 ? 'Moderate' : 'Good',
-      detail: 'Deep alveolar aerosol',
+      detail: 'Fine respirable aerosol',
       icon: <Activity className="w-3.5 h-3.5 text-slate-400" />,
     },
     {

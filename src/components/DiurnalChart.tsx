@@ -17,7 +17,26 @@ export const DiurnalChart: React.FC = () => {
   const data = telemetry.hourly;
 
   const currentHour = new Date().getHours();
-  const [selectedHour, setSelectedHour] = useState<number | null>(null);
+  const [selectedSegment, setSelectedSegment] = useState<'morning' | 'window' | 'evening' | 'night'>('window');
+
+  // Compute active highlight boundaries
+  let activeX1 = cleanAirWindow.startHour;
+  let activeX2 = cleanAirWindow.endHour;
+  let segmentNote = cleanAirWindow.convectiveReasoning || 'Solar convection expands the boundary layer, diluting ground smoke.';
+
+  if (selectedSegment === 'morning') {
+    activeX1 = 7;
+    activeX2 = 10;
+    segmentNote = 'Morning Inversion Peak (07:00–10:00): Nocturnal radiative cooling caps vertical mixing; surface traffic exhaust accumulates rapidly.';
+  } else if (selectedSegment === 'evening') {
+    activeX1 = 18;
+    activeX2 = 21;
+    segmentNote = 'Evening Traffic Surge (18:00–21:00): Evening commute emissions surge as solar radiation wanes, re-trapping pollutants near the surface.';
+  } else if (selectedSegment === 'night') {
+    activeX1 = 22;
+    activeX2 = 23;
+    segmentNote = 'Nocturnal Cooling (22:00–06:00): The planetary boundary layer drops to 100–150m under clear skies, concentrating ambient particulate matter.';
+  }
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -101,13 +120,14 @@ export const DiurnalChart: React.FC = () => {
               </linearGradient>
             </defs>
 
-            {/* Highlighted Clean Window Zone */}
+            {/* Highlighted Clean Window or Selected Diurnal Segment Zone */}
             <ReferenceArea
-              x1={cleanAirWindow.startHour}
-              x2={cleanAirWindow.endHour}
-              strokeOpacity={0.2}
+              x1={activeX1}
+              x2={activeX2}
+              strokeOpacity={0.3}
+              stroke="#2D6A4F"
               fill="#2D6A4F"
-              fillOpacity={0.09}
+              fillOpacity={0.12}
             />
 
             {/* Current Hour Indicator */}
@@ -166,21 +186,35 @@ export const DiurnalChart: React.FC = () => {
         </ResponsiveContainer>
       </div>
 
-      {/* 4 Interactive Diurnal Segment Pills */}
+      {/* 4 Interactive Diurnal Segment Selector Buttons */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-stone-100 text-xs">
-        <div className="p-2.5 rounded-2xl bg-stone-50 border border-stone-200/60">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+        <button
+          onClick={() => setSelectedSegment('morning')}
+          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+            selectedSegment === 'morning'
+              ? 'bg-amber-50/80 border-amber-300 ring-1 ring-amber-400 shadow-2xs'
+              : 'bg-stone-50 border-stone-200/60 hover:bg-stone-100'
+          }`}
+        >
+          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
             07:00 – 10:00
           </div>
           <div className="font-semibold text-slatecharcoal-900 mt-0.5">
-            Morning Inversion Peak
+            Morning Inversion
           </div>
           <div className="text-[11px] text-slate-500 mt-0.5">
             Surface exhaust trapped
           </div>
-        </div>
+        </button>
 
-        <div className="p-2.5 rounded-2xl bg-emerald-50/80 border border-emerald-200">
+        <button
+          onClick={() => setSelectedSegment('window')}
+          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+            selectedSegment === 'window'
+              ? 'bg-emerald-50/90 border-emerald-300 ring-1 ring-emerald-500 shadow-2xs'
+              : 'bg-emerald-50/40 border-emerald-200 hover:bg-emerald-50'
+          }`}
+        >
           <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider flex items-center">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse" />
             {cleanAirWindow.displayWindow}
@@ -191,10 +225,17 @@ export const DiurnalChart: React.FC = () => {
           <div className="text-[11px] text-emerald-700 mt-0.5">
             ~{cleanAirWindow.reductionVsPeakPercent}% lower vs peak
           </div>
-        </div>
+        </button>
 
-        <div className="p-2.5 rounded-2xl bg-stone-50 border border-stone-200/60">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+        <button
+          onClick={() => setSelectedSegment('evening')}
+          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+            selectedSegment === 'evening'
+              ? 'bg-orange-50/80 border-orange-300 ring-1 ring-orange-400 shadow-2xs'
+              : 'bg-stone-50 border-stone-200/60 hover:bg-stone-100'
+          }`}
+        >
+          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
             18:00 – 21:00
           </div>
           <div className="font-semibold text-slatecharcoal-900 mt-0.5">
@@ -203,10 +244,17 @@ export const DiurnalChart: React.FC = () => {
           <div className="text-[11px] text-slate-500 mt-0.5">
             Commute exhaust re-accumulates
           </div>
-        </div>
+        </button>
 
-        <div className="p-2.5 rounded-2xl bg-stone-50 border border-stone-200/60">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+        <button
+          onClick={() => setSelectedSegment('night')}
+          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+            selectedSegment === 'night'
+              ? 'bg-indigo-50/80 border-indigo-300 ring-1 ring-indigo-400 shadow-2xs'
+              : 'bg-stone-50 border-stone-200/60 hover:bg-stone-100'
+          }`}
+        >
+          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
             22:00 – 06:00
           </div>
           <div className="font-semibold text-slatecharcoal-900 mt-0.5">
@@ -215,7 +263,15 @@ export const DiurnalChart: React.FC = () => {
           <div className="text-[11px] text-slate-500 mt-0.5">
             Boundary layer drops to 150m
           </div>
-        </div>
+        </button>
+      </div>
+
+      {/* Atmospheric Interpretation for Selected Segment */}
+      <div className="bg-stone-50/70 p-3 rounded-2xl border border-stone-200/60 text-xs text-slate-600 flex items-start space-x-2">
+        <Sun className="w-4 h-4 text-forest-600 shrink-0 mt-0.5" />
+        <p className="text-[11px] leading-relaxed">
+          <strong>Atmospheric Dynamic:</strong> {segmentNote}
+        </p>
       </div>
 
     </div>

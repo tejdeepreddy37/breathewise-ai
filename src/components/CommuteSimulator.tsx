@@ -48,7 +48,7 @@ export const CommuteSimulator: React.FC = () => {
             </h2>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Compare inhaled particulate lung burden (M_inh) against personal tailpipe carbon emissions across urban transit modes
+            Compare estimated inhaled particulate mass (M_inh) against personal tailpipe carbon emissions across urban transit modes
           </p>
         </div>
 
@@ -213,11 +213,11 @@ export const CommuteSimulator: React.FC = () => {
                 Evidence-Based Modal Shift Impact
               </span>
               <p className="leading-relaxed text-[11px] text-slate-600">
-                In arterial Indian traffic, road-level diesel exhaust concentrates fine particles ~30% above rooftop ambient monitors. Shifting your {distanceKm} km commute from motorcycle to AC Metro prevents an estimated{' '}
+                In arterial Indian traffic, road-level diesel exhaust concentrates fine particles ~30% above rooftop ambient monitors. Shifting your {distanceKm} km commute from motorcycle to AC Metro avoids an estimated{' '}
                 <strong className="text-forest-700 font-bold font-mono">
                   {doseSaved} µg
                 </strong>{' '}
-                of fine particulate lung burden while cutting{' '}
+                of inhaled fine particulate mass (M_inh) while cutting{' '}
                 <strong className="text-forest-700 font-bold font-mono">
                   {co2Saved} kg
                 </strong>{' '}

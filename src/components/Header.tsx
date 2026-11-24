@@ -63,13 +63,13 @@ export const Header: React.FC = () => {
           </div>
 
           {/* City Selector & Telemetry Status Indicator */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex items-center space-x-1.5 sm:space-x-3">
             <div className="relative">
               <select
                 aria-label="Select Target City"
                 value={selectedCityId}
                 onChange={(e) => selectCity(e.target.value)}
-                className="appearance-none bg-cream-50 hover:bg-cream-100/80 text-slatecharcoal-900 text-xs sm:text-sm font-semibold py-2 pl-3.5 pr-8 rounded-xl border border-cream-200/90 focus:outline-none focus:ring-2 focus:ring-forest-500/20 focus:border-forest-500 cursor-pointer transition-all shadow-2xs"
+                className="appearance-none bg-cream-50 hover:bg-cream-100/80 text-slatecharcoal-900 text-xs sm:text-sm font-semibold py-2 pl-3 pr-7 sm:pl-3.5 sm:pr-8 rounded-xl border border-cream-200/90 focus:outline-none focus:ring-2 focus:ring-forest-500/20 focus:border-forest-500 cursor-pointer transition-all shadow-2xs"
               >
                 {INDIAN_CITIES_PRESETS.map((city) => (
                   <option key={city.id} value={city.id}>
@@ -77,7 +77,7 @@ export const Header: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                 </svg>
@@ -108,7 +108,7 @@ export const Header: React.FC = () => {
             {/* Data Provenance & Freshness Badge */}
             <button
               onClick={() => setIsTransparencyOpen(true)}
-              className={`inline-flex items-center px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer shadow-2xs ${
+              className={`inline-flex items-center px-2.5 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-[11px] font-semibold border transition-all cursor-pointer shadow-2xs ${
                 meta.isLive && !isCached
                   ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
                   : isCached
@@ -119,18 +119,18 @@ export const Header: React.FC = () => {
             >
               {meta.isLive && !isCached ? (
                 <>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-1.5" />
-                  <span className="hidden sm:inline text-slate-500 mr-1">Source:</span> CAMS Model Grid
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-1 sm:mr-1.5" />
+                  <span className="hidden sm:inline text-slate-500 mr-1">Source:</span> CAMS Grid
                 </>
               ) : isCached ? (
                 <>
-                  <Clock className="w-3 h-3 text-slate-500 mr-1.5" />
-                  <span>{meta.fetchTimestamp}</span>
+                  <Clock className="w-3 h-3 text-slate-500 mr-1" />
+                  <span className="truncate max-w-[85px] sm:max-w-none">{meta.fetchTimestamp}</span>
                 </>
               ) : (
                 <>
-                  <WifiOff className="w-3 h-3 text-amber-700 mr-1.5" />
-                  <span>Simulated Profile (Demo)</span>
+                  <WifiOff className="w-3 h-3 text-amber-700 mr-1" />
+                  <span>Demo Mode</span>
                 </>
               )}
             </button>

@@ -89,7 +89,7 @@ export const HeroDirective: React.FC = () => {
     : { label: 'Commute Protocol', value: 'Standard Transit', icon: <Train className="w-3.5 h-3.5 text-forest-600" />, ok: true };
 
   return (
-    <div className={`relative overflow-hidden rounded-3xl bg-white border border-stone-200/80 p-6 sm:p-8 lg:p-10 shadow-soft transition-all ${theme.glowClass}`}>
+    <div className={`relative overflow-hidden rounded-3xl bg-white border border-stone-200/80 p-5 sm:p-8 lg:p-10 shadow-soft transition-all ${theme.glowClass}`}>
       
       {/* Background Subtle Ambient Shape */}
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full opacity-30 pointer-events-none blur-3xl" style={{ backgroundColor: theme.ringColor }} />
@@ -179,11 +179,11 @@ export const HeroDirective: React.FC = () => {
         </div>
 
         {/* Right Column: Prominent Circular Atmospheric AQI Dial */}
-        <div className="flex flex-col items-center lg:items-end justify-center shrink-0">
-          <div className={`relative flex flex-col items-center justify-center p-6 rounded-3xl ${theme.dialBg} border shadow-soft w-64 h-64 sm:w-72 sm:h-72 transition-all`}>
+        <div className="flex flex-col items-center lg:items-end justify-center shrink-0 w-full sm:w-auto">
+          <div className={`relative flex flex-col items-center justify-center p-4 sm:p-6 rounded-3xl ${theme.dialBg} border shadow-soft w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72 transition-all`}>
             
             {/* SVG Circular Radial Progress */}
-            <svg className="w-48 h-48 sm:w-52 sm:h-52 -rotate-90 transform" viewBox="0 0 140 140">
+            <svg className="w-44 h-44 sm:w-48 sm:h-48 lg:w-52 lg:h-52 -rotate-90 transform" viewBox="0 0 140 140">
               {/* Background Track */}
               <circle
                 cx="70"
@@ -228,7 +228,7 @@ export const HeroDirective: React.FC = () => {
             <div className="mt-1 pt-1.5 border-t border-stone-200/60 w-full flex justify-between items-center text-[10px] text-slate-500 px-2">
               <span>PM2.5: <strong className="text-slatecharcoal-900 font-bold">{pm} µg/m³</strong></span>
               <span className="font-semibold text-slate-600">
-                {whoRatio > 1 ? `${whoRatio}× WHO 24h` : 'WHO Compliant'}
+                {whoRatio > 1 ? `${whoRatio}× WHO 24h Benchmark` : 'WHO Compliant'}
               </span>
             </div>
 
