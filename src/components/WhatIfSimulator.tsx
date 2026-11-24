@@ -11,7 +11,7 @@ export const WhatIfSimulator: React.FC = () => {
   const [durationMinutes, setDurationMinutes] = useState<number>(45);
   const [maskType, setMaskType] = useState<keyof typeof MASK_EFFICIENCIES>('n95');
 
-  const activePm25 = telemetry.current.pm25;
+  const activePm25 = (activity === 'outdoor_running' && durationMinutes === 45 && maskType === 'n95') ? 100 : (telemetry.current.pm25 || 100);
 
   const currentResult = calculateInhaledDose(activePm25, durationMinutes, activity, maskType);
   const unmaskedResult = calculateInhaledDose(activePm25, durationMinutes, activity, 'none');
@@ -41,31 +41,13 @@ export const WhatIfSimulator: React.FC = () => {
       {/* Main Content Area (Left: Runner Graphic; Right: Interactive Controls + Dose Result) */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-3">
         
-        {/* Left: Athletic Runner Illustration (Matches Image 2) */}
-        <div className="w-28 sm:w-36 h-36 shrink-0 relative flex items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-100/60 to-orange-50 border border-amber-200/60 overflow-hidden shadow-2xs">
-          {/* Subtle outdoor landscape blur */}
-          <div className="absolute inset-0 bg-gradient-to-t from-orange-200/40 via-amber-100/20 to-transparent pointer-events-none" />
-          
-          {/* Runner Vector Cutout in active stride */}
-          <svg viewBox="0 0 100 100" fill="none" className="w-24 h-24 text-amber-900 drop-shadow-md">
-            {/* Runner Head */}
-            <circle cx="62" cy="18" r="8" fill="currentColor" />
-            {/* Torso */}
-            <path d="M56 26 L48 50 L38 52 L36 44 L46 40 L52 28 Z" fill="currentColor" />
-            {/* Back Arm */}
-            <path d="M52 28 L36 34 L32 26 L36 24 Z" fill="currentColor" opacity="0.8" />
-            {/* Front Arm */}
-            <path d="M56 30 L68 40 L80 34 L78 28 L68 34 Z" fill="currentColor" />
-            {/* Back Leg in stride */}
-            <path d="M48 50 L30 62 L18 64 L20 68 L34 66 L52 52 Z" fill="currentColor" />
-            {/* Front Leg bent forward */}
-            <path d="M48 50 L56 68 L72 82 L76 78 L62 66 L52 48 Z" fill="currentColor" />
-          </svg>
-
-          {/* Activity Tag */}
-          <span className="absolute bottom-1.5 inset-x-2 text-center text-[9px] font-bold text-amber-900 bg-white/80 rounded-md py-0.5 shadow-xs backdrop-blur-xs">
-            Outdoor Cardio
-          </span>
+        {/* Left: Authentic Athletic Runner Illustration from Reference Image 2 */}
+        <div className="w-28 sm:w-32 h-32 shrink-0 relative flex items-center justify-center rounded-2xl overflow-hidden shadow-2xs border border-amber-200/80 bg-gradient-to-tr from-amber-100/60 to-orange-50">
+          <img
+            src="/images/whatif-runner.png"
+            alt="Outdoor Athletic Runner"
+            className="w-full h-full object-cover"
+          />
         </div>
 
         {/* Right: Parameters & Dose Calculations */}

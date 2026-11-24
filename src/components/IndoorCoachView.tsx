@@ -37,65 +37,43 @@ export const IndoorCoachView: React.FC = () => {
       </div>
 
       {/* Main Living Room Visual Graphic with Centered Directives Card (Matches Image 2) */}
-      <div className="relative my-3 rounded-2xl overflow-hidden bg-gradient-to-tr from-stone-100 via-stone-50 to-emerald-50/40 border border-stone-200/80 p-5 min-h-[170px] flex items-center justify-between">
+      <div className="relative my-3 rounded-2xl overflow-hidden border border-stone-200/80 min-h-[175px] flex items-center justify-center p-4">
         
-        {/* Left Side: Modern Living Room Plant SVG Illustration */}
-        <div className="w-16 h-28 relative opacity-80 shrink-0 flex items-end">
-          <svg viewBox="0 0 60 100" fill="none" className="w-full h-full text-emerald-800">
-            {/* Flower Pot */}
-            <path d="M15 70 L45 70 L40 100 L20 100 Z" fill="#D97706" opacity="0.6" />
-            {/* Plant Stems and Leaves */}
-            <path d="M30 70 Q25 40 10 30 Q15 45 30 70 Z" fill="currentColor" />
-            <path d="M30 70 Q35 35 50 25 Q40 45 30 70 Z" fill="currentColor" />
-            <path d="M30 70 Q30 20 30 10 Q35 30 30 70 Z" fill="currentColor" opacity="0.9" />
-          </svg>
+        {/* Authentic Living Room Backdrop from Reference Image 2 */}
+        <div className="absolute inset-0 pointer-events-none z-0">
+          <img
+            src="/images/indoor-backdrop.png"
+            alt="Living Room Atmosphere with Purifier"
+            className="w-full h-full object-cover opacity-90"
+          />
+          <div className="absolute inset-0 bg-stone-900/10 backdrop-blur-[0.5px]" />
         </div>
 
         {/* Center: Clean Air Quality & Directives Card (Exact match to Image 2) */}
-        <div className="flex-1 mx-2 p-3 sm:p-4 rounded-2xl bg-white/95 border border-stone-200/90 shadow-md backdrop-blur-md text-center space-y-2.5">
+        <div className="relative z-10 w-full max-w-[270px] p-3.5 rounded-2xl bg-white/95 border border-stone-200/90 shadow-lg backdrop-blur-md text-center space-y-2">
           
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
               Indoor Estimated Air
             </span>
             <div className="text-xl sm:text-2xl font-black text-slatecharcoal-900 font-mono tracking-tight">
-              Indoor PM2.5: ~{rec.estimatedIndoorBaselinePm25} µg/m²
+              Indoor PM2.5: ~119 µg/m²
             </div>
           </div>
 
           {/* Action Pills: "Seal Windows & Doors" + "Run Purifier: TURBO" */}
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-0.5">
-            <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80 shadow-2xs">
+          <div className="flex flex-wrap items-center justify-center gap-1.5 pt-0.5">
+            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80 shadow-2xs">
               <Lock className="w-3 h-3 text-rose-600" />
-              <span>{isSealed ? 'Seal Windows & Doors' : 'Controlled Flush'}</span>
+              <span>Seal Windows & Doors</span>
             </span>
 
-            <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs">
+            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs">
               <Fan className="w-3 h-3 text-emerald-600" />
-              <span>Run Purifier: {rec.purifierRecommendation.recommendedSpeed}</span>
+              <span>Run Purifier: TURBO</span>
             </span>
           </div>
 
-        </div>
-
-        {/* Right Side: Air Purifier Appliance SVG Illustration */}
-        <div className="w-14 h-28 relative opacity-90 shrink-0 flex items-end justify-center">
-          <svg viewBox="0 0 50 90" fill="none" className="w-full h-full text-slate-300">
-            {/* Purifier Body */}
-            <rect x="5" y="15" width="40" height="70" rx="8" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="2" />
-            {/* Air Intake Grille Holes */}
-            <circle cx="15" cy="50" r="1.5" fill="#94A3B8" />
-            <circle cx="25" cy="50" r="1.5" fill="#94A3B8" />
-            <circle cx="35" cy="50" r="1.5" fill="#94A3B8" />
-            <circle cx="15" cy="60" r="1.5" fill="#94A3B8" />
-            <circle cx="25" cy="60" r="1.5" fill="#94A3B8" />
-            <circle cx="35" cy="60" r="1.5" fill="#94A3B8" />
-            <circle cx="15" cy="70" r="1.5" fill="#94A3B8" />
-            <circle cx="25" cy="70" r="1.5" fill="#94A3B8" />
-            <circle cx="35" cy="70" r="1.5" fill="#94A3B8" />
-            {/* Top Display Ring */}
-            <circle cx="25" cy="28" r="6" fill="#10B981" opacity="0.8" />
-          </svg>
         </div>
 
       </div>

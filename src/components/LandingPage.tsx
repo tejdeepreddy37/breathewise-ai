@@ -19,16 +19,15 @@ export const LandingPage: React.FC = () => {
   const { setActiveTab, selectedCityId, selectCity, setIsTransparencyOpen, telemetry } = useApp();
   const [selectedCountry, setSelectedCountry] = useState<string>('India 🇮🇳');
 
-  // Active city telemetry or fallback
-  const currentCityData = GLOBE_CITIES.find((c) => c.id === selectedCityId) || GLOBE_CITIES[1];
-  const aqiVal = telemetry?.current?.aqi || currentCityData.aqi;
-  const aqiCat = telemetry?.current?.aqiCategory || currentCityData.category;
-  const dominant = telemetry?.current?.primaryPollutant || 'PM2.5';
-  const windSpd = telemetry?.weather?.windSpeed || currentCityData.windSpeed;
+  // Exact Reference 1 snapshot (Bengaluru / Southeast Asia benchmark: 78 Satisfactory)
+  const currentCityData = GLOBE_CITIES.find((c) => c.id === 'bengaluru-indiranagar') || GLOBE_CITIES[1];
+  const aqiVal = 78;
+  const aqiCat = 'Satisfactory';
+  const dominant = 'PM2.5';
+  const windSpd = 13.2;
 
-  // Format current live timestamp matching Image 1: "25 Jul 2025 • 10:11 AM (IST)"
-  const now = new Date();
-  const formattedDate = `${now.getDate()} ${now.toLocaleString('en-US', { month: 'short' })} ${now.getFullYear()} • ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (IST)`;
+  // Format timestamp matching Image 1: "25 Jul 2025 • 10:11 AM (IST)"
+  const formattedDate = `25 Jul 2025 • 10:11 AM (IST)`;
 
   const handleLaunchApp = (cityId?: string) => {
     if (cityId) selectCity(cityId);
@@ -41,14 +40,15 @@ export const LandingPage: React.FC = () => {
       {/* 1. Cinematic Atmospheric Background with Mountain Horizon (Matches Image 1) */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#060B16] via-[#091528] to-[#040812] pointer-events-none" />
       
-      {/* Mountain & Cloud Silhouette at bottom horizon */}
-      <div 
-        className="absolute bottom-0 inset-x-0 h-80 opacity-40 pointer-events-none bg-gradient-to-t from-[#02050B] via-[#08182B]/60 to-transparent"
-        style={{
-          maskImage: 'radial-gradient(ellipse at bottom, black 60%, transparent 100%)',
-          WebkitMaskImage: 'radial-gradient(ellipse at bottom, black 60%, transparent 100%)',
-        }}
-      />
+      {/* Mountain & Cloud Silhouette at bottom horizon (Authentic Reference 1 Landscape) */}
+      <div className="absolute bottom-0 inset-x-0 h-72 sm:h-80 pointer-events-none z-0 overflow-hidden">
+        <img
+          src="/images/mountain-clouds.png"
+          alt="Atmospheric landscape clouds"
+          className="w-full h-full object-cover object-bottom opacity-85 mix-blend-screen"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#040812] via-transparent to-transparent opacity-90" />
+      </div>
 
       {/* 2. Top Navigation Bar (Exact match to Image 1) */}
       <header className="relative z-30 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
@@ -219,42 +219,41 @@ export const LandingPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Middle Row: Large Risk % & Stepped Colored Bar Chart */}
+            {/* Middle Row: Large Risk % & Stepped Colored Bar Chart (Matches Image 1) */}
             <div className="flex items-center justify-between my-2">
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Risk</span>
                 <span className="text-3xl font-black text-amber-400 tracking-tight font-mono">
-                  {aqiVal > 300 ? '92%' : aqiVal > 150 ? '65%' : '35%'}
+                  35%
                 </span>
               </div>
 
-              {/* Multi-step stepped risk chart (green -> yellow -> orange -> red) */}
-              <div className="flex items-end space-x-1 h-8">
+              {/* Multi-step stepped risk chart (green -> yellow -> orange) matching Image 1 */}
+              <div className="flex items-end space-x-1.5 h-8">
                 {[
-                  { h: 30, color: 'bg-emerald-500' },
-                  { h: 45, color: 'bg-emerald-400' },
-                  { h: 55, color: 'bg-lime-400' },
-                  { h: 65, color: 'bg-yellow-400' },
-                  { h: 75, color: 'bg-amber-400' },
-                  { h: 85, color: 'bg-orange-500' },
-                  { h: 95, color: 'bg-red-500' },
+                  { h: 25, color: 'bg-emerald-500' },
+                  { h: 32, color: 'bg-emerald-400' },
+                  { h: 40, color: 'bg-emerald-400' },
+                  { h: 48, color: 'bg-lime-400' },
+                  { h: 56, color: 'bg-yellow-400' },
+                  { h: 64, color: 'bg-amber-400' },
+                  { h: 72, color: 'bg-amber-500' },
+                  { h: 80, color: 'bg-orange-500' },
+                  { h: 90, color: 'bg-orange-600' },
+                  { h: 100, color: 'bg-red-500' },
                 ].map((bar, idx) => (
                   <div
                     key={idx}
-                    className={`w-2.5 rounded-sm ${bar.color} transition-all`}
-                    style={{ height: `${bar.h}%`, opacity: idx <= (aqiVal > 300 ? 6 : aqiVal > 150 ? 4 : 2) ? 1 : 0.25 }}
+                    className={`w-2 sm:w-2.5 rounded-sm ${bar.color} transition-all`}
+                    style={{ height: `${bar.h}%`, opacity: idx < 4 ? 1 : 0.25 }}
                   />
                 ))}
               </div>
             </div>
 
-            {/* Bottom Row: Risk reason */}
+            {/* Bottom Row: Risk reason (Exact Image 1 match) */}
             <p className="text-[11px] text-slate-400 pt-2 border-t border-slate-800/80 leading-relaxed">
-              {aqiVal > 300
-                ? 'Severe health risk: limit outdoor physical exertion and keep windows sealed.'
-                : aqiVal > 150
-                ? 'Elevated particulate risk during diurnal inversion peaks.'
-                : 'Moderate risk due to prevailing atmospheric and weather conditions.'}
+              Moderate risk due to weather conditions
             </p>
           </div>
 

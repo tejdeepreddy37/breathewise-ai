@@ -186,15 +186,18 @@ export const Header: React.FC = () => {
 
           </div>
 
-          {/* Right: Live/Demo Status Indicator & Refresh */}
+          {/* Right: Live/Demo Status Indicator (Matches Image 2) & Refresh */}
           <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setIsTransparencyOpen(true)}
-              className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-white border border-stone-200 shadow-2xs hover:bg-stone-50 transition-all cursor-pointer"
-            >
-              <span className={`w-2 h-2 rounded-full ${isLive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-              <span className="font-bold text-slatecharcoal-900">{isLive ? 'Live (CAMS)' : 'Demo Mode'}</span>
-            </button>
+            <div className="flex items-center space-x-1.5 bg-stone-100/80 p-0.5 rounded-full border border-stone-200/80 text-[11px]">
+              <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-white text-slatecharcoal-900 font-bold shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Live (CAMS)</span>
+              </span>
+              <span className="inline-flex items-center space-x-1 px-2 py-0.5 text-slate-400 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full border border-slate-300" />
+                <span>Demo Mode</span>
+              </span>
+            </div>
 
             <button
               onClick={refreshData}

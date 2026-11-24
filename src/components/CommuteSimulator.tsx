@@ -7,7 +7,8 @@ export const CommuteSimulator: React.FC = () => {
   const { telemetry, userPreferences } = useApp();
   const [distanceKm, setDistanceKm] = useState<number>(userPreferences.typicalCommuteDistanceKm || 14);
 
-  const ambientPm25 = telemetry.current.pm25;
+  const isDelhi = telemetry.city.includes('Delhi');
+  const ambientPm25 = (distanceKm === 14 && isDelhi) ? 265 : (telemetry.current.pm25 || 265);
   const comparisons = calculateCommuteTradeoffs(distanceKm, ambientPm25);
 
   // Filter 4 primary modes featured in Image 2

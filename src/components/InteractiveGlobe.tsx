@@ -370,30 +370,49 @@ export const InteractiveGlobe: React.FC<{
 
     // 3. Globe Group containing Earth, Atmosphere, and Orbitals
     const globeGroup = new THREE.Group();
-    // Default rotation focused on India (lat ~20°N, lon ~78°E)
+    // Default rotation focused on India and Indian Ocean (lat ~18°N, lon ~78°E)
     globeGroup.rotation.y = THREE.MathUtils.degToRad(-78);
     globeGroup.rotation.x = THREE.MathUtils.degToRad(18);
     scene.add(globeGroup);
     globeGroupRef.current = globeGroup;
 
-    // 4. Earth Sphere with Procedural Map Texture
+    // 4. Photorealistic Earth Sphere with High-Resolution NASA Blue Marble Texture
+    const textureLoader = new THREE.TextureLoader();
     const earthGeometry = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64);
-    const earthTexture = createEarthCanvasTexture();
-    const earthMaterial = new THREE.MeshStandardMaterial({
+    
+    // Load high-res NASA Blue Marble texture
+    const earthTexture = textureLoader.load('/textures/earth-blue-marble.jpg');
+    earthTexture.colorSpace = THREE.SRGBColorSpace;
+    const specularMap = textureLoader.load('/textures/earth-specular.jpg');
+
+    const earthMaterial = new THREE.MeshPhongMaterial({
       map: earthTexture,
-      roughness: 0.65,
-      metalness: 0.15,
-      color: 0xffffff,
+      specularMap: specularMap,
+      specular: new THREE.Color(0x224455),
+      shininess: 18,
     });
     const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
     globeGroup.add(earthMesh);
 
-    // 5. Cloud Layer (Subtle outer transparent sphere)
-    const cloudGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 1.015, 48, 48);
-    const cloudMaterial = new THREE.MeshStandardMaterial({
-      color: 0x93c5fd,
+    // 5. Realistic Night City Lights Mesh (Blended on night side)
+    const lightsTexture = textureLoader.load('/textures/earth-lights.png');
+    const lightsMaterial = new THREE.MeshBasicMaterial({
+      map: lightsTexture,
+      blending: THREE.AdditiveBlending,
       transparent: true,
-      opacity: 0.18,
+      opacity: 0.85,
+    });
+    const lightsMesh = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_RADIUS * 1.002, 64, 64), lightsMaterial);
+    globeGroup.add(lightsMesh);
+
+    // 6. Photorealistic Atmospheric Cloud Layer
+    const cloudTexture = textureLoader.load('/textures/earth-clouds.png');
+    cloudTexture.colorSpace = THREE.SRGBColorSpace;
+    const cloudGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 1.015, 64, 64);
+    const cloudMaterial = new THREE.MeshStandardMaterial({
+      map: cloudTexture,
+      transparent: true,
+      opacity: 0.55,
       blending: THREE.AdditiveBlending,
       roughness: 0.9,
     });
@@ -401,8 +420,8 @@ export const InteractiveGlobe: React.FC<{
     globeGroup.add(cloudMesh);
     cloudMeshRef.current = cloudMesh;
 
-    // 6. Atmospheric Glow Outer Shell
-    const glowGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 1.08, 48, 48);
+    // 7. Atmospheric Glow Outer Shell
+    const glowGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 1.09, 64, 64);
     const glowMaterial = new THREE.ShaderMaterial({
       uniforms: {
         glowColor: { value: new THREE.Color(0x38bdf8) },
@@ -418,8 +437,8 @@ export const InteractiveGlobe: React.FC<{
         varying vec3 vNormal;
         uniform vec3 glowColor;
         void main() {
-          float intensity = pow(0.65 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.5);
-          gl_FragColor = vec4(glowColor, intensity * 0.7);
+          float intensity = pow(0.68 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.6);
+          gl_FragColor = vec4(glowColor, intensity * 0.85);
         }
       `,
       blending: THREE.AdditiveBlending,

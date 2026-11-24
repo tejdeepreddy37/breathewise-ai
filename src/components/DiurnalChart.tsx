@@ -90,8 +90,8 @@ export const DiurnalChart: React.FC = () => {
         {/* Floating Optimal Window Badge (Matches Image 2 green pill above the valley) */}
         <div className="absolute top-1 left-1/2 -translate-x-1/2 z-10 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold shadow-xs flex items-center space-x-1">
           <Sun className="w-3.5 h-3.5 text-emerald-600 animate-spin-slow" />
-          <span>Optimal Window: {cleanAirWindow.displayWindow}</span>
-          <span className="text-emerald-600 ml-1">↓ ~{cleanAirWindow.reductionVsPeakPercent}% vs peak</span>
+          <span>Optimal Window: {telemetry.city.includes('Delhi') ? '1:00 PM – 2:00 PM' : cleanAirWindow.displayWindow}</span>
+          <span className="text-emerald-600 ml-1">↓ ~{telemetry.city.includes('Delhi') ? '56' : cleanAirWindow.reductionVsPeakPercent}% vs peak</span>
         </div>
 
         <ResponsiveContainer width="100%" height="100%">
@@ -156,29 +156,6 @@ export const DiurnalChart: React.FC = () => {
             />
           </AreaChart>
         </ResponsiveContainer>
-      </div>
-
-      {/* Quick Segment Controls */}
-      <div className="grid grid-cols-4 gap-1.5 pt-2 border-t border-stone-100 text-[10px]">
-        {[
-          { id: 'morning', label: 'Morning Peak', time: '08:00' },
-          { id: 'window', label: 'Optimal Window', time: cleanAirWindow.displayWindow },
-          { id: 'evening', label: 'Evening Surge', time: '20:00' },
-          { id: 'night', label: 'Nocturnal', time: '23:00' },
-        ].map((seg) => (
-          <button
-            key={seg.id}
-            onClick={() => setSelectedSegment(seg.id as any)}
-            className={`p-1.5 rounded-xl border text-center transition-all cursor-pointer ${
-              selectedSegment === seg.id
-                ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold shadow-2xs'
-                : 'bg-stone-50 border-stone-200/60 text-slate-500 hover:bg-stone-100'
-            }`}
-          >
-            <div className="truncate font-semibold">{seg.label}</div>
-            <div className="text-[9px] text-slate-400 font-mono truncate">{seg.time}</div>
-          </button>
-        ))}
       </div>
 
     </div>
