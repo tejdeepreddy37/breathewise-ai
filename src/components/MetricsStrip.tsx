@@ -76,7 +76,7 @@ export const MetricsStrip: React.FC = () => {
   ];
 
   return (
-    <div className="rounded-2xl bg-white border border-stone-200/80 p-4 sm:p-5 shadow-xs">
+    <div className="hidden sm:block rounded-2xl bg-white border border-stone-200/80 p-4 sm:p-5 shadow-xs">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         
         {/* Left Title: "At a Glance / Atmospheric Diagnostics" (Exact match to Image 2) */}

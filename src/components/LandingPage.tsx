@@ -244,8 +244,8 @@ export const LandingPage: React.FC = () => {
                 ].map((bar, idx) => (
                   <div
                     key={idx}
-                    className={`w-2 sm:w-2.5 rounded-sm ${bar.color} transition-all`}
-                    style={{ height: `${bar.h}%`, opacity: idx < 4 ? 1 : 0.25 }}
+                    className={`w-2 sm:w-2.5 rounded-xs ${bar.color} transition-all shadow-xs`}
+                    style={{ height: `${bar.h}%`, opacity: 0.95 }}
                   />
                 ))}
               </div>

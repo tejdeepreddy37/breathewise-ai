@@ -17,10 +17,28 @@ export const IndoorCoachView: React.FC = () => {
   const isSealed = rec.windowAction === 'SEAL_COMPLETELY';
 
   return (
-    <div className="rounded-3xl bg-white border border-stone-200/80 p-5 sm:p-6 shadow-xs flex flex-col justify-between h-full">
+    <div className="rounded-3xl bg-white border border-stone-200/80 p-4 sm:p-6 shadow-xs flex flex-col justify-between h-full">
       
-      {/* Header (Exact match to Image 2) */}
-      <div className="flex items-start justify-between pb-3 border-b border-stone-100">
+      {/* Mobile Card Header (Exact Match to Image 2 Mobile: "Indoor Air Coach" + "Indoor: ~119 µg/m³") */}
+      <div className="sm:hidden flex items-center justify-between pb-2 border-b border-stone-100">
+        <div className="flex items-center space-x-2.5">
+          <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-100 shrink-0">
+            <Home className="w-3.5 h-3.5" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-slatecharcoal-900 tracking-tight">
+              Indoor Air Coach
+            </h3>
+            <p className="text-[10px] text-slate-500 font-medium">
+              Indoor: ~119 µg/m³
+            </p>
+          </div>
+        </div>
+        <span className="text-slate-400 text-xs font-bold">›</span>
+      </div>
+
+      {/* Desktop Card Header (Exact Match to Image 2 Desktop: "Indoor Envelope & Air Coach") */}
+      <div className="hidden sm:flex items-start justify-between pb-3 border-b border-stone-100">
         <div className="flex items-center space-x-2.5">
           <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-100 shrink-0">
             <Home className="w-4 h-4" />
@@ -36,8 +54,16 @@ export const IndoorCoachView: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Living Room Visual Graphic with Centered Directives Card (Matches Image 2) */}
-      <div className="relative my-3 rounded-2xl overflow-hidden border border-stone-200/80 min-h-[175px] flex items-center justify-center p-4">
+      {/* Mobile Directives Pill (Exact match to Image 2 mobile: Full-width "Seal Windows & Run Purifier") */}
+      <div className="sm:hidden py-2">
+        <div className="w-full flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200/80 font-bold text-xs shadow-2xs">
+          <Lock className="w-3.5 h-3.5 text-rose-600" />
+          <span>Seal Windows & Run Purifier</span>
+        </div>
+      </div>
+
+      {/* Desktop Living Room Visual Graphic with Centered Directives Card (Matches Image 2) */}
+      <div className="hidden sm:flex relative my-3 rounded-2xl overflow-hidden border border-stone-200/80 min-h-[175px] items-center justify-center p-4">
         
         {/* Authentic Living Room Backdrop from Reference Image 2 */}
         <div className="absolute inset-0 pointer-events-none z-0">
@@ -57,7 +83,7 @@ export const IndoorCoachView: React.FC = () => {
               Indoor Estimated Air
             </span>
             <div className="text-xl sm:text-2xl font-black text-slatecharcoal-900 font-mono tracking-tight">
-              Indoor PM2.5: ~119 µg/m²
+              Indoor PM2.5: ~119 µg/m³
             </div>
           </div>
 

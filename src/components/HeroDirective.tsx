@@ -185,7 +185,14 @@ export const HeroDirective: React.FC = () => {
                 Commute Protection
               </div>
               <div className="text-[11px] sm:text-xs font-extrabold text-teal-700">
-                {isSevere || isPoor ? 'AC Metro / N95' : 'Standard Transit'}
+                {isSevere || isPoor ? (
+                  <>
+                    <span className="lg:hidden">AC Metro / N95</span>
+                    <span className="hidden lg:inline">Prefer AC Metro / N95</span>
+                  </>
+                ) : (
+                  'Standard Transit'
+                )}
               </div>
             </div>
           </div>

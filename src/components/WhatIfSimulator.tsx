@@ -19,10 +19,51 @@ export const WhatIfSimulator: React.FC = () => {
   const reductionPercent = Math.round(MASK_EFFICIENCIES[maskType] * 100);
 
   return (
-    <div className="rounded-3xl bg-white border border-stone-200/80 p-5 sm:p-6 shadow-xs flex flex-col justify-between h-full">
+    <div className="rounded-3xl bg-white border border-stone-200/80 p-4 sm:p-6 shadow-xs flex flex-col justify-between h-full">
       
-      {/* Header (Exact match to Image 2) */}
-      <div className="flex items-start justify-between pb-3 border-b border-stone-100">
+      {/* Mobile Card Header & Thumbnail (Exact match to Image 2 Mobile: "What-If Exposure", "Running • 45 min • N95", runner on right) */}
+      <div className="sm:hidden flex items-center justify-between pb-2 border-b border-stone-100">
+        <div className="flex items-center space-x-2.5">
+          <div className="w-7 h-7 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100 shrink-0">
+            <Sliders className="w-3.5 h-3.5" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-slatecharcoal-900 tracking-tight">
+              What-If Exposure
+            </h3>
+            <p className="text-[10px] text-slate-500 font-medium">
+              Running • 45 min • N95
+            </p>
+          </div>
+        </div>
+        <div className="w-8 h-8 rounded-lg overflow-hidden border border-amber-200/80 shrink-0">
+          <img src="/images/whatif-runner.png" alt="Runner" className="w-full h-full object-cover" />
+        </div>
+      </div>
+
+      {/* Mobile Dose Output Comparison Row (Matches Image 2 Mobile) */}
+      <div className="sm:hidden py-2 flex items-center justify-around gap-2 text-center">
+        <div>
+          <div className="text-sm font-black text-rose-600 font-mono">
+            {unmaskedResult.estimatedInhaledMassUg} µg
+          </div>
+          <div className="text-[9px] font-bold text-slate-400">
+            Without Mask
+          </div>
+        </div>
+        <div className="text-slate-400 text-xs">→</div>
+        <div>
+          <div className="text-sm font-black text-emerald-600 font-mono">
+            {currentResult.estimatedInhaledMassUg} µg
+          </div>
+          <div className="text-[9px] font-bold text-emerald-700">
+            With N95
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Header (Exact match to Image 2 Desktop) */}
+      <div className="hidden sm:flex items-start justify-between pb-3 border-b border-stone-100">
         <div className="flex items-center space-x-2.5">
           <div className="w-8 h-8 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100 shrink-0">
             <Sliders className="w-4 h-4" />
@@ -38,8 +79,8 @@ export const WhatIfSimulator: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content Area (Left: Runner Graphic; Right: Interactive Controls + Dose Result) */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-3">
+      {/* Desktop Main Content Area (Left: Runner Graphic; Right: Interactive Controls + Dose Result) */}
+      <div className="hidden sm:flex flex-col sm:flex-row items-center justify-between gap-4 py-3">
         
         {/* Left: Authentic Athletic Runner Illustration from Reference Image 2 */}
         <div className="w-28 sm:w-32 h-32 shrink-0 relative flex items-center justify-center rounded-2xl overflow-hidden shadow-2xs border border-amber-200/80 bg-gradient-to-tr from-amber-100/60 to-orange-50">

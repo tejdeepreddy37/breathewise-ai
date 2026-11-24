@@ -164,13 +164,13 @@ export const GLOBE_CITIES: GlobeCity[] = [
     country: 'Indonesia',
     lat: -6.2088,
     lon: 106.8456,
-    aqi: 137,
-    category: 'Unhealthy for sensitive people',
-    color: '#F97316',
+    aqi: 78,
+    category: 'Satisfactory',
+    color: '#10B981',
     temp: 34,
     humidity: 50,
     windSpeed: 13.2,
-    description: 'Tropical urban vehicular accumulation',
+    description: 'Tropical urban coastal flow',
   },
 ];
 
@@ -686,13 +686,16 @@ export const InteractiveGlobe: React.FC<{
               />
 
               {/* Floating City Info Popover (matches exact popup in Image 1) */}
-              {(isSelected || city.id === 'bengaluru-indiranagar') && (
+              {(isSelected || city.id === 'jakarta-indonesia') && (
                 <div
-                  className="absolute bottom-10 -right-4 sm:-right-8 w-64 p-3 rounded-2xl bg-slate-900/95 border border-slate-700/80 backdrop-blur-xl shadow-2xl text-left pointer-events-auto animate-in fade-in zoom-in-95 duration-200 z-40"
+                  className="absolute bottom-9 right-4 sm:right-6 w-64 p-3 rounded-2xl bg-slate-900/95 border border-slate-700/80 backdrop-blur-xl shadow-2xl text-left pointer-events-auto animate-in fade-in zoom-in-95 duration-200 z-40"
                   style={{ boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)' }}
                 >
-                  {/* Pointer arrow line to pin */}
-                  <div className="absolute -bottom-1.5 right-8 w-3 h-3 bg-slate-900 border-r border-b border-slate-700 transform rotate-45" />
+                  {/* Diagonal SVG leader pointer line from card bottom-right to pin matching Image 1 */}
+                  <svg className="absolute -bottom-6 -right-1 w-7 h-7 pointer-events-none" viewBox="0 0 28 28">
+                    <path d="M4 2 L22 20" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+                    <circle cx="22" cy="20" r="2.5" fill="white" />
+                  </svg>
 
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-300 pb-1.5 border-b border-slate-800">
                     <span className="flex items-center space-x-1">

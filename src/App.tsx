@@ -70,25 +70,25 @@ export const App: React.FC = () => {
             {/* Scientific Telemetry Strip (Exact Image 2 Match) */}
             <MetricsStrip />
 
-            {/* Exact 2x2 Grid Matching Image 2 */}
+            {/* Exact 2x2 Grid Matching Image 2 Desktop and Sequential Mobile Stack */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {/* Row 1 Left: WindowSafe Diurnal Forecast */}
-              <div className="w-full">
+              {/* Item 1: WindowSafe Diurnal Forecast (Desktop Top-Left, Mobile 1st) */}
+              <div className="w-full order-1">
                 <DiurnalChart />
               </div>
 
-              {/* Row 1 Right: What-If Exposure Sandbox */}
-              <div className="w-full">
+              {/* Item 2: What-If Exposure Sandbox (Desktop Top-Right, Mobile 2nd) */}
+              <div className="w-full order-2">
                 <WhatIfSimulator />
               </div>
 
-              {/* Row 2 Left: Commute Exposure & Eco-Swap */}
-              <div className="w-full">
+              {/* Item 3: Commute Exposure & Eco-Swap (Desktop Bottom-Left, Mobile 4th) */}
+              <div className="w-full order-4 lg:order-3">
                 <CommuteSimulator />
               </div>
 
-              {/* Row 2 Right: Indoor Envelope & Air Coach */}
-              <div className="w-full">
+              {/* Item 4: Indoor Envelope & Air Coach (Desktop Bottom-Right, Mobile 3rd) */}
+              <div className="w-full order-3 lg:order-4">
                 <IndoorCoachView />
               </div>
             </div>
