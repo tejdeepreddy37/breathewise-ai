@@ -94,19 +94,19 @@ export const TransparencyDrawer: React.FC = () => {
                   M_inh = C_ambient (µg/m³) × VE (m³/h) × t (hours) × (1 - η_mask)
                 </div>
                 <p className="text-[11px] text-slate-600 leading-relaxed">
-                  Estimates gross mass passing upper airway. Minute ventilation rates (V_E) are adapted from the US EPA Exposure Factors Handbook (Chapter 6): Resting (0.36 m³/h), Desk Work (0.48 m³/h), Light Walking (0.96 m³/h), Cycling (2.10 m³/h), Outdoor Running (3.30 m³/h), and Heavy Cardio (3.90 m³/h). Nominal mask efficiencies (η): Cloth (25%), Surgical (60%), N95 (95%), N99 (99%).
+                  Estimates gross inspired aerosol mass entering the upper airway based on minute ventilation rates (V_E) adapted from the US EPA Exposure Factors Handbook (Chapter 6): Resting (0.36 m³/h), Desk Work (0.48 m³/h), Light Walking (0.96 m³/h), Cycling (2.10 m³/h), Outdoor Running (3.30 m³/h), and Heavy Cardio (3.90 m³/h). Nominal mask efficiencies (η): Cloth (25%), Surgical (60%), N95 (95%), N99 (99%). Real-world protection depends on perimeter seal integrity. Does not constitute clinical measurement of deep alveolar tissue deposition.
                 </p>
               </div>
 
               <div className="p-4 rounded-2xl border border-cream-200/80 bg-white space-y-1.5 shadow-2xs">
                 <div className="font-bold text-slatecharcoal-900 text-[11px]">
-                  2. Official Indian CPCB NAQI Piecewise Linear Interpolation
+                  2. Official Indian CPCB NAQI Continuous Piecewise Linear Interpolation
                 </div>
                 <div className="font-mono text-forest-700 text-[11px] my-1 bg-forest-50/70 p-2 rounded-xl border border-forest-100">
                   I_p = [ (I_high - I_low) / (C_high - C_low) ] × (C_p - C_low) + I_low
                 </div>
                 <p className="text-[11px] text-slate-600 leading-relaxed">
-                  Calculates official sub-indices according to the Central Pollution Control Board (CPCB) NAQI breakpoint schedules for PM2.5, PM10, NO2, O3, and normalized CO (mg/m³). The governing AQI represents the maximum sub-index across available pollutants.
+                  Calculates official sub-indices according to the Central Pollution Control Board (CPCB) NAQI schedules for PM2.5, PM10, NO2, O3, and normalized CO (mg/m³). Continuous interval boundaries eliminate dead-zones for continuous sensor readings. The governing AQI represents the maximum sub-index across available pollutants, with formal CPCB completeness requiring at least 3 pollutants with at least one PM.
                 </p>
               </div>
 

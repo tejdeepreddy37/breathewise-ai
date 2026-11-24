@@ -85,8 +85,8 @@ export function calculateCommuteTradeoffs(
   distanceKm: number,
   ambientPm25: number
 ): CommuteComparison[] {
-  const safeDist = Math.max(1, Math.min(60, distanceKm || 14));
-  const safePm = Math.max(0, ambientPm25 || 0);
+  const safeDist = typeof distanceKm === 'number' && !isNaN(distanceKm) ? Math.max(1, Math.min(60, distanceKm)) : 14;
+  const safePm = typeof ambientPm25 === 'number' && !isNaN(ambientPm25) ? Math.max(0, ambientPm25) : 0;
 
   // Baseline reference: open two-wheeler transit
   const openMode = MODES[0];

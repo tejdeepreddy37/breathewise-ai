@@ -114,7 +114,9 @@ export const HeroDirective: React.FC = () => {
             )}
 
             <span className="text-[11px] text-slate-500 font-medium pl-1">
-              Copernicus CAMS 0.25° Model Grid
+              {telemetry.metadata.isSimulated
+                ? 'Simulated Diurnal Profile (Demo)'
+                : 'Copernicus CAMS 0.25° Model Grid'}
             </span>
           </div>
 

@@ -6,66 +6,72 @@ export const MetricsStrip: React.FC = () => {
   const { telemetry } = useApp();
   const { current, weather } = telemetry;
 
+  const pm25Val = current.pm25 ?? 0;
+  const pm10Val = current.pm10;
+  const no2Val = current.no2;
+  const coVal = current.co;
+  const windVal = weather?.windSpeed ?? 0;
+
   // Percentage of max standard reference
-  const pm25Ratio = Math.min(100, Math.round((current.pm25 / 250) * 100));
-  const pm10Ratio = Math.min(100, Math.round((current.pm10 / 430) * 100));
-  const no2Ratio = Math.min(100, Math.round((current.no2 / 180) * 100));
-  const coRatio = Math.min(100, Math.round((current.co / 10) * 100));
-  const windRatio = Math.min(100, Math.round((weather.windSpeed / 25) * 100));
+  const pm25Ratio = Math.min(100, Math.round((pm25Val / 250) * 100));
+  const pm10Ratio = pm10Val != null ? Math.min(100, Math.round((pm10Val / 430) * 100)) : 0;
+  const no2Ratio = no2Val != null ? Math.min(100, Math.round((no2Val / 180) * 100)) : 0;
+  const coRatio = coVal != null ? Math.min(100, Math.round((coVal / 10) * 100)) : 0;
+  const windRatio = Math.min(100, Math.round((windVal / 25) * 100));
 
   const metrics = [
     {
       id: 'pm25',
       label: 'PM2.5 Fine',
-      value: current.pm25,
+      value: pm25Val,
       unit: 'µg/m³',
       ratio: pm25Ratio,
-      color: current.pm25 > 120 ? 'bg-rose-500' : current.pm25 > 60 ? 'bg-amber-500' : 'bg-emerald-500',
-      textColor: current.pm25 > 120 ? 'text-rose-700' : current.pm25 > 60 ? 'text-amber-700' : 'text-emerald-700',
-      status: current.pm25 > 120 ? 'Severe' : current.pm25 > 60 ? 'Moderate' : 'Good',
+      color: pm25Val > 120 ? 'bg-rose-500' : pm25Val > 60 ? 'bg-amber-500' : 'bg-emerald-500',
+      textColor: pm25Val > 120 ? 'text-rose-700' : pm25Val > 60 ? 'text-amber-700' : 'text-emerald-700',
+      status: pm25Val > 120 ? 'Severe' : pm25Val > 60 ? 'Moderate' : 'Good',
       detail: 'Deep alveolar aerosol',
       icon: <Activity className="w-3.5 h-3.5 text-slate-400" />,
     },
     {
       id: 'pm10',
       label: 'PM10 Coarse',
-      value: current.pm10,
-      unit: 'µg/m³',
+      value: pm10Val != null ? pm10Val : '--',
+      unit: pm10Val != null ? 'µg/m³' : '',
       ratio: pm10Ratio,
-      color: current.pm10 > 250 ? 'bg-rose-500' : current.pm10 > 100 ? 'bg-amber-500' : 'bg-emerald-500',
-      textColor: current.pm10 > 250 ? 'text-rose-700' : 'text-slatecharcoal-900',
-      status: current.pm10 > 250 ? 'Elevated' : 'Moderate',
-      detail: 'Upper airway inhalable dust',
+      color: pm10Val == null ? 'bg-stone-300' : pm10Val > 250 ? 'bg-rose-500' : pm10Val > 100 ? 'bg-amber-500' : 'bg-emerald-500',
+      textColor: pm10Val == null ? 'text-slate-400' : pm10Val > 250 ? 'text-rose-700' : 'text-slatecharcoal-900',
+      status: pm10Val == null ? 'Unobserved' : pm10Val > 250 ? 'Elevated' : 'Moderate',
+      detail: pm10Val == null ? 'Sensor unobserved' : 'Upper airway inhalable dust',
       icon: <CloudFog className="w-3.5 h-3.5 text-slate-400" />,
     },
     {
       id: 'no2',
       label: 'NO2 Traffic',
-      value: current.no2,
-      unit: 'µg/m³',
+      value: no2Val != null ? no2Val : '--',
+      unit: no2Val != null ? 'µg/m³' : '',
       ratio: no2Ratio,
-      color: current.no2 > 80 ? 'bg-amber-500' : 'bg-emerald-500',
-      textColor: current.no2 > 80 ? 'text-amber-700' : 'text-slatecharcoal-900',
-      status: current.no2 > 80 ? 'Elevated' : 'Safe',
-      detail: 'Combustion exhaust plume',
+      color: no2Val == null ? 'bg-stone-300' : no2Val > 80 ? 'bg-amber-500' : 'bg-emerald-500',
+      textColor: no2Val == null ? 'text-slate-400' : no2Val > 80 ? 'text-amber-700' : 'text-slatecharcoal-900',
+      status: no2Val == null ? 'Unobserved' : no2Val > 80 ? 'Elevated' : 'Safe',
+      detail: no2Val == null ? 'Sensor unobserved' : 'Combustion exhaust plume',
       icon: <Flame className="w-3.5 h-3.5 text-slate-400" />,
     },
     {
       id: 'co',
       label: 'CO Normalized',
-      value: current.co,
-      unit: 'mg/m³',
+      value: coVal != null ? coVal : '--',
+      unit: coVal != null ? 'mg/m³' : '',
       ratio: coRatio,
-      color: current.co > 2.0 ? 'bg-amber-500' : 'bg-emerald-500',
-      textColor: current.co > 2.0 ? 'text-amber-700' : 'text-slatecharcoal-900',
-      status: '8-hr CPCB standard',
-      detail: 'Incomplete combustion',
+      color: coVal == null ? 'bg-stone-300' : coVal > 2.0 ? 'bg-amber-500' : 'bg-emerald-500',
+      textColor: coVal == null ? 'text-slate-400' : coVal > 2.0 ? 'text-amber-700' : 'text-slatecharcoal-900',
+      status: coVal == null ? 'Unobserved' : '8-hr CPCB standard',
+      detail: coVal == null ? 'Sensor unobserved' : 'Incomplete combustion',
       icon: <Gauge className="w-3.5 h-3.5 text-slate-400" />,
     },
     {
       id: 'wind',
       label: 'Atmosphere Flow',
-      value: weather.windSpeed,
+      value: windVal,
       unit: 'km/h',
       ratio: windRatio,
       color: weather.isThermalInversionLikely ? 'bg-rose-500' : 'bg-emerald-500',
@@ -106,7 +112,7 @@ export const MetricsStrip: React.FC = () => {
                 <span className={`text-2xl sm:text-3xl font-black tracking-tight ${m.textColor}`}>
                   {m.value}
                 </span>
-                <span className="text-xs text-slate-400 font-medium">{m.unit}</span>
+                {m.unit && <span className="text-xs text-slate-400 font-medium">{m.unit}</span>}
               </div>
 
               {/* Subtle Horizontal Progress Bar */}

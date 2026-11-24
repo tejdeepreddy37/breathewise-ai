@@ -12,7 +12,16 @@ import { CleanAirWindow } from '../types/engines';
 import { calculateCpcbAqi } from './cpcbAqi';
 
 export function calculateCleanAirWindow(hourly: HourlyDataPoint[]): CleanAirWindow {
-  if (!hourly || hourly.length === 0) {
+  // Sanitize and validate hourly array
+  const validPoints = (hourly || [])
+    .filter((p) => p != null && typeof p.hour === 'number' && !isNaN(p.hour))
+    .map((p) => ({
+      ...p,
+      pm25: typeof p.pm25 === 'number' && !isNaN(p.pm25) ? Math.max(0, p.pm25) : 0,
+      o3: typeof p.o3 === 'number' && !isNaN(p.o3) ? Math.max(0, p.o3) : 0,
+    }));
+
+  if (validPoints.length < 2) {
     return {
       startHour: 13,
       endHour: 15,
@@ -31,20 +40,19 @@ export function calculateCleanAirWindow(hourly: HourlyDataPoint[]): CleanAirWind
 
   // Find peak 24-hour PM2.5 to establish reference baseline
   let peakPm25 = 0;
-  for (const pt of hourly) {
+  for (const pt of validPoints) {
     if (pt.pm25 > peakPm25) peakPm25 = pt.pm25;
   }
 
-  // Scan the entire 24-hour period for the lowest continuous 2 to 3-hour exposure window
+  // Scan the 24-hour period for the lowest continuous 2 to 3-hour exposure window
   let bestStart = 13;
   let bestEnd = 15;
   let lowestAvg = 9999;
   let bestOzoneAvg = 0;
 
-  // Search continuous sequential blocks of 2 to 3 hours across available data
-  for (let s = 0; s <= hourly.length - 2; s++) {
-    for (let e = s + 1; e <= Math.min(hourly.length - 1, s + 2); e++) {
-      const windowPoints = hourly.slice(s, e + 1);
+  for (let s = 0; s <= validPoints.length - 2; s++) {
+    for (let e = s + 1; e <= Math.min(validPoints.length - 1, s + 2); e++) {
+      const windowPoints = validPoints.slice(s, e + 1);
       if (windowPoints.length >= 2) {
         const sumPm = windowPoints.reduce((acc, p) => acc + p.pm25, 0);
         const avgPm = sumPm / windowPoints.length;
@@ -68,12 +76,14 @@ export function calculateCleanAirWindow(hourly: HourlyDataPoint[]): CleanAirWind
   const reductionPercent = peakPm25 > 0 ? Math.max(0, Math.round(((peakPm25 - avgPm25) / peakPm25) * 100)) : 0;
 
   const formatHour = (h: number) => {
-    const period = h >= 12 ? 'PM' : 'AM';
-    const displayH = h % 12 === 0 ? 12 : h % 12;
+    const normH = ((h % 24) + 24) % 24;
+    const period = normH >= 12 ? 'PM' : 'AM';
+    const displayH = normH % 12 === 0 ? 12 : normH % 12;
     return `${displayH}:00 ${period}`;
   };
 
   const displayWindow = `${formatHour(bestStart)} – ${formatHour(bestEnd)}`;
+  const durationHours = bestEnd >= bestStart ? Math.max(1, bestEnd - bestStart) : (24 - bestStart + bestEnd);
 
   // Determine honest status based on absolute health impact, not just relative drop
   let windowStatus: CleanAirWindow['windowStatus'] = 'UNHEALTHY_ELEVATED';
@@ -83,11 +93,11 @@ export function calculateCleanAirWindow(hourly: HourlyDataPoint[]): CleanAirWind
   if (avgPm25 <= 30) {
     windowStatus = 'FAVORABLE';
     statusLabel = 'Clean Air Opportunity Window';
-    convectiveReasoning = `Ambient particulate concentrations are within the WHO guideline range (${avgPm25} µg/m³). Suitable for outdoor activities and home ventilation.`;
+    convectiveReasoning = `Ambient particulate concentrations are within the WHO guideline range (${avgPm25} µg/m³). Favorable for outdoor activities and natural home ventilation.`;
   } else if (avgPm25 <= 60) {
     windowStatus = 'MODERATE_OPPORTUNITY';
     statusLabel = 'Moderate Air Exposure Window';
-    convectiveReasoning = `Atmospheric dispersion provides a ${reductionPercent}% reduction compared to peak hours. Suitable for moderate outdoor tasks; sensitive individuals should monitor symptoms.`;
+    convectiveReasoning = `Atmospheric dispersion provides a ${reductionPercent}% reduction compared to peak hours. Suitable for moderate outdoor tasks; sensitive individuals should monitor respiratory symptoms.`;
   } else if (avgPm25 <= 120) {
     windowStatus = 'UNHEALTHY_ELEVATED';
     statusLabel = 'Relatively Lower Exposure Window (Air Remains Poor)';
@@ -108,7 +118,7 @@ export function calculateCleanAirWindow(hourly: HourlyDataPoint[]): CleanAirWind
     startHour: bestStart,
     endHour: bestEnd,
     displayWindow,
-    durationHours: bestEnd - bestStart,
+    durationHours,
     averagePm25: avgPm25,
     averageAqi: avgAqi,
     reductionVsPeakPercent: reductionPercent,

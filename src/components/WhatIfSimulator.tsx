@@ -286,19 +286,19 @@ export const WhatIfSimulator: React.FC = () => {
           </div>
         </div>
 
-        {/* WHO Guideline Context */}
+        {/* WHO Ambient Air Benchmark Context */}
         <div className="p-5 rounded-2xl bg-white border border-cream-200/80 shadow-2xs space-y-1.5">
           <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-            WHO Exposure Ratio
+            Ambient Air vs WHO 24h
           </div>
           <div className="flex items-baseline space-x-1.5 pt-1">
             <span className="text-3xl font-extrabold font-mono text-slatecharcoal-900">
               {currentResult.whoExceedanceRatio}×
             </span>
-            <span className="text-xs text-slate-500 font-semibold">WHO 24h Guideline</span>
+            <span className="text-xs text-slate-500 font-semibold">WHO 24h Limit</span>
           </div>
           <div className="text-xs text-slate-600 pt-1 border-t border-cream-100">
-            Ambient air benchmark: <strong className="text-slate-800">15 µg/m³</strong>
+            Ambient PM2.5: <strong className="text-slate-800">{activePm25} µg/m³</strong> (Benchmark: 15 µg/m³)
           </div>
         </div>
 
@@ -309,10 +309,10 @@ export const WhatIfSimulator: React.FC = () => {
         <Info className="w-4 h-4 text-forest-600 shrink-0 mt-0.5" />
         <div className="space-y-0.5">
           <span className="font-bold text-slatecharcoal-900">
-            Scientific Methodology & Physiological Parameters:
+            Scientific Methodology & Dimensional Notice:
           </span>
           <p className="text-[11px] text-slate-600 leading-relaxed">
-            Minute ventilation rates are parameterized from the US EPA Exposure Factors Handbook (2011, Chapter 6). Real-world mask protection depends critically on facial seal fit; values shown represent nominal laboratory material filtration efficiency ($\eta$).
+            Minute ventilation rates (V_E) are parameterized from the US EPA Exposure Factors Handbook (2011, Chapter 6). Modeled inhaled mass (M_inh) approximates gross inspired aerosol mass entering the upper airway, not deposited alveolar tissue dose. Mask reductions reflect nominal laboratory material filtration (η); real-world efficacy depends on perimeter facial seal fit. WHO comparisons represent the ratio of ambient concentration to the WHO 24-hour PM2.5 benchmark (15 µg/m³).
           </p>
         </div>
       </div>

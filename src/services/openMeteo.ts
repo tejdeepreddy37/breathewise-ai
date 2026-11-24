@@ -42,16 +42,17 @@ export async function fetchOpenMeteoTelemetry(
     const weatherData = weatherRes && weatherRes.ok ? await weatherRes.json() : null;
 
     const currentAq = aqData.current || {};
-    const pm25 = Math.round(currentAq.pm2_5 ?? 0);
-    const pm10 = currentAq.pm10 != null ? Math.round(currentAq.pm10) : Math.round(pm25 * 1.5);
-    const no2 = Math.round(currentAq.nitrogen_dioxide ?? 0);
-    const so2 = Math.round(currentAq.sulphur_dioxide ?? 0);
+    const pm25 = currentAq.pm2_5 != null ? Math.round(currentAq.pm2_5) : 0;
+    // Transparently preserve null if PM10 was unobserved; DO NOT silently fabricate with 1.5x multiplier
+    const pm10 = currentAq.pm10 != null ? Math.round(currentAq.pm10) : null;
+    const no2 = currentAq.nitrogen_dioxide != null ? Math.round(currentAq.nitrogen_dioxide) : null;
+    const so2 = currentAq.sulphur_dioxide != null ? Math.round(currentAq.sulphur_dioxide) : null;
     
     // Normalize Carbon Monoxide from Open-Meteo µg/m³ to standard mg/m³
-    const rawCoUg = currentAq.carbon_monoxide ?? 800;
-    const coMg = +(rawCoUg / 1000).toFixed(2);
+    const rawCoUg = currentAq.carbon_monoxide;
+    const coMg = rawCoUg != null ? +(rawCoUg / 1000).toFixed(2) : null;
     
-    const o3 = Math.round(currentAq.ozone ?? 0);
+    const o3 = currentAq.ozone != null ? Math.round(currentAq.ozone) : null;
     const rawUsAqi = Math.round(currentAq.us_aqi ?? 0);
 
     // Compute official Indian CPCB NAQI based on official breakpoint tables
@@ -108,10 +109,10 @@ export async function fetchOpenMeteoTelemetry(
         localHour = parseInt(parts[0], 10);
       }
 
-      const hPm25 = Math.round(hourlyPm25[i] ?? pm25);
-      const hPm10 = hourlyPm10[i] != null ? Math.round(hourlyPm10[i]) : Math.round(hPm25 * 1.5);
-      const hNo2 = Math.round(hourlyNo2[i] ?? no2);
-      const hO3 = Math.round(hourlyO3[i] ?? o3);
+      const hPm25 = hourlyPm25[i] != null ? Math.round(hourlyPm25[i]) : pm25;
+      const hPm10 = hourlyPm10[i] != null ? Math.round(hourlyPm10[i]) : null;
+      const hNo2 = hourlyNo2[i] != null ? Math.round(hourlyNo2[i]) : null;
+      const hO3 = hourlyO3[i] != null ? Math.round(hourlyO3[i]) : null;
 
       // Verified Indian CPCB calculation for this hour
       const hourlyAqiResult = calculateCpcbAqi({

@@ -8,6 +8,7 @@
  * 1. Diurnal minimum windows DO NOT authorize opening windows when outdoor air is hazardous.
  * 2. Ventilation is strictly BLOCKED whenever outdoor PM2.5 > 60 µg/m³ or Ozone > 100 µg/m³.
  * 3. Indoor baseline reflects building envelope infiltration (alpha ~ 0.45 for closed windows).
+ * 4. All calculations are single-zone well-mixed first-order mass-balance models.
  */
 
 import { IndoorVentilationRecommendation, CleanAirWindow, IndoorSourceType } from '../types/engines';
@@ -25,12 +26,17 @@ export function calculateIndoorRecommendations(
   cleanAirWindow: CleanAirWindow,
   currentHour = new Date().getHours(),
   roomAreaM2 = 20,
-  outdoorO3?: number,
+  outdoorO3?: number | null,
   indoorSource: IndoorSourceType = 'none'
 ): IndoorVentilationRecommendation {
-  const safePm = Math.max(0, outdoorPm25 || 0);
-  const safeO3 = outdoorO3 != null ? Math.max(0, outdoorO3) : null;
-  const isWindowActive = currentHour >= cleanAirWindow.startHour && currentHour <= cleanAirWindow.endHour;
+  const safePm = typeof outdoorPm25 === 'number' && !isNaN(outdoorPm25) ? Math.max(0, outdoorPm25) : 0;
+  const safeO3 = typeof outdoorO3 === 'number' && !isNaN(outdoorO3) ? Math.max(0, outdoorO3) : null;
+  const safeArea = typeof roomAreaM2 === 'number' && !isNaN(roomAreaM2) ? Math.max(5, Math.min(200, roomAreaM2)) : 20;
+  const safeHour = typeof currentHour === 'number' && !isNaN(currentHour) ? ((currentHour % 24) + 24) % 24 : new Date().getHours();
+
+  const isWindowActive = cleanAirWindow.endHour >= cleanAirWindow.startHour
+    ? safeHour >= cleanAirWindow.startHour && safeHour <= cleanAirWindow.endHour
+    : safeHour >= cleanAirWindow.startHour || safeHour <= cleanAirWindow.endHour;
 
   // Estimated indoor baseline with closed windows (alpha = 0.45)
   let baselineIndoor = Math.round(safePm * VENTILATION_THRESHOLDS.CLOSED_ENVELOPE_INFILTRATION_ALPHA);
@@ -89,14 +95,14 @@ export function calculateIndoorRecommendations(
     }
   }
 
-  // Purifier runtime calculation using single-zone well-mixed model
-  const roomVolumeM3 = Math.max(10, roomAreaM2) * VENTILATION_THRESHOLDS.ASSUMED_CEILING_HEIGHT_M;
+  // Purifier runtime calculation using single-zone well-mixed first-order decay model
+  const roomVolumeM3 = safeArea * VENTILATION_THRESHOLDS.ASSUMED_CEILING_HEIGHT_M;
   const mediumCadr = 250; // m³/h typical residential HEPA purifier CADR
   const airChangesPerHour = +(mediumCadr / roomVolumeM3).toFixed(1);
   
   // Time to approx 75% clean-down: t = ln(4) / ACH * 60 min ~ 1.386 / ACH * 60
-  const targetRuntimeMinutes = Math.min(120, Math.max(20, Math.round((1.386 / airChangesPerHour) * 60)));
-  const estimatedPostCleanPm25 = Math.max(6, Math.round(baselineIndoor * 0.20));
+  const targetRuntimeMinutes = Math.min(120, Math.max(15, Math.round((1.386 / airChangesPerHour) * 60)));
+  const estimatedPostCleanPm25 = Math.max(5, Math.round(baselineIndoor * 0.20));
 
   let recommendedSpeed: 'OFF' | 'LOW' | 'MEDIUM' | 'TURBO' = 'MEDIUM';
   if (safePm > 200 || indoorSource === 'cooking_frying' || indoorSource === 'incense_smoke') {
