@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { askBreatheWiseAssistant } from '../services/gemini';
 import { ChatMessage } from '../types/ai';
-import { Send, Sparkles, User, Bot, Key, ShieldCheck, Trash2 } from 'lucide-react';
+import { Send, Sparkles, User, Bot, Key, ShieldCheck, Trash2, ArrowRight } from 'lucide-react';
 
 export const AiAssistantFeed: React.FC = () => {
   const { telemetry, cleanAirWindow, userPreferences, sessionApiKey, setSessionApiKey } = useApp();
@@ -80,20 +80,20 @@ export const AiAssistantFeed: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-cream-300 shadow-sm flex flex-col h-[560px] overflow-hidden">
+    <div className="bg-white rounded-3xl border border-cream-200/80 shadow-soft flex flex-col h-[600px] overflow-hidden">
       
       {/* Chat Header */}
-      <div className="p-4 border-b border-cream-200 flex items-center justify-between bg-cream-50">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 rounded-lg bg-forest-500 text-white flex items-center justify-center shadow-xs">
+      <div className="p-4 sm:p-5 border-b border-cream-200/60 flex items-center justify-between bg-cream-50/40">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-xl bg-forest-600 text-white flex items-center justify-center shadow-2xs">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
             <h3 className="text-xs sm:text-sm font-bold text-slatecharcoal-900">
-              BreatheWise Environmental Assistant
+              BreatheWise Living Assistant
             </h3>
             <p className="text-[11px] text-slate-500">
-              {telemetry.metadata.isSimulated ? 'Simulated Demonstration Profile' : 'Copernicus Regional CAMS Grid'} • Profile: {userPreferences.vulnerabilityProfile.replace('_', ' ')}
+              {sessionApiKey ? 'Gemini 1.5 Flash Active' : 'Deterministic Engine + AI Synthesis'} • {telemetry.city}
             </p>
           </div>
         </div>
@@ -101,12 +101,12 @@ export const AiAssistantFeed: React.FC = () => {
         {/* API Key Config Button */}
         <button
           onClick={() => setShowKeyModal(!showKeyModal)}
-          className={`text-xs flex items-center space-x-1 px-2.5 py-1 rounded-lg border transition-colors ${
+          className={`text-xs flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border transition-all cursor-pointer font-medium ${
             sessionApiKey
-              ? 'bg-forest-50 border-forest-300 text-forest-700'
-              : 'border-cream-300 hover:bg-cream-100 text-slate-600'
+              ? 'bg-sage-50 border-sage-300 text-sage-800'
+              : 'border-cream-300 hover:bg-cream-100 text-slate-600 bg-white shadow-2xs'
           }`}
-          title="Configure temporary Google AI Studio Gemini API Key"
+          title="Configure optional temporary Google Gemini API Key"
         >
           <Key className="w-3.5 h-3.5 text-forest-600" />
           <span className="hidden sm:inline">{sessionApiKey ? 'Active Gemini Key' : 'Gemini Key'}</span>
@@ -115,21 +115,21 @@ export const AiAssistantFeed: React.FC = () => {
 
       {/* Session-Only Gemini API Key Configuration Drawer */}
       {showKeyModal && (
-        <div className="p-3.5 bg-forest-50 border-b border-forest-200 text-xs space-y-2 animate-in fade-in">
+        <div className="p-4 bg-forest-50/70 border-b border-forest-200 text-xs space-y-2.5 animate-in fade-in">
           <div className="flex justify-between items-center">
-            <span className="font-semibold text-forest-900 flex items-center space-x-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-forest-700" />
+            <span className="font-bold text-forest-900 flex items-center space-x-1.5">
+              <ShieldCheck className="w-4 h-4 text-forest-700" />
               <span>Session-Only Google Gemini Key (Volatile Memory)</span>
             </span>
             <button
               onClick={() => setShowKeyModal(false)}
-              className="text-forest-700 hover:text-forest-900 font-bold"
+              className="text-forest-700 hover:text-forest-900 font-bold p-1 cursor-pointer"
             >
               ✕
             </button>
           </div>
-          <p className="text-forest-700 text-[11px] leading-relaxed">
-            BreatheWise uses our zero-config deterministic living engine by default. To enable live Gemini 1.5 Flash LLM calls, enter your free Google AI Studio key. <strong>Security Notice:</strong> Keys are held strictly in temporary session memory and are automatically purged when your browser tab closes.
+          <p className="text-forest-800 text-[11px] leading-relaxed">
+            BreatheWise operates with full deterministic rules out-of-the-box. Enter your Google AI Studio key to enable live generative dialogues. <strong>Security Notice:</strong> Keys are kept strictly in volatile React state and are purged upon tab refresh or exit.
           </p>
           <div className="flex space-x-2">
             <input
@@ -137,14 +137,14 @@ export const AiAssistantFeed: React.FC = () => {
               placeholder="AIzaSy..."
               value={tempApiKey}
               onChange={(e) => setTempApiKey(e.target.value)}
-              className="flex-1 p-1.5 text-xs bg-white border border-forest-200 rounded-md focus:outline-none focus:ring-1 focus:ring-forest-500 font-mono"
+              className="flex-1 px-3 py-2 text-xs bg-white border border-forest-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-forest-500 font-mono shadow-2xs"
             />
             <button
               onClick={() => {
                 setSessionApiKey(tempApiKey.trim());
                 setShowKeyModal(false);
               }}
-              className="px-3 py-1.5 bg-forest-500 text-white rounded-md font-semibold text-xs shadow-xs hover:bg-forest-600 transition-colors"
+              className="px-4 py-2 bg-forest-600 hover:bg-forest-700 text-white rounded-xl font-bold text-xs shadow-2xs transition-colors cursor-pointer"
             >
               Save Key
             </button>
@@ -155,7 +155,7 @@ export const AiAssistantFeed: React.FC = () => {
                   setTempApiKey('');
                   setShowKeyModal(false);
                 }}
-                className="px-2.5 py-1.5 bg-white border border-rose-200 text-rose-700 rounded-md font-medium text-xs hover:bg-rose-50"
+                className="px-3 py-2 bg-white border border-rose-200 text-rose-700 rounded-xl font-medium text-xs hover:bg-rose-50 cursor-pointer"
                 title="Remove API Key"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -166,38 +166,38 @@ export const AiAssistantFeed: React.FC = () => {
       )}
 
       {/* Message Feed */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-3.5 text-xs">
+      <div className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-4 text-xs">
         {messages.map((m) => (
           <div
             key={m.id}
             className={`flex items-start space-x-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {m.role === 'assistant' && (
-              <div className="w-6 h-6 rounded-full bg-forest-100 text-forest-700 flex items-center justify-center shrink-0 mt-0.5">
-                <Bot className="w-3.5 h-3.5" />
+              <div className="w-7 h-7 rounded-full bg-forest-100 text-forest-700 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                <Bot className="w-4 h-4" />
               </div>
             )}
 
             <div
-              className={`p-3.5 rounded-2xl max-w-[85%] sm:max-w-[75%] leading-relaxed ${
+              className={`p-4 rounded-2xl max-w-[85%] sm:max-w-[78%] leading-relaxed ${
                 m.role === 'user'
-                  ? 'bg-slatecharcoal-900 text-white rounded-tr-none'
-                  : 'bg-cream-100 text-slatecharcoal-900 rounded-tl-none border border-cream-200'
+                  ? 'bg-forest-700 text-white rounded-tr-none shadow-soft'
+                  : 'bg-cream-50/80 text-slatecharcoal-900 rounded-tl-none border border-cream-200/80'
               }`}
             >
               <div className="whitespace-pre-wrap">{m.content}</div>
 
               {m.suggestedFollowUps && m.suggestedFollowUps.length > 0 && (
-                <div className="mt-3 pt-2.5 border-t border-cream-200 space-y-1.5">
-                  <div className="text-[10px] font-semibold uppercase text-slate-500">
-                    Suggested Questions:
+                <div className="mt-3.5 pt-3 border-t border-cream-200/70 space-y-2">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Suggested Explorations:
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {m.suggestedFollowUps.map((prompt, pIdx) => (
                       <button
                         key={pIdx}
                         onClick={() => handleSend(prompt)}
-                        className="text-left text-[11px] bg-white hover:bg-forest-50 text-slatecharcoal-800 hover:text-forest-700 px-2.5 py-1 rounded-lg border border-cream-300 transition-colors"
+                        className="text-left text-[11px] bg-white hover:bg-forest-50 text-slatecharcoal-800 hover:text-forest-700 px-3 py-1.5 rounded-xl border border-cream-200 shadow-2xs transition-all cursor-pointer font-medium"
                       >
                         {prompt}
                       </button>
@@ -207,8 +207,8 @@ export const AiAssistantFeed: React.FC = () => {
               )}
 
               <div
-                className={`text-[9px] mt-1 text-right ${
-                  m.role === 'user' ? 'text-slate-400' : 'text-slate-400'
+                className={`text-[9px] mt-1.5 text-right ${
+                  m.role === 'user' ? 'text-forest-200' : 'text-slate-400'
                 }`}
               >
                 {m.timestamp}
@@ -216,8 +216,8 @@ export const AiAssistantFeed: React.FC = () => {
             </div>
 
             {m.role === 'user' && (
-              <div className="w-6 h-6 rounded-full bg-slatecharcoal-800 text-white flex items-center justify-center shrink-0 mt-0.5">
-                <User className="w-3.5 h-3.5" />
+              <div className="w-7 h-7 rounded-full bg-slatecharcoal-800 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                <User className="w-4 h-4" />
               </div>
             )}
           </div>
@@ -226,7 +226,7 @@ export const AiAssistantFeed: React.FC = () => {
         {isSubmitting && (
           <div className="flex items-center space-x-2 text-slate-500 text-xs italic p-2">
             <span className="w-2 h-2 rounded-full bg-forest-500 animate-ping mr-1"></span>
-            Evaluating environmental context...
+            Evaluating environmental context & guidelines...
           </div>
         )}
 
@@ -234,7 +234,7 @@ export const AiAssistantFeed: React.FC = () => {
       </div>
 
       {/* Input Bar */}
-      <div className="p-3 border-t border-cream-200 bg-white">
+      <div className="p-3.5 sm:p-4 border-t border-cream-200/60 bg-white">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -247,12 +247,12 @@ export const AiAssistantFeed: React.FC = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about outdoor workout safety, commute swaps, window timing..."
-            className="flex-1 bg-cream-50 border border-cream-300 rounded-xl px-3.5 py-2.5 text-xs text-slatecharcoal-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-forest-500/20 focus:border-forest-500"
+            className="flex-1 bg-cream-50/60 border border-cream-200/90 rounded-2xl px-4 py-3 text-xs text-slatecharcoal-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-forest-500/20 focus:border-forest-500 transition-all"
           />
           <button
             type="submit"
             disabled={!input.trim() || isSubmitting}
-            className="bg-forest-500 hover:bg-forest-600 disabled:opacity-40 text-white p-2.5 rounded-xl shadow-xs transition-colors shrink-0"
+            className="bg-forest-600 hover:bg-forest-700 disabled:opacity-40 text-white p-3 rounded-2xl shadow-soft transition-all shrink-0 cursor-pointer"
           >
             <Send className="w-4 h-4" />
           </button>

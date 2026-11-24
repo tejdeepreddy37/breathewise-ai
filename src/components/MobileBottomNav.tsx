@@ -14,7 +14,7 @@ export const MobileBottomNav: React.FC = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-cream-300 md:hidden pb-safe">
+    <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-cream-200/90 md:hidden pb-safe shadow-elevated">
       <div className="flex items-center justify-around h-16 px-2">
         {tabs.map((t) => {
           const isActive = activeTab === t.id;
@@ -22,13 +22,13 @@ export const MobileBottomNav: React.FC = () => {
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id)}
-              className={`flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl transition-colors ${
+              className={`flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-2xl transition-all cursor-pointer ${
                 isActive
-                  ? 'text-forest-600 font-bold'
+                  ? 'text-forest-700 font-bold'
                   : 'text-slate-500 hover:text-slatecharcoal-800 font-medium'
               }`}
             >
-              <div className={`p-1 rounded-lg ${isActive ? 'bg-forest-50' : ''}`}>
+              <div className={`p-1.5 rounded-xl transition-all ${isActive ? 'bg-forest-50 text-forest-700 shadow-2xs' : ''}`}>
                 {t.icon}
               </div>
               <span className="text-[10px] mt-0.5 tracking-tight">{t.label}</span>
