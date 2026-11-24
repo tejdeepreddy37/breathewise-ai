@@ -142,50 +142,50 @@ export const HeroDirective: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: 3 Stacked White Decision Cards (Exact Match to Image 2) */}
-        <div className="w-full lg:w-72 flex flex-col space-y-2.5">
+        {/* Right Column: 3 Decision Cards (Horizontal 3-column row on mobile, stacked on desktop - Exact Image 2 Match) */}
+        <div className="w-full lg:w-72 grid grid-cols-3 lg:flex lg:flex-col gap-2.5 lg:space-y-2.5 lg:gap-0">
           
           {/* Card 1: Outdoor Exercise */}
-          <div className="flex items-center space-x-3 p-3.5 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:shadow-sm transition-all">
-            <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shrink-0">
+          <div className="flex flex-col lg:flex-row items-center lg:space-x-3 p-2.5 sm:p-3.5 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:shadow-sm transition-all text-center lg:text-left">
+            <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shrink-0 mb-1 lg:mb-0">
               <Activity className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <div className="hidden lg:block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 Outdoor Exercise
               </div>
-              <div className="text-xs font-extrabold text-rose-600">
+              <div className="text-[11px] sm:text-xs font-extrabold text-rose-600">
                 {isSevere ? 'Shift Indoors' : isPoor ? 'Use Best Window' : 'Favorable Today'}
               </div>
             </div>
           </div>
 
           {/* Card 2: Window Ventilation */}
-          <div className="flex items-center space-x-3 p-3.5 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:shadow-sm transition-all">
-            <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100 shrink-0">
+          <div className="flex flex-col lg:flex-row items-center lg:space-x-3 p-2.5 sm:p-3.5 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:shadow-sm transition-all text-center lg:text-left">
+            <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100 shrink-0 mb-1 lg:mb-0">
               {pm > 60 ? <DoorClosed className="w-4 h-4" /> : <DoorOpen className="w-4 h-4" />}
             </div>
             <div>
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <div className="hidden lg:block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 Window Ventilation
               </div>
-              <div className="text-xs font-extrabold text-rose-600">
+              <div className="text-[11px] sm:text-xs font-extrabold text-rose-600">
                 {pm > 60 ? 'Keep Sealed' : 'Safe to Flush'}
               </div>
             </div>
           </div>
 
           {/* Card 3: Commute Protection */}
-          <div className="flex items-center space-x-3 p-3.5 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:shadow-sm transition-all">
-            <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-100 shrink-0">
+          <div className="flex flex-col lg:flex-row items-center lg:space-x-3 p-2.5 sm:p-3.5 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:shadow-sm transition-all text-center lg:text-left">
+            <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-100 shrink-0 mb-1 lg:mb-0">
               <Train className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <div className="hidden lg:block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 Commute Protection
               </div>
-              <div className="text-xs font-extrabold text-teal-700">
-                {isSevere || isPoor ? 'Prefer AC Metro / N95' : 'Standard Transit'}
+              <div className="text-[11px] sm:text-xs font-extrabold text-teal-700">
+                {isSevere || isPoor ? 'AC Metro / N95' : 'Standard Transit'}
               </div>
             </div>
           </div>

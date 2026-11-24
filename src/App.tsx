@@ -45,7 +45,16 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFBF8] flex flex-col font-sans text-slatecharcoal-900 pb-20 md:pb-12 selection:bg-emerald-100 selection:text-emerald-800">
+    <div className="min-h-screen bg-[#FAFBF8] flex flex-col font-sans text-slatecharcoal-900 pb-20 md:pb-12 selection:bg-emerald-100 selection:text-emerald-800 relative overflow-x-hidden">
+      
+      {/* Botanical Foliage Framing Overlay (Matches Image 2 top-left lush leaves) */}
+      <div className="absolute top-0 left-0 w-80 h-80 opacity-35 pointer-events-none z-10 overflow-hidden -ml-6 -mt-6">
+        <svg viewBox="0 0 300 300" fill="none" className="w-full h-full text-emerald-800">
+          <path d="M-20,-20 Q60,30 100,90 T40,160 Q-10,100 -20,-20 Z M30,-10 Q120,40 140,110 T80,180 Q40,110 30,-10 Z M90,-10 Q170,50 180,120 T120,190 Q80,110 90,-10 Z" fill="currentColor" opacity="0.6" />
+          <path d="M-10,40 Q40,90 70,150 T20,210 Q-20,150 -10,40 Z M60,60 Q130,120 140,180 T90,240 Q50,170 60,60 Z" fill="currentColor" opacity="0.4" />
+        </svg>
+      </div>
+
       <Header />
 
       {/* Main Container */}

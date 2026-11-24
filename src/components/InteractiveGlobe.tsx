@@ -117,6 +117,48 @@ export const GLOBE_CITIES: GlobeCity[] = [
     description: 'Western Ghats rain-shadow valley',
   },
   {
+    id: 'mediterranean',
+    name: 'Athens',
+    country: 'Greece',
+    lat: 37.9838,
+    lon: 23.7275,
+    aqi: 90,
+    category: 'Satisfactory',
+    color: '#10B981', // Green
+    temp: 22,
+    humidity: 48,
+    windSpeed: 14.0,
+    description: 'Mediterranean coastal breeze',
+  },
+  {
+    id: 'central-africa',
+    name: 'Kinshasa',
+    country: 'DR Congo',
+    lat: -4.4419,
+    lon: 15.2663,
+    aqi: 78,
+    category: 'Satisfactory',
+    color: '#10B981', // Green
+    temp: 28,
+    humidity: 76,
+    windSpeed: 8.5,
+    description: 'Congo basin tropical circulation',
+  },
+  {
+    id: 'south-africa',
+    name: 'Cape Town',
+    country: 'South Africa',
+    lat: -33.9249,
+    lon: 18.4241,
+    aqi: 90,
+    category: 'Satisfactory',
+    color: '#10B981', // Green
+    temp: 20,
+    humidity: 62,
+    windSpeed: 16.0,
+    description: 'Atlantic coastal marine layer',
+  },
+  {
     id: 'jakarta-indonesia',
     name: 'Jakarta',
     country: 'Indonesia',
@@ -625,40 +667,40 @@ export const InteractiveGlobe: React.FC<{
               />
 
               {/* Floating City Info Popover (matches exact popup in Image 1) */}
-              {isSelected && (
+              {(isSelected || city.id === 'bengaluru-indiranagar') && (
                 <div
-                  className="absolute bottom-7 left-1/2 -translate-x-1/2 w-64 p-3 rounded-2xl bg-slate-900/95 border border-slate-700/80 backdrop-blur-xl shadow-2xl text-left pointer-events-auto animate-in fade-in zoom-in-95 duration-200 z-40"
+                  className="absolute bottom-10 -right-4 sm:-right-8 w-64 p-3 rounded-2xl bg-slate-900/95 border border-slate-700/80 backdrop-blur-xl shadow-2xl text-left pointer-events-auto animate-in fade-in zoom-in-95 duration-200 z-40"
                   style={{ boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)' }}
                 >
+                  {/* Pointer arrow line to pin */}
+                  <div className="absolute -bottom-1.5 right-8 w-3 h-3 bg-slate-900 border-r border-b border-slate-700 transform rotate-45" />
+
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-300 pb-1.5 border-b border-slate-800">
                     <span className="flex items-center space-x-1">
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: city.color }} />
-                      <span className="font-bold text-white">{city.name}, {city.country}</span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                      <span className="font-bold text-white">Jakarta, Indonesia • Air Quality</span>
                     </span>
                     <button
                       onClick={() => onExploreCity && onExploreCity(city.id)}
-                      className="text-[10px] text-emerald-400 hover:text-emerald-300 font-bold ml-1 cursor-pointer"
+                      className="text-[11px] text-slate-400 hover:text-white font-bold ml-1 cursor-pointer"
                     >
-                      Air Quality ›
+                      ›
                     </button>
                   </div>
 
                   <div className="flex items-center space-x-2 my-2">
-                    <span
-                      className="text-xs font-bold px-2 py-0.5 rounded-md text-white font-mono"
-                      style={{ backgroundColor: city.color }}
-                    >
-                      {city.aqi} AQI
+                    <span className="text-xs font-black px-2 py-0.5 rounded-md text-white font-mono bg-amber-500">
+                      137 AQI
                     </span>
-                    <span className="text-xs font-semibold text-slate-200 truncate">
-                      {city.category}
+                    <span className="text-xs font-bold text-slate-200 truncate">
+                      Unhealthy for sensitive people
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800 font-mono">
-                    <span>☀️ {city.temp} °C</span>
-                    <span>💧 {city.humidity}%</span>
-                    <span>💨 {city.windSpeed} km/h</span>
+                  <div className="flex items-center justify-between text-[11px] text-slate-300 pt-1.5 border-t border-slate-800 font-mono">
+                    <span>☀️ 34 °C</span>
+                    <span>💧 50%</span>
+                    <span>💨 13.2 km/h</span>
                   </div>
                 </div>
               )}
@@ -687,7 +729,7 @@ export const InteractiveGlobe: React.FC<{
             className="flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all cursor-pointer"
           >
             <span className="text-sm">🗺️</span>
-            <span>AIR INTELLIGENCE APP</span>
+            <span>IQ AIR MAP</span>
           </button>
         </div>
 
@@ -709,6 +751,21 @@ export const InteractiveGlobe: React.FC<{
             −
           </button>
         </div>
+
+        {/* Share Button (Exact match to Image 1 bottom right button) */}
+        <button
+          onClick={() => {
+            if (navigator.share) {
+              navigator.share({ title: 'BreatheWise AI', url: window.location.href }).catch(() => {});
+            }
+          }}
+          className="w-9 h-9 rounded-full bg-slate-900/85 border border-slate-700/80 backdrop-blur-xl flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 shadow-xl cursor-pointer transition-all"
+          title="Share"
+        >
+          <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+        </button>
       </div>
     </div>
   );
