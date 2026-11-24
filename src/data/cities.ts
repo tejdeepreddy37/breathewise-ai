@@ -56,6 +56,15 @@ export const INDIAN_CITIES_PRESETS: CityPreset[] = [
     typicalSmogSeverity: 'High',
   },
   {
+    id: 'chennai-adyar',
+    name: 'Chennai — Adyar Coastal',
+    state: 'Tamil Nadu',
+    lat: 13.0012,
+    lon: 80.2565,
+    waqiStationId: 'chennai/adyar',
+    typicalSmogSeverity: 'Moderate',
+  },
+  {
     id: 'hyderabad-sanathnagar',
     name: 'Hyderabad — Sanathnagar',
     state: 'Telangana',

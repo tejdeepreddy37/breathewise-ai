@@ -8,7 +8,7 @@ import { calculateCleanAirWindow } from '../engines/windowSafe';
 import { fetchGeminiLivingPlan, generateDeterministicLivingPlan } from '../services/gemini';
 import { FALLBACK_TELEMETRY } from '../data/staticFallback';
 
-export type NavigationTab = 'overview' | 'diurnal' | 'commute' | 'indoor' | 'simulator' | 'assistant';
+export type NavigationTab = 'landing' | 'overview' | 'diurnal' | 'commute' | 'indoor' | 'simulator' | 'assistant';
 
 interface AppContextType {
   selectedCityId: string;
@@ -107,17 +107,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeTab, setActiveTabState] = useState<NavigationTab>(() => {
     try {
       const hash = window.location.hash.replace('#', '');
-      if (['overview', 'commute', 'indoor', 'simulator', 'assistant'].includes(hash)) {
+      if (['landing', 'overview', 'commute', 'indoor', 'simulator', 'assistant'].includes(hash)) {
         return hash as NavigationTab;
       }
     } catch {}
-    return 'overview';
+    return 'landing';
   });
 
   const setActiveTab = (tab: NavigationTab) => {
     setActiveTabState(tab);
     try {
-      window.location.hash = tab === 'overview' ? '' : tab;
+      window.location.hash = tab === 'landing' ? '' : tab;
     } catch {}
   };
 

@@ -1,0 +1,61 @@
+#!/bin/bash
+set -e
+
+BASE_DIR="/Users/ptejdeepreddy/.gemini/antigravity/scratch/breathewise-ai/artifacts/mission-09-ui-transformation"
+mkdir -p "$BASE_DIR/desktop" "$BASE_DIR/mobile" "$BASE_DIR/responsive" "$BASE_DIR/cities" "$BASE_DIR/interactions"
+
+CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+CHROME_FLAGS="--headless --disable-gpu --no-sandbox --user-data-dir=/tmp/chrome-test-profile-bw-m09"
+UA_IPHONE="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+
+echo "=== 1. Capturing Desktop Suite ==="
+"$CHROME" $CHROME_FLAGS --window-size=1440,900 --screenshot="$BASE_DIR/desktop/01_landing_first_view.png" "http://localhost:4173/"
+"$CHROME" $CHROME_FLAGS --window-size=1440,2400 --screenshot="$BASE_DIR/desktop/02_landing_full_page.png" "http://localhost:4173/"
+"$CHROME" $CHROME_FLAGS --window-size=1440,900 --screenshot="$BASE_DIR/desktop/03_air_intelligence_first_view.png" "http://localhost:4173/#overview"
+"$CHROME" $CHROME_FLAGS --window-size=1440,3600 --screenshot="$BASE_DIR/desktop/04_air_intelligence_full_page.png" "http://localhost:4173/#overview"
+"$CHROME" $CHROME_FLAGS --window-size=1440,900 --screenshot="$BASE_DIR/desktop/05_commute_first_view.png" "http://localhost:4173/#commute"
+"$CHROME" $CHROME_FLAGS --window-size=1440,2000 --screenshot="$BASE_DIR/desktop/06_commute_full_page.png" "http://localhost:4173/#commute"
+"$CHROME" $CHROME_FLAGS --window-size=1440,900 --screenshot="$BASE_DIR/desktop/07_indoor_first_view.png" "http://localhost:4173/#indoor"
+"$CHROME" $CHROME_FLAGS --window-size=1440,2000 --screenshot="$BASE_DIR/desktop/08_indoor_full_page.png" "http://localhost:4173/#indoor"
+"$CHROME" $CHROME_FLAGS --window-size=1440,900 --screenshot="$BASE_DIR/desktop/09_whatif_first_view.png" "http://localhost:4173/#simulator"
+"$CHROME" $CHROME_FLAGS --window-size=1440,2000 --screenshot="$BASE_DIR/desktop/10_whatif_full_page.png" "http://localhost:4173/#simulator"
+"$CHROME" $CHROME_FLAGS --window-size=1440,900 --screenshot="$BASE_DIR/desktop/11_assistant_first_view.png" "http://localhost:4173/#assistant"
+"$CHROME" $CHROME_FLAGS --window-size=1440,1800 --screenshot="$BASE_DIR/desktop/12_assistant_full_page.png" "http://localhost:4173/#assistant"
+"$CHROME" $CHROME_FLAGS --window-size=1440,1100 --screenshot="$BASE_DIR/desktop/13_methodology.png" "http://localhost:4173/?transparency=true#overview"
+
+echo "=== 2. Capturing Mobile Suite ==="
+"$CHROME" $CHROME_FLAGS --window-size=390,844 --user-agent="$UA_IPHONE" --screenshot="$BASE_DIR/mobile/01_landing_390_first_view.png" "http://localhost:4173/"
+"$CHROME" $CHROME_FLAGS --window-size=390,3200 --user-agent="$UA_IPHONE" --screenshot="$BASE_DIR/mobile/02_landing_390_full_page.png" "http://localhost:4173/"
+"$CHROME" $CHROME_FLAGS --window-size=390,844 --user-agent="$UA_IPHONE" --screenshot="$BASE_DIR/mobile/03_air_intelligence_390_first_view.png" "http://localhost:4173/#overview"
+"$CHROME" $CHROME_FLAGS --window-size=390,4600 --user-agent="$UA_IPHONE" --screenshot="$BASE_DIR/mobile/04_air_intelligence_390_full_page.png" "http://localhost:4173/#overview"
+"$CHROME" $CHROME_FLAGS --window-size=390,2600 --user-agent="$UA_IPHONE" --screenshot="$BASE_DIR/mobile/05_commute_390_full_page.png" "http://localhost:4173/#commute"
+"$CHROME" $CHROME_FLAGS --window-size=390,2600 --user-agent="$UA_IPHONE" --screenshot="$BASE_DIR/mobile/06_indoor_390_full_page.png" "http://localhost:4173/#indoor"
+"$CHROME" $CHROME_FLAGS --window-size=390,2600 --user-agent="$UA_IPHONE" --screenshot="$BASE_DIR/mobile/07_whatif_390_full_page.png" "http://localhost:4173/#simulator"
+"$CHROME" $CHROME_FLAGS --window-size=390,1600 --user-agent="$UA_IPHONE" --screenshot="$BASE_DIR/mobile/08_assistant_390_full_page.png" "http://localhost:4173/#assistant"
+"$CHROME" $CHROME_FLAGS --window-size=390,844 --user-agent="$UA_IPHONE" --screenshot="$BASE_DIR/mobile/09_methodology_390.png" "http://localhost:4173/?transparency=true#overview"
+
+echo "=== 3. Capturing Responsive Viewports ==="
+"$CHROME" $CHROME_FLAGS --window-size=320,800 --user-agent="$UA_IPHONE" --screenshot="$BASE_DIR/responsive/01_air_intelligence_320.png" "http://localhost:4173/#overview"
+"$CHROME" $CHROME_FLAGS --window-size=360,800 --user-agent="$UA_IPHONE" --screenshot="$BASE_DIR/responsive/02_air_intelligence_360.png" "http://localhost:4173/#overview"
+"$CHROME" $CHROME_FLAGS --window-size=430,932 --user-agent="$UA_IPHONE" --screenshot="$BASE_DIR/responsive/03_air_intelligence_430.png" "http://localhost:4173/#overview"
+"$CHROME" $CHROME_FLAGS --window-size=768,1024 --screenshot="$BASE_DIR/responsive/04_tablet_768.png" "http://localhost:4173/#overview"
+"$CHROME" $CHROME_FLAGS --window-size=1280,800 --screenshot="$BASE_DIR/responsive/05_desktop_1280.png" "http://localhost:4173/#overview"
+
+echo "=== 4. Capturing Multi-City Scenarios ==="
+"$CHROME" $CHROME_FLAGS --window-size=1440,900 --screenshot="$BASE_DIR/cities/01_delhi.png" "http://localhost:4173/?city=delhi-anand-vihar#overview"
+"$CHROME" $CHROME_FLAGS --window-size=1440,900 --screenshot="$BASE_DIR/cities/02_bengaluru.png" "http://localhost:4173/?city=bengaluru-indiranagar#overview"
+"$CHROME" $CHROME_FLAGS --window-size=1440,900 --screenshot="$BASE_DIR/cities/03_mumbai.png" "http://localhost:4173/?city=mumbai-bkc#overview"
+"$CHROME" $CHROME_FLAGS --window-size=1440,900 --screenshot="$BASE_DIR/cities/04_kolkata.png" "http://localhost:4173/?city=kolkata-victoria#overview"
+"$CHROME" $CHROME_FLAGS --window-size=1440,900 --screenshot="$BASE_DIR/cities/05_chennai.png" "http://localhost:4173/?city=chennai-adyar#overview"
+
+echo "=== 5. Capturing Meaningful Interaction States ==="
+"$CHROME" $CHROME_FLAGS --window-size=1440,900 --screenshot="$BASE_DIR/interactions/01_globe_city_selection.png" "http://localhost:4173/?city=bengaluru-indiranagar"
+"$CHROME" $CHROME_FLAGS --window-size=1440,900 --screenshot="$BASE_DIR/interactions/02_city_transition.png" "http://localhost:4173/?city=bengaluru-indiranagar#overview"
+"$CHROME" $CHROME_FLAGS --window-size=1440,1000 --screenshot="$BASE_DIR/interactions/03_windowsafe_selection.png" "http://localhost:4173/?city=delhi-anand-vihar#overview"
+"$CHROME" $CHROME_FLAGS --window-size=1440,1000 --screenshot="$BASE_DIR/interactions/04_commute_recommendation.png" "http://localhost:4173/?city=mumbai-bkc#commute"
+"$CHROME" $CHROME_FLAGS --window-size=1440,1050 --screenshot="$BASE_DIR/interactions/05_indoor_cooking_state.png" "http://localhost:4173/?city=chennai-adyar#indoor"
+"$CHROME" $CHROME_FLAGS --window-size=1440,1100 --screenshot="$BASE_DIR/interactions/06_whatif_result.png" "http://localhost:4173/?city=delhi-anand-vihar&profile=outdoor_athlete#simulator"
+"$CHROME" $CHROME_FLAGS --window-size=1440,1050 --screenshot="$BASE_DIR/interactions/07_assistant_context.png" "http://localhost:4173/?city=delhi-anand-vihar#assistant"
+
+echo "=== Mission 09 Evidence Suite Capture Complete ==="
+ls -lh "$BASE_DIR"/*

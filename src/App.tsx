@@ -11,6 +11,7 @@ import { WhatIfSimulator } from './components/WhatIfSimulator';
 import { AiAssistantFeed } from './components/AiAssistantFeed';
 import { TransparencyDrawer } from './components/TransparencyDrawer';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { LandingPage } from './components/LandingPage';
 import { 
   Home, 
   Navigation, 
@@ -33,6 +34,15 @@ export const App: React.FC = () => {
     { id: 'simulator', label: 'What-If Exposure Sandbox', icon: <Sliders className="w-4 h-4" /> },
     { id: 'assistant', label: 'AI Living Assistant', icon: <MessageSquare className="w-4 h-4" /> },
   ];
+
+  if (activeTab === 'landing') {
+    return (
+      <>
+        <LandingPage />
+        <TransparencyDrawer />
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-cream-50 flex flex-col font-sans text-slatecharcoal-900 pb-20 md:pb-12 selection:bg-forest-100 selection:text-forest-700">

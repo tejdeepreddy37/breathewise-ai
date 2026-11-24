@@ -1,11 +1,12 @@
 import React from 'react';
 import { useApp, NavigationTab } from '../context/AppContext';
-import { Home, Navigation, Fan, Sliders, MessageSquare } from 'lucide-react';
+import { Home, Navigation, Fan, Sliders, MessageSquare, Globe2 } from 'lucide-react';
 
 export const MobileBottomNav: React.FC = () => {
   const { activeTab, setActiveTab } = useApp();
 
   const tabs: Array<{ id: NavigationTab; label: string; icon: React.ReactNode }> = [
+    { id: 'landing', label: 'Globe', icon: <Globe2 className="w-4 h-4" /> },
     { id: 'overview', label: 'Today', icon: <Home className="w-4 h-4" /> },
     { id: 'commute', label: 'Commute', icon: <Navigation className="w-4 h-4" /> },
     { id: 'indoor', label: 'Indoor', icon: <Fan className="w-4 h-4" /> },

@@ -12,7 +12,8 @@ import {
   UserCheck, 
   Sparkles,
   WifiOff,
-  Clock
+  Clock,
+  Globe2
 } from 'lucide-react';
 
 export const Header: React.FC = () => {
@@ -25,6 +26,7 @@ export const Header: React.FC = () => {
     userPreferences,
     updateProfile,
     setIsTransparencyOpen,
+    setActiveTab,
   } = useApp();
 
   const profiles: Array<{ id: VulnerabilityProfile; label: string; icon: React.ReactNode }> = [
@@ -43,15 +45,23 @@ export const Header: React.FC = () => {
         <div className="flex items-center justify-between h-16 sm:h-20">
           
           {/* Logo & Product Brand */}
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-forest-600 text-white flex items-center justify-center shadow-soft">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <button
+              onClick={() => setActiveTab('landing')}
+              className="w-10 h-10 rounded-2xl bg-forest-600 hover:bg-forest-700 text-white flex items-center justify-center shadow-soft transition-all cursor-pointer"
+              title="Return to 3D Globe Overview"
+              aria-label="Return to 3D Globe Overview"
+            >
               <Wind className="w-5 h-5" />
-            </div>
+            </button>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-bold text-lg text-slatecharcoal-900 tracking-tight">
+                <button
+                  onClick={() => setActiveTab('landing')}
+                  className="font-bold text-lg text-slatecharcoal-900 tracking-tight text-left cursor-pointer hover:opacity-80 transition-opacity"
+                >
                   BreatheWise<span className="text-forest-600 font-extrabold ml-0.5">AI</span>
-                </span>
+                </button>
                 <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-forest-50 text-forest-700 border border-forest-100">
                   <Sparkles className="w-2.5 h-2.5 mr-1 text-forest-600" /> Challenge 06
                 </span>
@@ -64,6 +74,15 @@ export const Header: React.FC = () => {
 
           {/* City Selector & Telemetry Status Indicator */}
           <div className="flex items-center space-x-1.5 sm:space-x-3">
+            {/* Globe View Button */}
+            <button
+              onClick={() => setActiveTab('landing')}
+              className="inline-flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-100 text-xs font-semibold shadow-2xs border border-slate-700 transition-all cursor-pointer"
+              title="Return to 3D Earth Globe Overview"
+            >
+              <Globe2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden sm:inline">Earth Globe</span>
+            </button>
             <div className="relative">
               <select
                 aria-label="Select Target City"
