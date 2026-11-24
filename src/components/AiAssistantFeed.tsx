@@ -2,22 +2,22 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { askBreatheWiseAssistant } from '../services/gemini';
 import { ChatMessage } from '../types/ai';
-import { MessageSquare, Send, Sparkles, User, Bot, Key, Check } from 'lucide-react';
+import { Send, Sparkles, User, Bot, Key, ShieldCheck, Trash2 } from 'lucide-react';
 
 export const AiAssistantFeed: React.FC = () => {
-  const { telemetry, cleanAirWindow, userPreferences, updatePreferences } = useApp();
+  const { telemetry, cleanAirWindow, userPreferences, sessionApiKey, setSessionApiKey } = useApp();
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
       role: 'assistant',
-      content: `Hello! I am your BreatheWise Environmental Living Assistant. In ${telemetry.city}, current PM2.5 is ${telemetry.current.pm25} µg/m³ (AQI ${telemetry.current.aqi}). Today's optimal clean-air window is ${cleanAirWindow.displayWindow}. How can I help you navigate your day safely?`,
+      content: `Hello! I am your BreatheWise Environmental Living Assistant. In ${telemetry.city}, current PM2.5 is ${telemetry.current.pm25} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}). Today's lowest relative exposure window is ${cleanAirWindow.displayWindow}. How can I assist you in planning your day safely?`,
       timestamp: 'Just now',
       suggestedFollowUps: [
         'Is it safe to go running today?',
-        'When should I open my apartment windows?',
+        'Can I open my apartment windows right now?',
         'Compare metro vs. two-wheeler for my commute',
-        'How should I protect my child today?',
+        'How should I protect my child from today\'s air?',
       ],
     },
   ]);
@@ -25,7 +25,7 @@ export const AiAssistantFeed: React.FC = () => {
   const [input, setInput] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showKeyModal, setShowKeyModal] = useState<boolean>(false);
-  const [tempApiKey, setTempApiKey] = useState<string>(userPreferences.customGeminiApiKey || '');
+  const [tempApiKey, setTempApiKey] = useState<string>(sessionApiKey || '');
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -55,7 +55,7 @@ export const AiAssistantFeed: React.FC = () => {
         telemetry,
         cleanAirWindow,
         userPreferences.vulnerabilityProfile,
-        userPreferences.customGeminiApiKey
+        sessionApiKey
       );
 
       const botMsg: ChatMessage = {
@@ -70,7 +70,7 @@ export const AiAssistantFeed: React.FC = () => {
       const errReply: ChatMessage = {
         id: `err-${Date.now()}`,
         role: 'assistant',
-        content: 'I apologize, but I encountered an error synthesizing advice. Today\'s clean air window remains ' + cleanAirWindow.displayWindow + '.',
+        content: 'I apologize, but I encountered an error synthesizing guidance. Today\'s lowest relative exposure window is ' + cleanAirWindow.displayWindow + '.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, errReply]);
@@ -93,7 +93,7 @@ export const AiAssistantFeed: React.FC = () => {
               BreatheWise Environmental Assistant
             </h3>
             <p className="text-[11px] text-slate-500">
-              Grounded in live {telemetry.city} telemetry • Profile: {userPreferences.vulnerabilityProfile.replace('_', ' ')}
+              {telemetry.metadata.isSimulated ? 'Simulated Demonstration Profile' : 'Copernicus Regional CAMS Grid'} • Profile: {userPreferences.vulnerabilityProfile.replace('_', ' ')}
             </p>
           </div>
         </div>
@@ -101,19 +101,26 @@ export const AiAssistantFeed: React.FC = () => {
         {/* API Key Config Button */}
         <button
           onClick={() => setShowKeyModal(!showKeyModal)}
-          className="text-xs flex items-center space-x-1 px-2.5 py-1 rounded-lg border border-cream-300 hover:bg-cream-100 text-slate-600 transition-colors"
-          title="Configure custom Gemini API Key"
+          className={`text-xs flex items-center space-x-1 px-2.5 py-1 rounded-lg border transition-colors ${
+            sessionApiKey
+              ? 'bg-forest-50 border-forest-300 text-forest-700'
+              : 'border-cream-300 hover:bg-cream-100 text-slate-600'
+          }`}
+          title="Configure temporary Google AI Studio Gemini API Key"
         >
           <Key className="w-3.5 h-3.5 text-forest-600" />
-          <span className="hidden sm:inline">Gemini Key</span>
+          <span className="hidden sm:inline">{sessionApiKey ? 'Active Gemini Key' : 'Gemini Key'}</span>
         </button>
       </div>
 
-      {/* Optional Custom Gemini API Key Modal / Drawer */}
+      {/* Session-Only Gemini API Key Configuration Drawer */}
       {showKeyModal && (
-        <div className="p-3.5 bg-forest-50 border-b border-forest-200 text-xs space-y-2">
+        <div className="p-3.5 bg-forest-50 border-b border-forest-200 text-xs space-y-2 animate-in fade-in">
           <div className="flex justify-between items-center">
-            <span className="font-semibold text-forest-800">Custom Google Gemini API Key (Optional)</span>
+            <span className="font-semibold text-forest-900 flex items-center space-x-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-forest-700" />
+              <span>Session-Only Google Gemini Key (Volatile Memory)</span>
+            </span>
             <button
               onClick={() => setShowKeyModal(false)}
               className="text-forest-700 hover:text-forest-900 font-bold"
@@ -121,8 +128,8 @@ export const AiAssistantFeed: React.FC = () => {
               ✕
             </button>
           </div>
-          <p className="text-forest-700 text-[11px]">
-            By default, BreatheWise uses our deterministic grounded living engine. To use live Google AI Studio LLM calls, enter your free API key:
+          <p className="text-forest-700 text-[11px] leading-relaxed">
+            BreatheWise uses our zero-config deterministic living engine by default. To enable live Gemini 1.5 Flash LLM calls, enter your free Google AI Studio key. <strong>Security Notice:</strong> Keys are held strictly in temporary session memory and are automatically purged when your browser tab closes.
           </p>
           <div className="flex space-x-2">
             <input
@@ -130,17 +137,30 @@ export const AiAssistantFeed: React.FC = () => {
               placeholder="AIzaSy..."
               value={tempApiKey}
               onChange={(e) => setTempApiKey(e.target.value)}
-              className="flex-1 p-1.5 text-xs bg-white border border-forest-200 rounded-md focus:outline-none focus:ring-1 focus:ring-forest-500"
+              className="flex-1 p-1.5 text-xs bg-white border border-forest-200 rounded-md focus:outline-none focus:ring-1 focus:ring-forest-500 font-mono"
             />
             <button
               onClick={() => {
-                updatePreferences({ customGeminiApiKey: tempApiKey });
+                setSessionApiKey(tempApiKey.trim());
                 setShowKeyModal(false);
               }}
               className="px-3 py-1.5 bg-forest-500 text-white rounded-md font-semibold text-xs shadow-xs hover:bg-forest-600 transition-colors"
             >
-              Save
+              Save Key
             </button>
+            {sessionApiKey && (
+              <button
+                onClick={() => {
+                  setSessionApiKey('');
+                  setTempApiKey('');
+                  setShowKeyModal(false);
+                }}
+                className="px-2.5 py-1.5 bg-white border border-rose-200 text-rose-700 rounded-md font-medium text-xs hover:bg-rose-50"
+                title="Remove API Key"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -206,7 +226,7 @@ export const AiAssistantFeed: React.FC = () => {
         {isSubmitting && (
           <div className="flex items-center space-x-2 text-slate-500 text-xs italic p-2">
             <span className="w-2 h-2 rounded-full bg-forest-500 animate-ping mr-1"></span>
-            Synthesizing exposure intelligence...
+            Evaluating environmental context...
           </div>
         )}
 
@@ -226,7 +246,7 @@ export const AiAssistantFeed: React.FC = () => {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about exercise timing, commute choices, home ventilation..."
+            placeholder="Ask about outdoor workout safety, commute swaps, window timing..."
             className="flex-1 bg-cream-50 border border-cream-300 rounded-xl px-3.5 py-2.5 text-xs text-slatecharcoal-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-forest-500/20 focus:border-forest-500"
           />
           <button

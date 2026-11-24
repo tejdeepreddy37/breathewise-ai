@@ -21,6 +21,8 @@ interface AppContextType {
   isLoadingPlan: boolean;
   activeTab: NavigationTab;
   isTransparencyOpen: boolean;
+  sessionApiKey: string;
+  setSessionApiKey: (key: string) => void;
   selectCity: (cityId: string) => void;
   updateProfile: (profile: VulnerabilityProfile) => void;
   updatePreferences: (prefs: Partial<UserPreferences>) => void;
@@ -44,6 +46,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return DEFAULT_USER_PREFERENCES;
     }
   });
+
+  // Secure session-only storage for API key (wiped when browser tab closes, never in localStorage)
+  const [sessionApiKey, setSessionApiKeyState] = useState<string>(() => {
+    try {
+      return sessionStorage.getItem('breathewise_session_gemini_key') || '';
+    } catch {
+      return '';
+    }
+  });
+
+  const setSessionApiKey = (key: string) => {
+    setSessionApiKeyState(key);
+    try {
+      if (key) {
+        sessionStorage.setItem('breathewise_session_gemini_key', key);
+      } else {
+        sessionStorage.removeItem('breathewise_session_gemini_key');
+      }
+    } catch {}
+
+    // Regenerate plan with new key
+    setIsLoadingPlan(true);
+    fetchGeminiLivingPlan(telemetry, cleanAirWindow, userPreferences.vulnerabilityProfile, key)
+      .then((plan) => {
+        setLivingPlan(plan);
+        setIsLoadingPlan(false);
+      })
+      .catch(() => {
+        setLivingPlan(generateDeterministicLivingPlan(telemetry, cleanAirWindow, userPreferences.vulnerabilityProfile));
+        setIsLoadingPlan(false);
+      });
+  };
 
   const [telemetry, setTelemetry] = useState<EnvironmentalTelemetry>(() => {
     return FALLBACK_TELEMETRY[selectedCityId] || FALLBACK_TELEMETRY['delhi-anand-vihar'];
@@ -80,7 +114,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         data,
         window,
         userPreferences.vulnerabilityProfile,
-        userPreferences.customGeminiApiKey
+        sessionApiKey
       );
       setLivingPlan(plan);
       setIsLoadingPlan(false);
@@ -90,7 +124,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } finally {
       setIsLoadingTelemetry(false);
     }
-  }, [userPreferences.vulnerabilityProfile, userPreferences.customGeminiApiKey]);
+  }, [userPreferences.vulnerabilityProfile, sessionApiKey]);
 
   useEffect(() => {
     loadTelemetry(selectedCityId);
@@ -98,17 +132,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const selectCity = (cityId: string) => {
     setSelectedCityId(cityId);
-    localStorage.setItem('breathewise_city', cityId);
+    try {
+      localStorage.setItem('breathewise_city', cityId);
+    } catch {}
   };
 
   const updateProfile = (profile: VulnerabilityProfile) => {
     const updated = { ...userPreferences, vulnerabilityProfile: profile };
     setUserPreferences(updated);
-    localStorage.setItem('breathewise_prefs', JSON.stringify(updated));
+    try {
+      localStorage.setItem('breathewise_prefs', JSON.stringify(updated));
+    } catch {}
 
     // Update plan with new profile
     setIsLoadingPlan(true);
-    fetchGeminiLivingPlan(telemetry, cleanAirWindow, profile, updated.customGeminiApiKey)
+    fetchGeminiLivingPlan(telemetry, cleanAirWindow, profile, sessionApiKey)
       .then((plan) => {
         setLivingPlan(plan);
         setIsLoadingPlan(false);
@@ -122,7 +160,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updatePreferences = (prefs: Partial<UserPreferences>) => {
     const updated = { ...userPreferences, ...prefs };
     setUserPreferences(updated);
-    localStorage.setItem('breathewise_prefs', JSON.stringify(updated));
+    try {
+      localStorage.setItem('breathewise_prefs', JSON.stringify(updated));
+    } catch {}
   };
 
   const refreshData = async () => {
@@ -142,6 +182,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isLoadingPlan,
         activeTab,
         isTransparencyOpen,
+        sessionApiKey,
+        setSessionApiKey,
         selectCity,
         updateProfile,
         updatePreferences,

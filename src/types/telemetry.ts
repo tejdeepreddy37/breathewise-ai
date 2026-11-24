@@ -1,29 +1,31 @@
 export interface HourlyDataPoint {
   time: string; // ISO or "YYYY-MM-DDTHH:00"
-  hour: number; // 0 - 23
+  hour: number; // 0 - 23 (in city local time)
   pm25: number; // µg/m³
   pm10: number; // µg/m³
   no2: number; // µg/m³
   so2?: number; // µg/m³
-  co?: number; // µg/m³
+  co?: number; // mg/m³ normalized
   o3?: number; // µg/m³
-  aqi: number; // European or US/Indian EPA standard calculation
+  cpcbAqi: number; // Official Indian CPCB NAQI formula calculation
+  usAqi?: number; // US EPA standard calculation for reference
   temperature?: number; // °C
   windSpeed?: number; // km/h
-  boundaryLayerHeight?: number; // meters (PBL height for inversion tracking)
+  boundaryLayerHeight?: number | null; // meters (null when unobserved, never fabricated)
   isCleanAirWindow?: boolean;
 }
 
 export interface CurrentPollutants {
-  pm25: number;
-  pm10: number;
-  no2: number;
-  so2: number;
-  co: number;
-  o3: number;
-  aqi: number;
-  aqiCategory: 'Good' | 'Moderate' | 'Poor' | 'Unhealthy' | 'Severe' | 'Hazardous';
+  pm25: number; // µg/m³
+  pm10: number; // µg/m³
+  no2: number; // µg/m³
+  so2: number; // µg/m³
+  co: number; // mg/m³ (normalized from API µg/m³)
+  o3: number; // µg/m³
+  aqi: number; // Official Indian CPCB NAQI calculation
+  aqiCategory: 'Good' | 'Satisfactory' | 'Moderate' | 'Poor' | 'Very Poor' | 'Severe';
   primaryPollutant: string;
+  aqiStandard: 'Indian CPCB NAQI' | 'Indicative PM2.5-Derived';
 }
 
 export interface WeatherTelemetry {
@@ -37,12 +39,14 @@ export interface WeatherTelemetry {
 }
 
 export interface StationMetadata {
-  provider: 'Open-Meteo (Copernicus CAMS)' | 'WAQI (CPCB Ground Station)' | 'BreatheWise Offline Fallback Cache';
+  provider: 'Open-Meteo (Copernicus Atmosphere Grid)' | 'BreatheWise Simulated Regional Profile';
   stationName: string;
   latitude: number;
   longitude: number;
-  lastUpdated: string;
+  fetchTimestamp: string;
+  modelTimestamp?: string;
   isLive: boolean;
+  isSimulated: boolean;
   attribution: string;
 }
 

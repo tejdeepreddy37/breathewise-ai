@@ -1,4 +1,18 @@
-import { EnvironmentalTelemetry, HourlyDataPoint, CurrentPollutants, WeatherTelemetry } from '../types/telemetry';
+/**
+ * Open-Meteo Environmental Telemetry Service
+ * 
+ * Ingests atmospheric reanalysis and meteorological forecast data derived from
+ * the European Copernicus Atmosphere Monitoring Service (CAMS) 0.25° grid model.
+ * 
+ * Quality Principles:
+ * 1. Timezone isolation: Parses local hours directly from ISO strings to preserve Indian Standard Time.
+ * 2. Carbon Monoxide normalization: Converts API µg/m³ to standard mg/m³ (÷ 1000).
+ * 3. Verified Indian CPCB NAQI calculation via piecewise linear breakpoint interpolation.
+ * 4. Zero fabricated boundary layer heights: Preserves null when unobserved.
+ */
+
+import { EnvironmentalTelemetry, HourlyDataPoint, WeatherTelemetry } from '../types/telemetry';
+import { calculateCpcbAqi } from '../engines/cpcbAqi';
 
 export async function fetchOpenMeteoTelemetry(
   lat: number,
@@ -28,21 +42,26 @@ export async function fetchOpenMeteoTelemetry(
     const weatherData = weatherRes && weatherRes.ok ? await weatherRes.json() : null;
 
     const currentAq = aqData.current || {};
-    const pm25 = Math.round(currentAq.pm2_5 ?? 120);
-    const pm10 = Math.round(currentAq.pm10 ?? pm25 * 1.5);
-    const no2 = Math.round(currentAq.nitrogen_dioxide ?? 35);
-    const so2 = Math.round(currentAq.sulphur_dioxide ?? 10);
-    const co = +(currentAq.carbon_monoxide ?? 0.8).toFixed(2);
-    const o3 = Math.round(currentAq.ozone ?? 30);
-    const aqi = Math.round(currentAq.us_aqi ?? Math.min(500, Math.round(pm25 * 1.15)));
+    const pm25 = Math.round(currentAq.pm2_5 ?? 0);
+    const pm10 = currentAq.pm10 != null ? Math.round(currentAq.pm10) : Math.round(pm25 * 1.5);
+    const no2 = Math.round(currentAq.nitrogen_dioxide ?? 0);
+    const so2 = Math.round(currentAq.sulphur_dioxide ?? 0);
+    
+    // Normalize Carbon Monoxide from Open-Meteo µg/m³ to standard mg/m³
+    const rawCoUg = currentAq.carbon_monoxide ?? 800;
+    const coMg = +(rawCoUg / 1000).toFixed(2);
+    
+    const o3 = Math.round(currentAq.ozone ?? 0);
+    const rawUsAqi = Math.round(currentAq.us_aqi ?? 0);
 
-    let aqiCategory: CurrentPollutants['aqiCategory'] = 'Moderate';
-    if (aqi <= 50) aqiCategory = 'Good';
-    else if (aqi <= 100) aqiCategory = 'Moderate';
-    else if (aqi <= 150) aqiCategory = 'Poor';
-    else if (aqi <= 200) aqiCategory = 'Unhealthy';
-    else if (aqi <= 300) aqiCategory = 'Severe';
-    else aqiCategory = 'Hazardous';
+    // Compute official Indian CPCB NAQI based on official breakpoint tables
+    const aqiResult = calculateCpcbAqi({
+      pm25,
+      pm10,
+      no2,
+      o3,
+      co: coMg,
+    });
 
     const currentWeather = weatherData?.current || {};
     const temp = Math.round(currentWeather.temperature_2m ?? 22);
@@ -51,8 +70,8 @@ export async function fetchOpenMeteoTelemetry(
     const windDir = Math.round(currentWeather.wind_direction_10m ?? 270);
     const pressure = Math.round(currentWeather.surface_pressure ?? 1013);
 
-    // Thermal inversion is likely during winter when wind speed is low (< 8 km/h), humidity is moderate/high, and night/morning
-    const isThermalInversion = windSpeed <= 8 && temp <= 22;
+    // Thermal inversion heuristic based on cold surface temperature, high humidity, and stagnation (< 6 km/h)
+    const isThermalInversion = windSpeed <= 6 && temp <= 20 && humidity >= 65;
 
     const weather: WeatherTelemetry = {
       temperature: temp,
@@ -61,51 +80,62 @@ export async function fetchOpenMeteoTelemetry(
       windDirection: windDir,
       surfacePressure: pressure,
       weatherDescription: isThermalInversion
-        ? 'Thermal atmospheric boundary trapping surface particulates'
-        : 'Active convective airflow with steady dispersion',
+        ? 'Thermal atmospheric inversion trapping ground-level emissions'
+        : windSpeed > 12
+        ? 'Active atmospheric convective mixing with steady dispersion'
+        : 'Stable atmospheric conditions with moderate ventilation',
       isThermalInversionLikely: isThermalInversion,
     };
 
-    // Format hourly
-    const hourlyTimes = aqData.hourly?.time || [];
-    const hourlyPm25 = aqData.hourly?.pm2_5 || [];
-    const hourlyPm10 = aqData.hourly?.pm10 || [];
-    const hourlyNo2 = aqData.hourly?.nitrogen_dioxide || [];
-    const hourlyO3 = aqData.hourly?.ozone || [];
-    const hourlyAqi = aqData.hourly?.us_aqi || [];
-    const hourlyPbl = aqData.hourly?.boundary_layer_height || [];
-
-    // Find the minimum PM2.5 in daytime (11:00 - 16:00) to flag clean air windows
-    let daytimeMinPm25 = 9999;
-    for (let i = 0; i < hourlyTimes.length; i++) {
-      const h = new Date(hourlyTimes[i]).getHours();
-      if (h >= 11 && h <= 16 && hourlyPm25[i] != null) {
-        if (hourlyPm25[i] < daytimeMinPm25) daytimeMinPm25 = hourlyPm25[i];
-      }
-    }
+    // Format hourly data points with timezone-safe parsing
+    const hourlyTimes: string[] = aqData.hourly?.time || [];
+    const hourlyPm25: number[] = aqData.hourly?.pm2_5 || [];
+    const hourlyPm10: number[] = aqData.hourly?.pm10 || [];
+    const hourlyNo2: number[] = aqData.hourly?.nitrogen_dioxide || [];
+    const hourlyO3: number[] = aqData.hourly?.ozone || [];
+    const hourlyAqi: number[] = aqData.hourly?.us_aqi || [];
+    const hourlyPbl: (number | null)[] = aqData.hourly?.boundary_layer_height || [];
 
     const hourly: HourlyDataPoint[] = [];
-    for (let i = 0; i < Math.min(24, hourlyTimes.length); i++) {
-      const timeStr = hourlyTimes[i];
-      const h = new Date(timeStr).getHours();
-      const hPm25 = Math.round(hourlyPm25[i] ?? pm25);
-      const hAqi = Math.round(hourlyAqi[i] ?? Math.min(500, Math.round(hPm25 * 1.15)));
-      const pbl = Math.round(hourlyPbl[i] ?? (h >= 11 && h <= 16 ? 1200 : 300));
+    const pointsCount = Math.min(24, hourlyTimes.length);
 
-      const isClean = h >= 12 && h <= 16 && hPm25 <= daytimeMinPm25 * 1.25;
+    for (let i = 0; i < pointsCount; i++) {
+      const timeStr = hourlyTimes[i];
+      // Timezone-safe hour extraction: "2026-11-24T14:00" -> 14
+      let localHour = i;
+      if (timeStr && timeStr.includes('T')) {
+        const parts = timeStr.split('T')[1].split(':');
+        localHour = parseInt(parts[0], 10);
+      }
+
+      const hPm25 = Math.round(hourlyPm25[i] ?? pm25);
+      const hPm10 = hourlyPm10[i] != null ? Math.round(hourlyPm10[i]) : Math.round(hPm25 * 1.5);
+      const hNo2 = Math.round(hourlyNo2[i] ?? no2);
+      const hO3 = Math.round(hourlyO3[i] ?? o3);
+
+      // Verified Indian CPCB calculation for this hour
+      const hourlyAqiResult = calculateCpcbAqi({
+        pm25: hPm25,
+        pm10: hPm10,
+        no2: hNo2,
+        o3: hO3,
+      });
+
+      // Preserve null for unobserved PBL; DO NOT fabricate synthetic heights
+      const pblVal = hourlyPbl[i] != null ? Math.round(hourlyPbl[i]!) : null;
 
       hourly.push({
         time: timeStr,
-        hour: h,
+        hour: localHour,
         pm25: hPm25,
-        pm10: Math.round(hourlyPm10[i] ?? hPm25 * 1.5),
-        no2: Math.round(hourlyNo2[i] ?? no2),
-        o3: Math.round(hourlyO3[i] ?? o3),
-        aqi: hAqi,
+        pm10: hPm10,
+        no2: hNo2,
+        o3: hO3,
+        cpcbAqi: hourlyAqiResult.aqi,
+        usAqi: hourlyAqi[i] != null ? Math.round(hourlyAqi[i]) : rawUsAqi,
         temperature: temp,
         windSpeed,
-        boundaryLayerHeight: pbl,
-        isCleanAirWindow: isClean,
+        boundaryLayerHeight: pblVal,
       });
     }
 
@@ -118,22 +148,25 @@ export async function fetchOpenMeteoTelemetry(
         pm10,
         no2,
         so2,
-        co,
+        co: coMg,
         o3,
-        aqi,
-        aqiCategory,
-        primaryPollutant: 'PM2.5',
+        aqi: aqiResult.aqi,
+        aqiCategory: aqiResult.category,
+        primaryPollutant: aqiResult.primaryPollutant,
+        aqiStandard: aqiResult.standard,
       },
       weather,
       hourly,
       metadata: {
-        provider: 'Open-Meteo (Copernicus CAMS)',
-        stationName: `Copernicus CAMS 0.25° Model Grid (${cityName})`,
+        provider: 'Open-Meteo (Copernicus Atmosphere Grid)',
+        stationName: `Copernicus CAMS 0.25° Regional Grid (${cityName})`,
         latitude: lat,
         longitude: lon,
-        lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        fetchTimestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        modelTimestamp: currentAq.time ? currentAq.time.replace('T', ' ') : undefined,
         isLive: true,
-        attribution: 'Open-Meteo / Copernicus Atmosphere Monitoring Service (CC BY 4.0)',
+        isSimulated: false,
+        attribution: 'Open-Meteo / Copernicus Atmosphere Monitoring Service (ECMWF CAMS)',
       },
     };
   } catch (err) {

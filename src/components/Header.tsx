@@ -6,14 +6,13 @@ import {
   Wind, 
   RefreshCw, 
   Info, 
-  ShieldAlert, 
   Baby, 
   HeartPulse, 
   Activity, 
   UserCheck, 
   Sparkles,
-  Wifi,
-  WifiOff
+  WifiOff,
+  Clock
 } from 'lucide-react';
 
 export const Header: React.FC = () => {
@@ -34,6 +33,9 @@ export const Header: React.FC = () => {
     { id: 'outdoor_athlete', label: 'Outdoor Athlete', icon: <Activity className="w-3.5 h-3.5" /> },
     { id: 'normal_adult', label: 'General Adult', icon: <UserCheck className="w-3.5 h-3.5" /> },
   ];
+
+  const meta = telemetry.metadata;
+  const isCached = meta.fetchTimestamp.startsWith('Cached');
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-cream-300 transition-all">
@@ -60,7 +62,7 @@ export const Header: React.FC = () => {
             </div>
           </div>
 
-          {/* City Selector & Live Telemetry Indicator */}
+          {/* City Selector & Telemetry Status Indicator */}
           <div className="flex items-center space-x-2 sm:space-x-4">
             <div className="relative">
               <select
@@ -103,22 +105,27 @@ export const Header: React.FC = () => {
               </div>
             </div>
 
-            {/* Live Status Pill */}
+            {/* Data Provenance & Freshness Badge */}
             <button
               onClick={() => setIsTransparencyOpen(true)}
-              className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-cream-100 hover:bg-cream-200 text-slatecharcoal-800 border border-cream-300 transition-colors"
-              title="Click to inspect telemetry sources & math formulas"
+              className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors cursor-pointer"
+              title="Click to inspect data provenance, units & mathematical formulas"
             >
-              {telemetry.metadata.isLive ? (
-                <>
+              {meta.isLive && !isCached ? (
+                <span className="bg-emerald-50 text-emerald-800 border-emerald-200 flex items-center">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mr-1.5" />
-                  <span className="hidden sm:inline text-slate-500 mr-1">Feed:</span> Live CAMS
-                </>
+                  <span className="hidden sm:inline text-slate-500 mr-1">Source:</span> CAMS Model Grid
+                </span>
+              ) : isCached ? (
+                <span className="bg-cream-100 text-slatecharcoal-800 border-cream-300 flex items-center">
+                  <Clock className="w-3 h-3 text-slate-500 mr-1.5" />
+                  <span>{meta.fetchTimestamp}</span>
+                </span>
               ) : (
-                <>
-                  <WifiOff className="w-3 h-3 text-amber-600 mr-1.5" />
-                  <span className="text-amber-800">Calibrated Cache</span>
-                </>
+                <span className="bg-amber-50 text-amber-900 border-amber-300 flex items-center">
+                  <WifiOff className="w-3 h-3 text-amber-700 mr-1.5" />
+                  <span>Simulated Profile (Demo)</span>
+                </span>
               )}
             </button>
 

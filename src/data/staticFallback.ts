@@ -1,6 +1,19 @@
-import { EnvironmentalTelemetry, HourlyDataPoint } from '../types/telemetry';
+/**
+ * Calibrated Offline Demonstration Profiles
+ * 
+ * Used exclusively for offline demonstrations, network degradation fallbacks,
+ * and edge testing.
+ * 
+ * PROVENANCE DISCLOSURE:
+ * These profiles are simulated mathematical parameterizations of typical diurnal
+ * boundary-layer behavior observed in northern and peninsular Indian metropolitan areas.
+ * They DO NOT represent live physical sensor measurements from CPCB or state pollution control boards.
+ */
 
-export function generateDiurnalCurve(
+import { EnvironmentalTelemetry, HourlyDataPoint } from '../types/telemetry';
+import { calculateCpcbAqi } from '../engines/cpcbAqi';
+
+export function generateSimulatedDiurnalCurve(
   basePm25: number,
   peakMorningHour = 8,
   peakEveningHour = 21,
@@ -14,34 +27,34 @@ export function generateDiurnalCurve(
 
   for (let h = 0; h < 24; h++) {
     const hourStr = String(h).padStart(2, '0');
-    // Diurnal atmospheric boundary layer physics:
-    // Morning inversion trap (7-9 AM) & Evening nocturnal boundary drop (8-11 PM) cause peaks
-    // Solar convective mixing (12-16 PM) causes valley (35-55% drop)
+    
+    // Diurnal boundary layer parameterization:
+    // Morning traffic & surface cooling create relative peaks
+    // Solar convective mixing creates daytime dispersion valley
     let factor = 1.0;
     if (h >= 6 && h <= 10) {
-      factor = 1.35 - Math.abs(h - peakMorningHour) * 0.12;
+      factor = 1.35 - Math.abs(h - peakMorningHour) * 0.10;
     } else if (h >= 12 && h <= 16) {
-      factor = 0.52 + Math.abs(h - valleyAfternoonHour) * 0.08;
+      factor = 0.58 + Math.abs(h - valleyAfternoonHour) * 0.08;
     } else if (h >= 19 && h <= 23) {
-      factor = 1.42 - Math.abs(h - peakEveningHour) * 0.09;
+      factor = 1.40 - Math.abs(h - peakEveningHour) * 0.08;
     } else {
       factor = 0.95;
     }
 
     const pm25Val = Math.round(basePm25 * factor);
-    const pm10Val = Math.round(pm25Val * 1.65);
+    const pm10Val = Math.round(pm25Val * 1.55);
     const no2Val = Math.round(35 * factor);
-    const aqiVal = Math.min(500, Math.round(pm25Val * 1.15));
+    // Photochemical ozone rises in afternoon hours
+    const o3Val = Math.round(h >= 12 && h <= 16 ? 65 : 24);
 
-    // Boundary layer height (meters)
-    let pbl = 350;
-    if (h >= 11 && h <= 16) {
-      pbl = 1450 - Math.abs(h - 14) * 150;
-    } else if (h >= 17 && h <= 20) {
-      pbl = 650;
-    } else {
-      pbl = 220; // strong nocturnal surface inversion
-    }
+    const aqiResult = calculateCpcbAqi({
+      pm25: pm25Val,
+      pm10: pm10Val,
+      no2: no2Val,
+      o3: o3Val,
+      co: 1.2,
+    });
 
     points.push({
       time: `${year}-${month}-${day}T${hourStr}:00`,
@@ -50,13 +63,13 @@ export function generateDiurnalCurve(
       pm10: pm10Val,
       no2: no2Val,
       so2: Math.round(12 * factor),
-      co: +(0.8 * factor).toFixed(2),
-      o3: Math.round(h >= 12 && h <= 16 ? 65 : 22),
-      aqi: aqiVal,
-      temperature: Math.round(16 + (h >= 10 && h <= 16 ? (h - 10) * 1.8 : -1)),
-      windSpeed: Math.round(h >= 12 && h <= 16 ? 12 : 5),
-      boundaryLayerHeight: pbl,
-      isCleanAirWindow: h >= 13 && h <= 16,
+      co: +(1.2 * factor).toFixed(2), // mg/m³
+      o3: o3Val,
+      cpcbAqi: aqiResult.aqi,
+      usAqi: Math.min(500, Math.round(pm25Val * 1.2)),
+      temperature: Math.round(17 + (h >= 10 && h <= 16 ? (h - 10) * 1.6 : -1)),
+      windSpeed: Math.round(h >= 12 && h <= 16 ? 11 : 6),
+      boundaryLayerHeight: null, // Transparently unobserved in fallback
     });
   }
 
@@ -66,53 +79,57 @@ export function generateDiurnalCurve(
 export const FALLBACK_TELEMETRY: Record<string, EnvironmentalTelemetry> = {
   'delhi-anand-vihar': {
     city: 'Delhi',
-    state: 'Delhi NCR (Anand Vihar Monitor)',
+    state: 'Delhi NCR (Simulated Representative Profile)',
     country: 'India',
     current: {
-      pm25: 284,
-      pm10: 412,
+      pm25: 265,
+      pm10: 410,
       no2: 68,
       so2: 18,
-      co: 2.4,
-      o3: 32,
-      aqi: 348,
-      aqiCategory: 'Hazardous',
+      co: 2.1, // mg/m³
+      o3: 38,
+      aqi: 405,
+      aqiCategory: 'Severe',
       primaryPollutant: 'PM2.5',
+      aqiStandard: 'Indian CPCB NAQI',
     },
     weather: {
       temperature: 19,
       humidity: 68,
       windSpeed: 6,
-      windDirection: 315, // NW cold winter winds
+      windDirection: 315,
       surfacePressure: 1016,
-      weatherDescription: 'Dense winter haze with thermal boundary inversion',
+      weatherDescription: 'Representative winter smog profile with strong surface inversion',
       isThermalInversionLikely: true,
     },
-    hourly: generateDiurnalCurve(284, 8, 21, 14),
+    hourly: generateSimulatedDiurnalCurve(265, 8, 21, 14),
     metadata: {
-      provider: 'BreatheWise Offline Fallback Cache',
-      stationName: 'CPCB Anand Vihar Reference Sensor #04',
+      provider: 'BreatheWise Simulated Regional Profile',
+      stationName: 'Delhi Metropolitan Representative Smog Profile (Simulated)',
       latitude: 28.6469,
       longitude: 77.316,
-      lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      fetchTimestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      modelTimestamp: 'Offline Reference Model',
       isLive: false,
-      attribution: 'CPCB India / Copernicus CAMS Regional Model Baseline',
+      isSimulated: true,
+      attribution: 'Simulated profile for offline demonstration based on typical seasonal diurnal curves.',
     },
   },
   'bengaluru-indiranagar': {
     city: 'Bengaluru',
-    state: 'Karnataka (Indiranagar / BTM)',
+    state: 'Karnataka (Simulated Representative Profile)',
     country: 'India',
     current: {
-      pm25: 64,
-      pm10: 98,
-      no2: 36,
+      pm25: 58,
+      pm10: 92,
+      no2: 34,
       so2: 8,
-      co: 0.9,
+      co: 0.9, // mg/m³
       o3: 45,
-      aqi: 92,
-      aqiCategory: 'Moderate',
+      aqi: 97,
+      aqiCategory: 'Satisfactory',
       primaryPollutant: 'PM2.5',
+      aqiStandard: 'Indian CPCB NAQI',
     },
     weather: {
       temperature: 24,
@@ -120,53 +137,58 @@ export const FALLBACK_TELEMETRY: Record<string, EnvironmentalTelemetry> = {
       windSpeed: 14,
       windDirection: 90,
       surfacePressure: 1012,
-      weatherDescription: 'Pleasant with moderate traffic corridor particulate drift',
+      weatherDescription: 'Moderate plateau ventilation with steady convective dispersion',
       isThermalInversionLikely: false,
     },
-    hourly: generateDiurnalCurve(64, 9, 19, 14),
+    hourly: generateSimulatedDiurnalCurve(58, 9, 19, 14),
     metadata: {
-      provider: 'BreatheWise Offline Fallback Cache',
-      stationName: 'KSPCB BTM Layout Ground Station',
+      provider: 'BreatheWise Simulated Regional Profile',
+      stationName: 'Bengaluru Plateau Representative Profile (Simulated)',
       latitude: 12.9784,
       longitude: 77.6408,
-      lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      fetchTimestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      modelTimestamp: 'Offline Reference Model',
       isLive: false,
-      attribution: 'KSPCB / Open-Meteo Atmospheric Grid',
+      isSimulated: true,
+      attribution: 'Simulated profile for offline demonstration based on typical seasonal diurnal curves.',
     },
   },
   'mumbai-bkc': {
     city: 'Mumbai',
-    state: 'Maharashtra (Bandra Kurla Complex)',
+    state: 'Maharashtra (Simulated Representative Profile)',
     country: 'India',
     current: {
-      pm25: 142,
-      pm10: 215,
+      pm25: 135,
+      pm10: 210,
       no2: 52,
       so2: 14,
-      co: 1.4,
+      co: 1.4, // mg/m³
       o3: 48,
-      aqi: 172,
-      aqiCategory: 'Unhealthy',
+      aqi: 312,
+      aqiCategory: 'Very Poor',
       primaryPollutant: 'PM2.5',
+      aqiStandard: 'Indian CPCB NAQI',
     },
     weather: {
       temperature: 28,
       humidity: 74,
       windSpeed: 11,
-      windDirection: 240, // Coastal sea-breeze
+      windDirection: 240,
       surfacePressure: 1011,
-      weatherDescription: 'Humid coastal haze with evening sea-breeze dispersion',
+      weatherDescription: 'Coastal humidity with evening onshore sea-breeze dispersion',
       isThermalInversionLikely: false,
     },
-    hourly: generateDiurnalCurve(142, 8, 20, 15),
+    hourly: generateSimulatedDiurnalCurve(135, 8, 20, 15),
     metadata: {
-      provider: 'BreatheWise Offline Fallback Cache',
-      stationName: 'MPCB Bandra Kurla Complex Station',
+      provider: 'BreatheWise Simulated Regional Profile',
+      stationName: 'Mumbai Coastal Representative Profile (Simulated)',
       latitude: 19.0657,
-      longitude: 77.8687,
-      lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      longitude: 72.8687,
+      fetchTimestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      modelTimestamp: 'Offline Reference Model',
       isLive: false,
-      attribution: 'MPCB / Copernicus Atmosphere Service',
+      isSimulated: true,
+      attribution: 'Simulated profile for offline demonstration based on typical seasonal diurnal curves.',
     },
   },
 };

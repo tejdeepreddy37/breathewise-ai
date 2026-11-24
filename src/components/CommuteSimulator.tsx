@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { calculateCommuteTradeoffs } from '../engines/commuteSwap';
 import { CommuteMode } from '../types/engines';
-import { Navigation, Bike, Car, Train, Home, Shield, Leaf, Clock, ArrowRight } from 'lucide-react';
+import { Navigation, Bike, Car, Train, Home, Shield, Leaf, Info } from 'lucide-react';
 
 export const CommuteSimulator: React.FC = () => {
   const { telemetry, userPreferences } = useApp();
@@ -37,7 +37,7 @@ export const CommuteSimulator: React.FC = () => {
             </h2>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Compare inhaled micro-particulate lung burden vs. personal carbon footprint across urban transit choices
+            Compare inhaled particulate lung burden ($M_inh$) vs. personal tailpipe carbon emissions across realistic urban transit modes
           </p>
         </div>
 
@@ -104,7 +104,7 @@ export const CommuteSimulator: React.FC = () => {
                 {/* Metrics */}
                 <div className="space-y-1.5 pt-1 text-xs">
                   <div className="flex justify-between items-baseline">
-                    <span className="text-slate-500">Inhaled PM2.5 Dose:</span>
+                    <span className="text-slate-500">Trip Inhaled PM2.5:</span>
                     <span className={`font-bold text-sm ${isDanger ? 'text-rose-700' : 'text-slatecharcoal-900'}`}>
                       {c.inhaledDoseUg} µg
                     </span>
@@ -126,13 +126,17 @@ export const CommuteSimulator: React.FC = () => {
                       <span>~{c.travelTimeMinutes} mins</span>
                     </div>
                   )}
+
+                  <div className="text-[10px] text-slate-500 pt-1 italic border-t border-cream-200/60 line-clamp-2" title={c.assumptions}>
+                    {c.assumptions}
+                  </div>
                 </div>
               </div>
 
               {/* Exposure Reduction Tag */}
               <div className="mt-3 pt-2.5 border-t border-cream-200/80 flex items-center justify-between text-xs">
-                <span className="text-[11px] text-slate-500">Protection vs Open Road:</span>
-                <span className="font-bold text-forest-600">
+                <span className="text-[11px] text-slate-500">Trip Savings vs Open Bike:</span>
+                <span className="font-bold text-forest-700">
                   {c.exposureReductionVsOpenTransitPercent > 0 ? `-${c.exposureReductionVsOpenTransitPercent}%` : 'Baseline (0%)'}
                 </span>
               </div>
@@ -145,15 +149,15 @@ export const CommuteSimulator: React.FC = () => {
       <div className="bg-cream-100 p-3.5 rounded-xl border border-cream-200 flex items-start space-x-2 text-xs text-slate-700">
         <Leaf className="w-4 h-4 text-forest-600 shrink-0 mt-0.5" />
         <p>
-          <span className="font-semibold text-slatecharcoal-900">Commute Insight:</span> In dense Indian traffic corridors (e.g. Outer Ring Road, Delhi Ring Road), road-level tailpipe exhaust increases particulate density by 30% over ambient rooftop monitors. Shifting to an AC Metro commute for {distanceKm} km saves an estimated{' '}
+          <span className="font-semibold text-slatecharcoal-900">Transit Methodological Notice:</span> In dense Indian arterial traffic, road-level diesel exhaust concentrates particles ~30% above rooftop monitors. Metro transit calculations include a realistic 10-minute outdoor station connection at road-level exposure. Shifting a {distanceKm} km commute from motorcycle to AC Metro avoids an estimated{' '}
           <strong className="text-forest-700 font-bold">
             {Math.round(comparisons[0].inhaledDoseUg - comparisons[4].inhaledDoseUg)} µg
           </strong>{' '}
-          of micro-particulates and prevents{' '}
+          of fine particulate intake while preventing{' '}
           <strong className="text-forest-700 font-bold">
             {(comparisons[0].carbonEmissionKg - comparisons[4].carbonEmissionKg).toFixed(1)} kg
           </strong>{' '}
-          of tailpipe CO2.
+          of vehicular CO2.
         </p>
       </div>
     </div>

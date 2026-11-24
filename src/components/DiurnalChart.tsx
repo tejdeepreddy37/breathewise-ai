@@ -10,7 +10,7 @@ import {
   ReferenceArea,
   ReferenceLine,
 } from 'recharts';
-import { Sun, AlertTriangle, Layers, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 export const DiurnalChart: React.FC = () => {
   const { telemetry, cleanAirWindow } = useApp();
@@ -25,12 +25,12 @@ export const DiurnalChart: React.FC = () => {
       const isWindow = pt.hour >= cleanAirWindow.startHour && pt.hour <= cleanAirWindow.endHour;
 
       return (
-        <div className="bg-slatecharcoal-900 text-white p-3 rounded-xl shadow-lg text-xs space-y-1.5 border border-slate-700 max-w-[200px]">
+        <div className="bg-slatecharcoal-900 text-white p-3 rounded-xl shadow-lg text-xs space-y-1.5 border border-slate-700 max-w-[210px]">
           <div className="font-semibold text-slate-300 flex items-center justify-between">
             <span>{hourFormatted}</span>
             {isWindow && (
               <span className="text-[10px] bg-forest-500 text-white px-1.5 py-0.5 rounded font-bold">
-                CLEAN WINDOW
+                LOWER EXPOSURE
               </span>
             )}
           </div>
@@ -39,19 +39,31 @@ export const DiurnalChart: React.FC = () => {
             <span className="font-bold text-emerald-400">{pt.pm25} µg/m³</span>
           </div>
           <div className="flex justify-between items-center text-[11px]">
-            <span className="text-slate-400">Est. AQI:</span>
-            <span className="font-medium text-slate-200">{pt.aqi}</span>
+            <span className="text-slate-400">CPCB NAQI:</span>
+            <span className="font-medium text-slate-200">{pt.cpcbAqi}</span>
           </div>
-          <div className="flex justify-between items-center text-[11px]">
-            <span className="text-slate-400">Mixing Height:</span>
-            <span className="font-medium text-amber-300">{pt.boundaryLayerHeight} m</span>
-          </div>
+          {pt.o3 != null && (
+            <div className="flex justify-between items-center text-[11px]">
+              <span className="text-slate-400">Ozone (O3):</span>
+              <span className="font-medium text-amber-300">{pt.o3} µg/m³</span>
+            </div>
+          )}
+          {pt.boundaryLayerHeight != null ? (
+            <div className="flex justify-between items-center text-[11px]">
+              <span className="text-slate-400">Mixing Height:</span>
+              <span className="font-medium text-amber-300">{pt.boundaryLayerHeight} m</span>
+            </div>
+          ) : (
+            <div className="text-[10px] text-slate-500 pt-0.5">
+              PBL: Unobserved in CAMS grid
+            </div>
+          )}
           <div className="text-[10px] text-slate-400 pt-1 italic">
             {isWindow
-              ? 'Deep solar mixing. Optimal for errands and room ventilation.'
+              ? 'Convective solar mixing window.'
               : pt.hour < 11
-              ? 'Morning inversion layer trapping diesel exhaust.'
-              : 'Nocturnal cooling causes particulate accumulation.'}
+              ? 'Morning inversion layer trapping surface exhaust.'
+              : 'Evening traffic accumulation and nocturnal cooling.'}
           </div>
         </div>
       );
@@ -70,7 +82,7 @@ export const DiurnalChart: React.FC = () => {
             </h2>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Diurnal atmospheric boundary layer curve showing solar convective dispersion vs. morning/night smog traps
+            Hourly particulate concentration curve showing convective afternoon mixing vs. morning and night smog traps
           </p>
         </div>
 
@@ -78,7 +90,7 @@ export const DiurnalChart: React.FC = () => {
         <div className="flex items-center space-x-3 text-xs">
           <div className="flex items-center space-x-1.5">
             <span className="w-3 h-3 rounded-sm bg-forest-100 border border-forest-500" />
-            <span className="text-slate-600">Clean Window</span>
+            <span className="text-slate-600">Lower Exposure Window</span>
           </div>
           <div className="flex items-center space-x-1.5">
             <span className="w-2.5 h-0.5 bg-amber-600" />
@@ -150,9 +162,9 @@ export const DiurnalChart: React.FC = () => {
 
       {/* Explanatory Footnote */}
       <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-cream-200">
-        <span>Morning Peak: 07:00 – 09:30 (Traffic + Nocturnal Boundary Layer Trap)</span>
-        <span className="text-forest-700 font-medium">Optimal Window: {cleanAirWindow.displayWindow} (Active Solar Mixing)</span>
-        <span>Evening Inversion: 20:00 – Midnight (Diesel Heavy Transit)</span>
+        <span>Morning Rush Inversion: 07:00 – 10:00 (Vehicle exhaust + nocturnal surface boundary)</span>
+        <span className="text-forest-700 font-medium">Optimal Window: {cleanAirWindow.displayWindow}</span>
+        <span>Evening Traffic Inversion: 20:00 – Midnight</span>
       </div>
     </div>
   );

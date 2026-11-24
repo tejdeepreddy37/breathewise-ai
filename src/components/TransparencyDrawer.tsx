@@ -1,11 +1,13 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { ShieldCheck, Database, FileText, ExternalLink, X, Atom } from 'lucide-react';
+import { ShieldCheck, Database, FileText, X, Atom } from 'lucide-react';
 
 export const TransparencyDrawer: React.FC = () => {
   const { telemetry, isTransparencyOpen, setIsTransparencyOpen } = useApp();
 
   if (!isTransparencyOpen) return null;
+
+  const meta = telemetry.metadata;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slatecharcoal-900/60 backdrop-blur-xs transition-opacity animate-in fade-in">
@@ -19,10 +21,10 @@ export const TransparencyDrawer: React.FC = () => {
             </div>
             <div>
               <h3 className="text-sm font-bold text-slatecharcoal-900">
-                Scientific Methodology & Telemetry Transparency
+                Scientific Methodology & Telemetry Provenance
               </h3>
               <p className="text-[11px] text-slate-500">
-                Zero black-box metrics. Deterministic physical formulas and authoritative data sources.
+                Verified mathematical engines, transparent data sources, and strict health safety boundaries
               </p>
             </div>
           </div>
@@ -37,93 +39,104 @@ export const TransparencyDrawer: React.FC = () => {
         {/* Content Body */}
         <div className="p-5 overflow-y-auto space-y-4 text-xs text-slate-700 leading-relaxed">
           
-          {/* Active Data Source Telemetry */}
+          {/* Active Data Provenance Telemetry */}
           <div className="p-3.5 rounded-xl bg-cream-50 border border-cream-200 space-y-2">
             <div className="font-bold text-slatecharcoal-900 flex items-center space-x-1.5 text-xs">
               <Database className="w-3.5 h-3.5 text-forest-600" />
-              <span>Active Telemetry Provider & Station Grid</span>
+              <span>Active Environmental Telemetry Provenance</span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-[11px]">
               <div>
-                <span className="text-slate-500">Provider:</span>{' '}
-                <strong className="text-slatecharcoal-900">{telemetry.metadata.provider}</strong>
+                <span className="text-slate-500">Data Source:</span>{' '}
+                <strong className="text-slatecharcoal-900">{meta.provider}</strong>
               </div>
               <div>
-                <span className="text-slate-500">Station / Grid:</span>{' '}
-                <span className="text-slatecharcoal-900 font-medium">{telemetry.metadata.stationName}</span>
+                <span className="text-slate-500">Grid / Profile:</span>{' '}
+                <span className="text-slatecharcoal-900 font-medium">{meta.stationName}</span>
               </div>
               <div>
                 <span className="text-slate-500">Coordinates:</span>{' '}
                 <span className="text-slatecharcoal-900 font-mono">
-                  {telemetry.metadata.latitude.toFixed(4)}°N, {telemetry.metadata.longitude.toFixed(4)}°E
+                  {meta.latitude.toFixed(4)}°N, {meta.longitude.toFixed(4)}°E
                 </span>
               </div>
               <div>
-                <span className="text-slate-500">Last Observation:</span>{' '}
-                <span className="text-slatecharcoal-900">{telemetry.metadata.lastUpdated}</span>
+                <span className="text-slate-500">Fetch Status:</span>{' '}
+                <span className="text-slatecharcoal-900 font-medium">{meta.fetchTimestamp}</span>
               </div>
+              {meta.modelTimestamp && (
+                <div className="col-span-2">
+                  <span className="text-slate-500">Model Timestamp:</span>{' '}
+                  <span className="text-slatecharcoal-900 font-mono">{meta.modelTimestamp}</span>
+                </div>
+              )}
             </div>
             <div className="text-[10px] text-slate-500 pt-1 border-t border-cream-200">
-              Attribution: {telemetry.metadata.attribution}
+              {meta.isSimulated
+                ? 'NOTICE: Currently displaying an offline illustrative diurnal profile for demonstration purposes. Values do not represent live physical sensor observations.'
+                : 'Regional atmospheric model data derived from Open-Meteo & European Copernicus Atmosphere Monitoring Service (CAMS). Atmospheric reanalysis covers a 0.25° grid.'}
             </div>
           </div>
 
-          {/* Mathematical Formulations */}
+          {/* Core Mathematical Formulations */}
           <div className="space-y-2">
             <h4 className="font-bold text-slatecharcoal-900 text-xs flex items-center space-x-1.5">
               <FileText className="w-3.5 h-3.5 text-forest-600" />
-              <span>Core Mathematical Engines</span>
+              <span>Documented Mathematical Formulations</span>
             </h4>
 
             <div className="space-y-2">
-              <div className="p-3 rounded-lg border border-cream-200 bg-white">
+              <div className="p-3 rounded-lg border border-cream-200 bg-white space-y-1">
                 <div className="font-semibold text-slatecharcoal-900 text-[11px]">
-                  1. Inhaled Particulate Dose Engine ($D_inh$)
+                  1. Estimated Inhaled Particulate Mass Engine ($M_inh$)
                 </div>
                 <div className="font-mono text-forest-700 text-[11px] my-1 bg-forest-50/60 p-1.5 rounded">
-                  D_inh = C_ambient × VE × t × (1 - η_mask)
+                  M_inh = C_ambient (µg/m³) × VE (m³/h) × t (hours) × (1 - η_mask)
                 </div>
                 <p className="text-[11px] text-slate-600">
-                  Where C_ambient is PM2.5 (µg/m³), VE is minute ventilation rate (0.48 m³/h resting to 3.3 m³/h running), t is duration in hours, and η_mask is certified filtration (95% for N95, 60% surgical).
+                  Estimates gross inhaled mass passing the upper airway. Minute ventilation rates ($V_E$) are adapted from the US EPA Exposure Factors Handbook (Chapter 6): Resting (0.36 m³/h), Desk Work (0.48 m³/h), Light Walking (0.96 m³/h), Cycling (2.10 m³/h), Outdoor Running (3.30 m³/h), and Heavy Cardio (3.90 m³/h). Nominal mask material filtration efficiencies ($\eta$): Cloth (25%), Surgical (60%), N95 (95%), N99 (99%).
                 </p>
               </div>
 
-              <div className="p-3 rounded-lg border border-cream-200 bg-white">
+              <div className="p-3 rounded-lg border border-cream-200 bg-white space-y-1">
                 <div className="font-semibold text-slatecharcoal-900 text-[11px]">
-                  2. Diurnal Clean-Air Window (WindowSafe™)
+                  2. Official Indian CPCB NAQI Piecewise Linear Interpolation
                 </div>
-                <p className="text-[11px] text-slate-600 mt-1">
-                  Evaluates 24-hour planetary boundary layer (PBL) height. In northern and central India, morning and late-night thermal inversions trap surface diesel and biomass smoke below 300m. Solar convective heating expands the mixing layer to &gt;1,200m between 13:00 and 16:00, creating a natural 40–60% particulate dispersion valley.
+                <div className="font-mono text-forest-700 text-[11px] my-1 bg-forest-50/60 p-1.5 rounded">
+                  I_p = [ (I_high - I_low) / (C_high - C_low) ] × (C_p - C_low) + I_low
+                </div>
+                <p className="text-[11px] text-slate-600">
+                  Calculates official sub-indices according to the Central Pollution Control Board (CPCB) NAQI breakpoint schedules for PM2.5, PM10, NO2, O3, and normalized CO (mg/m³). The governing AQI represents the maximum sub-index across available pollutants.
                 </p>
               </div>
 
-              <div className="p-3 rounded-lg border border-cream-200 bg-white">
+              <div className="p-3 rounded-lg border border-cream-200 bg-white space-y-1">
                 <div className="font-semibold text-slatecharcoal-900 text-[11px]">
-                  3. Indoor Building Envelope Infiltration
+                  3. Conservative Indoor Ventilation Safety Ceilings
                 </div>
-                <p className="text-[11px] text-slate-600 mt-1">
-                  Models indoor concentrations using single-zone mass-balance: Indoor Baseline = Outdoor × α (where α ≈ 0.45 for typical closed concrete apartment construction). Purifier runtime estimates use Clean Air Delivery Rate (CADR in m³/h) against room air changes per hour (ACH).
+                <p className="text-[11px] text-slate-600">
+                  Natural window ventilation is evaluated with conservative public health safeguards: Continuous cross-ventilation is permitted only when outdoor PM2.5 is &le; 30 µg/m³. A brief 15 to 20-min flush is permitted between 31 and 60 µg/m³ during diurnal dispersion valleys. <strong>Natural ventilation is strictly blocked whenever outdoor PM2.5 &gt; 60 µg/m³ or Ozone &gt; 100 µg/m³</strong>, regardless of time-of-day.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Scientific Citations */}
+          {/* Authoritative Scientific Sources */}
           <div className="p-3 rounded-lg bg-cream-100 text-[11px] text-slate-600 space-y-1">
-            <div className="font-bold text-slatecharcoal-900">Authoritative Sources & Standards:</div>
+            <div className="font-bold text-slatecharcoal-900">Authoritative References & Standards:</div>
             <ul className="list-disc pl-4 space-y-0.5">
-              <li>Central Pollution Control Board (CPCB) National Air Quality Index (NAQI) Breakpoint Standards</li>
-              <li>World Health Organization (WHO) Global Air Quality Guidelines (2021 Update)</li>
-              <li>US EPA Exposure Factors Handbook (Ventilation rates for children, adults, and athletes)</li>
-              <li>Berkeley Earth Air Pollution & Cigarette Equivalence Mathematical Model</li>
+              <li>Central Pollution Control Board (CPCB), Ministry of Environment, Forest and Climate Change: National Air Quality Index (NAQI) Technical Report</li>
+              <li>World Health Organization (WHO): Global Air Quality Guidelines (2021 Update: PM2.5 24h limit of 15 µg/m³, O3 8h limit of 100 µg/m³)</li>
+              <li>US Environmental Protection Agency (EPA): Exposure Factors Handbook (Chapter 6: Inhalation Rates)</li>
+              <li>India GHG Protocol & Central Electricity Authority (CEA): Baseline Carbon Emission Factors for Indian Transport & Grid Electricity</li>
             </ul>
           </div>
 
           {/* Health Disclaimer */}
           <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-900 space-y-1">
-            <strong className="font-bold">Responsible Health Guidance Disclaimer:</strong>
+            <strong className="font-bold">Responsible Environmental Guidance Disclaimer:</strong>
             <p>
-              BreatheWise AI is an environmental lifestyle assistant and exposure reduction planner. It does not provide clinical medical diagnosis, disease prognosis, or pharmaceutical prescriptions. Individuals with severe asthma, COPD, or cardiovascular conditions should consult their licensed pulmonologist or physician.
+              BreatheWise AI is an environmental lifestyle intelligence tool and exposure reduction planner. It does not provide clinical medical diagnosis, disease prognosis, or pharmaceutical prescriptions. Individuals with chronic respiratory or cardiovascular conditions should consult their licensed physician.
             </p>
           </div>
 
@@ -133,9 +146,9 @@ export const TransparencyDrawer: React.FC = () => {
         <div className="p-4 border-t border-cream-200 bg-cream-50 flex justify-end">
           <button
             onClick={() => setIsTransparencyOpen(false)}
-            className="px-4 py-2 bg-slatecharcoal-900 text-white rounded-xl text-xs font-semibold hover:bg-slatecharcoal-800 transition-colors shadow-xs"
+            className="px-4 py-2 bg-slatecharcoal-900 text-white rounded-xl text-xs font-semibold hover:bg-slatecharcoal-800 transition-colors shadow-xs cursor-pointer"
           >
-            Close Transparency Inspector
+            Close Methodology Drawer
           </button>
         </div>
 

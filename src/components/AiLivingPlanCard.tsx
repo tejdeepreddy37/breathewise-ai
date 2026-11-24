@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Sparkles, Calendar, CheckCircle2, AlertOctagon, ShieldAlert, Leaf, Check } from 'lucide-react';
+import { Sparkles, Check, Leaf } from 'lucide-react';
 
 export const AiLivingPlanCard: React.FC = () => {
   const { livingPlan, isLoadingPlan, userPreferences } = useApp();
@@ -24,13 +24,13 @@ export const AiLivingPlanCard: React.FC = () => {
   const getRiskBadge = (risk: string) => {
     switch (risk) {
       case 'SAFE':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-forest-50 text-forest-700 border border-forest-200">OPTIMAL</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-forest-50 text-forest-700 border border-forest-200">LOWER EXPOSURE</span>;
       case 'MODERATE':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">CAUTION</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">MODERATE RISK</span>;
       case 'HIGH':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-50 text-orange-800 border border-orange-200">HIGH EXPOSURE</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-50 text-orange-800 border border-orange-200">ELEVATED EXPOSURE</span>;
       case 'CRITICAL':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-200">HAZARDOUS</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-200">SEVERE / HAZARDOUS</span>;
       default:
         return null;
     }
@@ -85,7 +85,7 @@ export const AiLivingPlanCard: React.FC = () => {
             </p>
 
             <div className="mt-1.5 text-[11px] text-slate-600 flex items-start space-x-1">
-              <span className="font-semibold text-forest-600 shrink-0">Alternative:</span>
+              <span className="font-semibold text-forest-700 shrink-0">Alternative:</span>
               <span>{slot.alternativeSuggestion}</span>
             </div>
           </div>
@@ -105,7 +105,7 @@ export const AiLivingPlanCard: React.FC = () => {
         </div>
 
         <div className="bg-forest-50/60 p-3.5 rounded-xl border border-forest-100 text-xs space-y-1">
-          <div className="font-semibold text-forest-700 flex items-center space-x-1.5">
+          <div className="font-semibold text-forest-800 flex items-center space-x-1.5">
             <Leaf className="w-3.5 h-3.5 text-forest-600" />
             <span>Civic Eco-Swap of the Day</span>
           </div>

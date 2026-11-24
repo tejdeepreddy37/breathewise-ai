@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { calculateInhaledDose, MINUTE_VENTILATION_LPM, MASK_EFFICIENCIES } from '../engines/inhaledDose';
+import { calculateInhaledDose, MASK_EFFICIENCIES } from '../engines/inhaledDose';
 import { ActivityType } from '../types/engines';
-import { Sliders, Shield, Activity, Clock, Flame, ArrowRight, Sparkles } from 'lucide-react';
+import { Sliders, Shield, Activity, Clock, CheckCircle2, Info } from 'lucide-react';
 
 export const WhatIfSimulator: React.FC = () => {
   const { telemetry, cleanAirWindow } = useApp();
@@ -18,7 +18,10 @@ export const WhatIfSimulator: React.FC = () => {
   const currentResult = calculateInhaledDose(activePm25, durationMinutes, activity, maskType);
   const baselineUnprotected = calculateInhaledDose(telemetry.current.pm25, durationMinutes, activity, 'none');
 
-  const doseSavedVsWorstCase = +(baselineUnprotected.inhaledDoseUg - currentResult.inhaledDoseUg).toFixed(1);
+  const massSavedVsWorstCase = +(baselineUnprotected.estimatedInhaledMassUg - currentResult.estimatedInhaledMassUg).toFixed(1);
+  const percentSaved = baselineUnprotected.estimatedInhaledMassUg > 0
+    ? Math.round((massSavedVsWorstCase / baselineUnprotected.estimatedInhaledMassUg) * 100)
+    : 0;
 
   const activities: Array<{ id: ActivityType; label: string; lpm: number }> = [
     { id: 'light_walking', label: 'Light Walking (16 L/min)', lpm: 16 },
@@ -38,12 +41,12 @@ export const WhatIfSimulator: React.FC = () => {
             </h2>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Test how shifting activity timing, duration, and barrier filtration alters deep alveolar particulate deposition ($D_inh$)
+            Evaluate how activity intensity, duration, barrier filtration, and time-shifting alter gross inhaled particulate mass ($M_inh$)
           </p>
         </div>
 
         <span className="text-[11px] text-slate-600 bg-cream-100 px-2.5 py-1 rounded-full border border-cream-300 self-start sm:self-auto font-mono">
-          Formula: D = C × VE × t × (1 - η)
+          Formula: M_inh = C × VE × t × (1 - η)
         </span>
       </div>
 
@@ -101,10 +104,10 @@ export const WhatIfSimulator: React.FC = () => {
             className="w-full text-xs font-medium bg-white border border-cream-300 rounded-lg p-2 focus:ring-2 focus:ring-forest-500/20 cursor-pointer"
           >
             <option value="none">No Mask (0% filtration)</option>
-            <option value="cloth">Cloth Mask (~25% filtration)</option>
-            <option value="surgical">Surgical Mask (~60% filtration)</option>
-            <option value="n95">Certified N95 Mask (95% filtration)</option>
-            <option value="n99">Certified N99 Mask (99% filtration)</option>
+            <option value="cloth">Cloth Mask (~25% nominal)</option>
+            <option value="surgical">Surgical Mask (~60% nominal)</option>
+            <option value="n95">Certified N95 Mask (95% certified)</option>
+            <option value="n99">Certified N99 Mask (99% certified)</option>
           </select>
         </div>
 
@@ -132,7 +135,7 @@ export const WhatIfSimulator: React.FC = () => {
                   : 'bg-white text-slate-700 hover:bg-cream-100'
               }`}
             >
-              Clean Window
+              Diurnal Minimum
             </button>
           </div>
           <div className="text-[10px] text-slate-500 mt-1 text-center">
@@ -145,61 +148,67 @@ export const WhatIfSimulator: React.FC = () => {
       {/* Primary Simulator Computed Results */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         
-        {/* Inhaled Dose */}
+        {/* Estimated Inhaled Mass */}
         <div className="p-4 rounded-xl bg-white border border-cream-300 shadow-xs space-y-1">
           <div className="text-[11px] font-semibold uppercase text-slate-500">
-            Calculated Inhaled Dose
+            Estimated Inhaled PM2.5 Mass
           </div>
           <div className="flex items-baseline space-x-1.5 pt-1">
             <span className={`text-3xl font-extrabold ${currentResult.riskLevel === 'CRITICAL' ? 'text-rose-700' : currentResult.riskLevel === 'ELEVATED' ? 'text-amber-700' : 'text-forest-700'}`}>
-              {currentResult.inhaledDoseUg}
+              {currentResult.estimatedInhaledMassUg}
             </span>
             <span className="text-xs text-slate-500 font-medium">µg PM2.5</span>
           </div>
           <div className="text-xs font-medium text-slate-600">
-            Air volume inhaled: {currentResult.inhaledAirVolumeM3} m³
+            Air volume respired: {currentResult.inhaledAirVolumeM3} m³ ({currentResult.minuteVentilationRateLpm} L/min)
           </div>
         </div>
 
-        {/* Dose Saved */}
+        {/* Mass Avoided */}
         <div className="p-4 rounded-xl bg-forest-50/70 border border-forest-200 shadow-xs space-y-1">
           <div className="text-[11px] font-semibold uppercase text-forest-700">
-            Dose Avoided (Savings)
+            Particulate Mass Avoided
           </div>
           <div className="flex items-baseline space-x-1.5 pt-1">
             <span className="text-3xl font-extrabold text-forest-700">
-              +{Math.max(0, doseSavedVsWorstCase)}
+              +{Math.max(0, massSavedVsWorstCase)}
             </span>
-            <span className="text-xs text-forest-600 font-medium">µg PM2.5</span>
+            <span className="text-xs text-forest-600 font-medium">µg PM2.5 ({percentSaved}%)</span>
           </div>
           <div className="text-xs font-medium text-forest-700">
-            {doseSavedVsWorstCase > 0
-              ? 'Saved via mask & window timing'
+            {massSavedVsWorstCase > 0
+              ? 'Avoided via barrier mask & window timing'
               : 'Unmitigated baseline exposure'}
           </div>
         </div>
 
-        {/* Cigarette Benchmark */}
+        {/* WHO Guideline Context */}
         <div className="p-4 rounded-xl bg-white border border-cream-300 shadow-xs space-y-1">
           <div className="text-[11px] font-semibold uppercase text-slate-500">
-            Comparative Equivalence
+            Ambient Air Context
           </div>
           <div className="flex items-baseline space-x-1.5 pt-1">
             <span className="text-3xl font-extrabold text-slatecharcoal-900">
-              ~{currentResult.equivalentCigarettes}
+              {currentResult.whoExceedanceRatio}×
             </span>
-            <span className="text-xs text-slate-500 font-medium">cigarettes</span>
+            <span className="text-xs text-slate-500 font-medium">WHO 24h Guideline</span>
           </div>
           <div className="text-[11px] text-slate-500">
-            Particulate lung burden benchmark (Berkeley Earth / WHO standard)
+            Ambient PM2.5 vs WHO health benchmark (15 µg/m³)
           </div>
         </div>
 
       </div>
 
-      {/* Simulator Actionable Takeaway */}
-      <div className="bg-cream-100 p-3.5 rounded-xl border border-cream-200 text-xs text-slate-700 leading-relaxed">
-        <strong className="text-slatecharcoal-900">Physical Takeaway:</strong> Minute ventilation during heavy running ({currentResult.minuteVentilationRateLpm} L/min) is nearly 7× higher than sedentary breathing. A 45-minute outdoor run without a mask deposits as much PM2.5 as spending 5 hours indoors. Equipping a certified N95 mask filters 95% of particulates, reducing your inhaled burden to just {calculateInhaledDose(activePm25, durationMinutes, activity, 'n95').inhaledDoseUg} µg.
+      {/* Scientific Disclaimer & Transparency Note */}
+      <div className="bg-cream-100 p-3.5 rounded-xl border border-cream-200 text-xs text-slate-700 space-y-1">
+        <div className="flex items-center space-x-1.5 font-semibold text-slatecharcoal-900">
+          <Info className="w-3.5 h-3.5 text-forest-600" />
+          <span>Scientific Methodology & Limitation Notice</span>
+        </div>
+        <p className="text-[11px] text-slate-600 leading-relaxed">
+          {currentResult.disclaimer} Ventilation rates are adapted from the US EPA Exposure Factors Handbook (Chapter 6). Real-world mask protection depends on face seal integrity; values shown represent nominal laboratory material filtration.
+        </p>
       </div>
     </div>
   );

@@ -9,7 +9,6 @@ export interface UserPreferences {
   typicalCommuteDistanceKm: number;
   usualOutdoorActivityTime: 'morning' | 'afternoon' | 'evening' | 'night';
   useEcoAlternatives: boolean;
-  customGeminiApiKey?: string;
 }
 
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
@@ -19,6 +18,6 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   hasAirPurifier: true,
   hasHepaAc: false,
   typicalCommuteDistanceKm: 14,
-  usualOutdoorActivityTime: 'morning',
+  usualOutdoorActivityTime: 'afternoon',
   useEcoAlternatives: true,
 };
