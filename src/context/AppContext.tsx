@@ -35,13 +35,22 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [selectedCityId, setSelectedCityId] = useState<string>(() => {
+    try {
+      const qCity = new URLSearchParams(window.location.search).get('city');
+      if (qCity) return qCity;
+    } catch {}
     return localStorage.getItem('breathewise_city') || 'delhi-anand-vihar';
   });
 
   const [userPreferences, setUserPreferences] = useState<UserPreferences>(() => {
     try {
+      const qProfile = new URLSearchParams(window.location.search).get('profile');
       const saved = localStorage.getItem('breathewise_prefs');
-      return saved ? JSON.parse(saved) : DEFAULT_USER_PREFERENCES;
+      const base = saved ? JSON.parse(saved) : DEFAULT_USER_PREFERENCES;
+      if (qProfile && ['pediatric', 'senior_respiratory', 'outdoor_athlete', 'normal_adult'].includes(qProfile)) {
+        return { ...base, vulnerabilityProfile: qProfile as VulnerabilityProfile };
+      }
+      return base;
     } catch {
       return DEFAULT_USER_PREFERENCES;
     }
@@ -95,8 +104,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [isLoadingPlan, setIsLoadingPlan] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<NavigationTab>('overview');
-  const [isTransparencyOpen, setIsTransparencyOpen] = useState<boolean>(false);
+  const [activeTab, setActiveTabState] = useState<NavigationTab>(() => {
+    try {
+      const hash = window.location.hash.replace('#', '');
+      if (['overview', 'commute', 'indoor', 'simulator', 'assistant'].includes(hash)) {
+        return hash as NavigationTab;
+      }
+    } catch {}
+    return 'overview';
+  });
+
+  const setActiveTab = (tab: NavigationTab) => {
+    setActiveTabState(tab);
+    try {
+      window.location.hash = tab === 'overview' ? '' : tab;
+    } catch {}
+  };
+
+  const [isTransparencyOpen, setIsTransparencyOpen] = useState<boolean>(() => {
+    try {
+      return window.location.search.includes('transparency=true');
+    } catch {}
+    return false;
+  });
 
   // Load telemetry when city changes
   const loadTelemetry = useCallback(async (cityId: string) => {
