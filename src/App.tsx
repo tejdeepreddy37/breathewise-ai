@@ -59,11 +59,11 @@ export const App: React.FC = () => {
       <Header />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-5 overflow-x-hidden">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-3 sm:py-4 space-y-3.5 sm:space-y-4 overflow-x-hidden">
         
         {/* View Switcher based on activeTab */}
         {activeTab === 'overview' && (
-          <div className="space-y-5 animate-in fade-in duration-200">
+          <div className="space-y-3.5 sm:space-y-4 animate-in fade-in duration-200">
             {/* Signature Clean-Air Directive Hero (Exact Image 2 Match) */}
             <HeroDirective />
 
@@ -71,7 +71,7 @@ export const App: React.FC = () => {
             <MetricsStrip />
 
             {/* Exact 2x2 Grid Matching Image 2 Desktop and Sequential Mobile Stack */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4">
               {/* Item 1: WindowSafe Diurnal Forecast (Desktop Top-Left, Mobile 1st) */}
               <div className="w-full order-1">
                 <DiurnalChart />

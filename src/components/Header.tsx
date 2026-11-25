@@ -58,7 +58,7 @@ export const Header: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Top Header Row (Exact match to Image 2 top bar) */}
-        <div className="flex items-center justify-between h-16 sm:h-18">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           
           {/* Logo & Product Brand */}
           <div 

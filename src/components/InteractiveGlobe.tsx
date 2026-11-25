@@ -355,7 +355,7 @@ export const InteractiveGlobe: React.FC<{
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
-    camera.position.set(0, 0, 7.2);
+    camera.position.set(0, 0, 7.6);
     cameraRef.current = camera;
 
     // 2. WebGL Renderer with High-DPI & Antialiasing
@@ -612,7 +612,7 @@ export const InteractiveGlobe: React.FC<{
     if (!cameraRef.current) return;
     const newZ = Math.max(5.0, Math.min(10.5, cameraRef.current.position.z + delta));
     cameraRef.current.position.z = newZ;
-    setZoomLevel(+(7.2 / newZ).toFixed(2));
+    setZoomLevel(+(7.6 / newZ).toFixed(2));
   };
 
   const activeCity = GLOBE_CITIES.find((c) => c.id === selectedCityId) || GLOBE_CITIES[1]; // Bengaluru or selected

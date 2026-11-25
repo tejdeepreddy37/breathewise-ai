@@ -52,31 +52,31 @@ export const CommuteSimulator: React.FC = () => {
   };
 
   return (
-    <div className="rounded-3xl bg-white border border-stone-200/80 p-5 sm:p-6 shadow-xs flex flex-col justify-between h-full">
+    <div className="rounded-3xl bg-white border border-stone-200/80 p-4 sm:p-5 shadow-2xs flex flex-col justify-between h-full">
       
       {/* Header (Exact match to Image 2) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-stone-100">
         <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-100 shrink-0">
-            <Bus className="w-4 h-4" />
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-100 shrink-0">
+            <Bus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
           <div>
-            <h3 className="text-sm sm:text-base font-bold text-slatecharcoal-900 tracking-tight">
+            <h3 className="text-xs sm:text-base font-bold text-slatecharcoal-900 tracking-tight">
               Commute Exposure & Eco-Swap
             </h3>
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
               Compare travel modes by inhaled particulate mass and carbon emissions
             </p>
           </div>
         </div>
 
         {/* Distance Preset Selector */}
-        <div className="flex items-center space-x-1.5 self-start sm:self-auto bg-stone-100/70 p-1 rounded-xl text-xs">
+        <div className="flex items-center space-x-1 self-start sm:self-auto bg-stone-100/70 p-0.5 rounded-lg text-xs">
           {[5, 14, 25].map((km) => (
             <button
               key={km}
               onClick={() => setDistanceKm(km)}
-              className={`px-2 py-0.5 rounded-lg font-bold text-[10px] transition-all cursor-pointer ${
+              className={`px-2 py-0.5 rounded font-bold text-[10px] transition-all cursor-pointer ${
                 distanceKm === km ? 'bg-white text-slatecharcoal-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -87,7 +87,7 @@ export const CommuteSimulator: React.FC = () => {
       </div>
 
       {/* 4 Multi-Modal Transit Cards Row (Exact Match to Image 2) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 py-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 py-2">
         {displayComparisons.map((c) => {
           const visual = getModeVisual(c.mode);
 

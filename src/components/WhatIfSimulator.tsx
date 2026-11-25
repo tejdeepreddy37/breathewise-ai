@@ -80,10 +80,10 @@ export const WhatIfSimulator: React.FC = () => {
       </div>
 
       {/* Desktop Main Content Area (Left: Runner Graphic; Right: Interactive Controls + Dose Result) */}
-      <div className="hidden sm:flex flex-col sm:flex-row items-center justify-between gap-4 py-3">
+      <div className="hidden sm:flex flex-col sm:flex-row items-center justify-between gap-3.5 py-2">
         
         {/* Left: Authentic Athletic Runner Illustration from Reference Image 2 */}
-        <div className="w-28 sm:w-32 h-32 shrink-0 relative flex items-center justify-center rounded-2xl overflow-hidden shadow-2xs border border-amber-200/80 bg-gradient-to-tr from-amber-100/60 to-orange-50">
+        <div className="w-24 sm:w-28 h-28 shrink-0 relative flex items-center justify-center rounded-2xl overflow-hidden shadow-2xs border border-amber-200/80 bg-gradient-to-tr from-amber-100/60 to-orange-50">
           <img
             src="/images/whatif-runner.png"
             alt="Outdoor Athletic Runner"

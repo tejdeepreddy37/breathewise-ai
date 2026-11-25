@@ -119,7 +119,7 @@ export const LandingPage: React.FC = () => {
       <main className="relative z-20 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
         
         {/* Left Column: Typography, Time Context & Glass Intelligence Cards */}
-        <div className="w-full lg:w-[460px] flex flex-col justify-center space-y-5 z-30 text-left">
+        <div className="w-full lg:w-[440px] flex flex-col justify-center space-y-4 sm:space-y-4.5 z-30 text-left">
           
           {/* Small Top Tag */}
           <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-400/90 flex items-center space-x-2">
@@ -128,7 +128,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Headline (Exact match to Image 1: "Air Quality Index" with Index in Green) */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.08]">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.08]">
             Air Quality <span className="text-emerald-400">Index</span>
           </h1>
 

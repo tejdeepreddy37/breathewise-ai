@@ -63,7 +63,7 @@ export const IndoorCoachView: React.FC = () => {
       </div>
 
       {/* Desktop Living Room Visual Graphic with Centered Directives Card (Matches Image 2) */}
-      <div className="hidden sm:flex relative my-3 rounded-2xl overflow-hidden border border-stone-200/80 min-h-[175px] items-center justify-center p-4">
+      <div className="hidden sm:flex relative my-2 rounded-2xl overflow-hidden border border-stone-200/80 min-h-[145px] items-center justify-center p-3">
         
         {/* Authentic Living Room Backdrop from Reference Image 2 */}
         <div className="absolute inset-0 pointer-events-none z-0">

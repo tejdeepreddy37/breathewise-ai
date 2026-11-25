@@ -65,7 +65,7 @@ export const DiurnalChart: React.FC = () => {
   };
 
   return (
-    <div className="rounded-3xl bg-white border border-stone-200/80 p-5 sm:p-6 shadow-xs flex flex-col justify-between h-full">
+    <div className="rounded-3xl bg-white border border-stone-200/80 p-4 sm:p-5 shadow-2xs flex flex-col justify-between h-full">
       
       {/* Header (Exact Match to Image 2 Desktop and Mobile) */}
       <div className="flex items-center justify-between pb-2 border-b border-stone-100">
@@ -87,7 +87,7 @@ export const DiurnalChart: React.FC = () => {
       </div>
 
       {/* Main Curved Diurnal Chart with Highlighted Optimal Window (Exact match to Image 2) */}
-      <div className="relative h-56 sm:h-64 w-full pt-3">
+      <div className="relative h-40 sm:h-44 w-full pt-2">
         
         {/* Floating Optimal Window Badge (Matches Image 2 green pill above the valley) */}
         <div className="absolute top-1 left-1/2 -translate-x-1/2 z-10 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold shadow-xs flex items-center space-x-1">

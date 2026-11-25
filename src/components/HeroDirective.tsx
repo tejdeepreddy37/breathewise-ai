@@ -21,18 +21,18 @@ export const HeroDirective: React.FC = () => {
   const statusColor = isSevere ? '#DC2626' : isPoor ? '#EA580C' : isGood ? '#10B981' : '#D97706';
   const statusBg = isSevere ? 'bg-rose-500' : isPoor ? 'bg-orange-500' : isGood ? 'bg-emerald-500' : 'bg-amber-500';
 
-  // SVG Radial Dial Math (500 scale)
+  // SVG Radial Dial Math (500 scale, compact proportions matching Reference Image 2)
   const normalizedAqi = Math.max(0, Math.min(500, aqi));
-  const radius = 62;
+  const radius = 54;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (normalizedAqi / 500) * circumference;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#FBF8F5] via-[#FFF3EE] to-[#F5F8F7] border border-stone-200/80 p-6 sm:p-8 lg:p-10 shadow-xs">
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#FBF8F5] via-[#FFF3EE] to-[#F5F8F7] border border-stone-200/80 p-5 sm:p-6 lg:p-7 shadow-xs">
       
       {/* 1. Atmospheric Foliage & Monument Silhouette Background Graphic (Matches Image 2) */}
       {/* Lush Green Trees along Bottom Left & Foreground */}
-      <div className="absolute bottom-0 left-0 w-72 h-20 opacity-30 pointer-events-none z-0">
+      <div className="absolute bottom-0 left-0 w-64 h-16 opacity-30 pointer-events-none z-0">
         <svg viewBox="0 0 280 80" fill="none" className="w-full h-full text-emerald-800">
           <path
             d="M0 80 Q 20 40 45 60 Q 70 30 100 55 Q 130 35 160 65 Q 190 40 220 70 Q 250 45 280 80 Z"
@@ -43,7 +43,7 @@ export const HeroDirective: React.FC = () => {
       </div>
 
       {/* India Gate Silhouette between Left Headline and Center Radial Dial (Exact Image 2 Position: ~35% width) */}
-      <div className="absolute bottom-0 left-[32%] sm:left-[35%] lg:left-[36%] w-28 sm:w-32 h-24 pointer-events-none flex items-end justify-center z-0">
+      <div className="absolute bottom-0 left-[30%] sm:left-[34%] lg:left-[35%] w-24 sm:w-28 h-20 pointer-events-none flex items-end justify-center z-0">
         <img
           src="/images/india-gate.png"
           alt="India Gate Monument"
@@ -52,7 +52,7 @@ export const HeroDirective: React.FC = () => {
       </div>
 
       {/* Flock of Birds in the Morning Haze Sky (Matches Image 2 Sky) */}
-      <div className="absolute top-6 left-[44%] w-24 h-10 pointer-events-none opacity-40 z-0">
+      <div className="absolute top-4 left-[44%] w-20 h-8 pointer-events-none opacity-40 z-0">
         <svg viewBox="0 0 100 40" fill="currentColor" className="w-full h-full text-stone-700">
           <path d="M10 20 Q 15 15 20 20 Q 25 15 30 20 Q 25 18 20 21 Q 15 18 10 20 Z" />
           <path d="M40 12 Q 43 8 46 12 Q 49 8 52 12 Q 49 10 46 13 Q 43 10 40 12 Z" />
@@ -62,11 +62,11 @@ export const HeroDirective: React.FC = () => {
       </div>
 
       {/* 2. Main 3-Column Hero Grid: Left Text, Center Radial Dial, Right Quick Decision Cards */}
-      <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-8">
+      <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-5 lg:gap-6">
         
         {/* Left Column: Headline and Context */}
-        <div className="flex-1 text-center lg:text-left space-y-2.5 max-w-md">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slatecharcoal-900 tracking-tight leading-tight">
+        <div className="flex-1 text-center lg:text-left space-y-2 max-w-sm sm:max-w-md">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slatecharcoal-900 tracking-tight leading-tight">
             {isSevere
               ? 'Severe Particulate Episode in '
               : isPoor
@@ -75,7 +75,7 @@ export const HeroDirective: React.FC = () => {
             <span style={{ color: statusColor }}>{cityName}</span>
           </h1>
 
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+          <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed font-normal">
             {isSevere
               ? 'Air quality is severely degraded due to high PM2.5 and stagnant morning conditions. Limit outdoor exertion and keep indoor spaces sealed.'
               : isPoor
@@ -85,66 +85,66 @@ export const HeroDirective: React.FC = () => {
         </div>
 
         {/* Center Column: Circular Radial AQI Gauge (Exact Match to Image 2) */}
-        <div className="shrink-0 flex items-center justify-center my-2 lg:my-0">
-          <div className="relative flex items-center justify-center w-56 h-56 sm:w-64 sm:h-64">
+        <div className="shrink-0 flex items-center justify-center my-1 lg:my-0">
+          <div className="relative flex items-center justify-center w-44 h-44 sm:w-48 sm:h-48">
             
             {/* Soft Ambient Radial Aura Glow */}
             <div
-              className="absolute inset-0 rounded-full blur-2xl opacity-35"
+              className="absolute inset-0 rounded-full blur-xl opacity-35"
               style={{ backgroundColor: statusColor }}
             />
 
             {/* SVG Circular Radial Progress */}
-            <svg className="w-52 h-52 sm:w-60 sm:h-60 -rotate-90 transform" viewBox="0 0 160 160">
+            <svg className="w-40 h-40 sm:w-44 sm:h-44 -rotate-90 transform" viewBox="0 0 140 140">
               {/* Outer Subtle Aura Track */}
               <circle
-                cx="80"
-                cy="80"
-                r={radius + 4}
+                cx="70"
+                cy="70"
+                r={radius + 3}
                 stroke={statusColor}
-                strokeWidth="1.5"
+                strokeWidth="1.2"
                 strokeOpacity="0.25"
                 fill="none"
               />
               {/* Background Track */}
               <circle
-                cx="80"
-                cy="80"
+                cx="70"
+                cy="70"
                 r={radius}
                 className="stroke-stone-200"
-                strokeWidth="9"
+                strokeWidth="8"
                 fill="none"
               />
               {/* Active Progress Arc */}
               <circle
-                cx="80"
-                cy="80"
+                cx="70"
+                cy="70"
                 r={radius}
                 stroke={statusColor}
-                strokeWidth="9"
+                strokeWidth="8"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
                 strokeLinecap="round"
                 fill="none"
                 className="transition-all duration-1000 ease-out"
                 style={{
-                  filter: `drop-shadow(0 0 6px ${statusColor}80)`,
+                  filter: `drop-shadow(0 0 5px ${statusColor}80)`,
                 }}
               />
             </svg>
 
             {/* Centered Dial Information */}
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center select-none">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
                 CPCB NAQI
               </span>
-              <span className="text-4xl sm:text-5xl font-black text-slatecharcoal-900 tracking-tight my-0.5 font-mono">
+              <span className="text-3xl sm:text-4xl font-black text-slatecharcoal-900 tracking-tight my-0.5 font-mono">
                 {aqi}
               </span>
-              <span className={`px-3 py-0.5 rounded-full text-xs font-black text-white ${statusBg} shadow-xs`}>
+              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black text-white ${statusBg} shadow-2xs`}>
                 {aqiCat}
               </span>
-              <span className="text-[11px] text-slate-500 font-medium mt-1">
+              <span className="text-[10px] text-slate-500 font-medium mt-0.5">
                 Dominant: {primaryPollutant}
               </span>
             </div>
@@ -153,15 +153,15 @@ export const HeroDirective: React.FC = () => {
         </div>
 
         {/* Right Column: 3 Decision Cards (Horizontal 3-column row on mobile, stacked on desktop - Exact Image 2 Match) */}
-        <div className="w-full lg:w-72 grid grid-cols-3 lg:flex lg:flex-col gap-2.5 lg:space-y-2.5 lg:gap-0">
+        <div className="w-full lg:w-64 grid grid-cols-3 lg:flex lg:flex-col gap-2 lg:space-y-2 lg:gap-0">
           
           {/* Card 1: Outdoor Exercise */}
-          <div className="flex flex-col lg:flex-row items-center lg:space-x-3 p-2.5 sm:p-3.5 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:shadow-sm transition-all text-center lg:text-left">
-            <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shrink-0 mb-1 lg:mb-0">
-              <Activity className="w-4 h-4" />
+          <div className="flex flex-col lg:flex-row items-center lg:space-x-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-stone-200/80 shadow-2xs hover:shadow-xs transition-all text-center lg:text-left">
+            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shrink-0 mb-1 lg:mb-0">
+              <Activity className="w-3.5 h-3.5" />
             </div>
             <div>
-              <div className="hidden lg:block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <div className="hidden lg:block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
                 Outdoor Exercise
               </div>
               <div className="text-[11px] sm:text-xs font-extrabold text-rose-600">
@@ -171,12 +171,12 @@ export const HeroDirective: React.FC = () => {
           </div>
 
           {/* Card 2: Window Ventilation */}
-          <div className="flex flex-col lg:flex-row items-center lg:space-x-3 p-2.5 sm:p-3.5 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:shadow-sm transition-all text-center lg:text-left">
-            <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100 shrink-0 mb-1 lg:mb-0">
-              {pm > 60 ? <DoorClosed className="w-4 h-4" /> : <DoorOpen className="w-4 h-4" />}
+          <div className="flex flex-col lg:flex-row items-center lg:space-x-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-stone-200/80 shadow-2xs hover:shadow-xs transition-all text-center lg:text-left">
+            <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100 shrink-0 mb-1 lg:mb-0">
+              {pm > 60 ? <DoorClosed className="w-3.5 h-3.5" /> : <DoorOpen className="w-3.5 h-3.5" />}
             </div>
             <div>
-              <div className="hidden lg:block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <div className="hidden lg:block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
                 Window Ventilation
               </div>
               <div className="text-[11px] sm:text-xs font-extrabold text-rose-600">
@@ -186,12 +186,12 @@ export const HeroDirective: React.FC = () => {
           </div>
 
           {/* Card 3: Commute Protection */}
-          <div className="flex flex-col lg:flex-row items-center lg:space-x-3 p-2.5 sm:p-3.5 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:shadow-sm transition-all text-center lg:text-left">
-            <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-100 shrink-0 mb-1 lg:mb-0">
-              <Train className="w-4 h-4" />
+          <div className="flex flex-col lg:flex-row items-center lg:space-x-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-stone-200/80 shadow-2xs hover:shadow-xs transition-all text-center lg:text-left">
+            <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-100 shrink-0 mb-1 lg:mb-0">
+              <Train className="w-3.5 h-3.5" />
             </div>
             <div>
-              <div className="hidden lg:block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <div className="hidden lg:block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
                 Commute Protection
               </div>
               <div className="text-[11px] sm:text-xs font-extrabold text-teal-700">
