@@ -12,14 +12,15 @@ export const HeroDirective: React.FC = () => {
   const aqiCat = telemetry.current.aqiCategory ?? 'Severe';
   const primaryPollutant = telemetry.current.primaryPollutant || 'PM2.5';
 
-  const isSevere = pm > 120 || aqi > 300;
-  const isPoor = pm > 60 && pm <= 120;
-  const isSatisfactory = (pm <= 60 && pm > 30) || (aqi <= 100 && aqi > 50);
-  const isGood = pm <= 30 && aqi <= 50;
+  const isSevere = aqiCat === 'Severe' || aqiCat === 'Very Poor' || aqi >= 301;
+  const isPoor = aqiCat === 'Poor' || (aqi >= 201 && aqi <= 300);
+  const isModerate = aqiCat === 'Moderate' || (aqi >= 101 && aqi <= 200);
+  const isSatisfactory = aqiCat === 'Satisfactory' || (aqi >= 51 && aqi <= 100);
+  const isGood = aqiCat === 'Good' || aqi <= 50;
 
   // Semantic color mapping
-  const statusColor = isSevere ? '#DC2626' : isPoor ? '#EA580C' : isSatisfactory ? '#16A34A' : isGood ? '#10B981' : '#D97706';
-  const statusBg = isSevere ? 'bg-rose-500' : isPoor ? 'bg-orange-500' : isSatisfactory ? 'bg-emerald-600' : isGood ? 'bg-emerald-500' : 'bg-amber-500';
+  const statusColor = isSevere ? '#DC2626' : isPoor ? '#EA580C' : isModerate ? '#D97706' : isSatisfactory ? '#16A34A' : '#10B981';
+  const statusBg = isSevere ? 'bg-rose-500' : isPoor ? 'bg-orange-500' : isModerate ? 'bg-amber-500' : isSatisfactory ? 'bg-emerald-600' : 'bg-emerald-500';
 
   // SVG Radial Dial Math (500 scale, compact proportions matching Reference Image 2)
   const normalizedAqi = Math.max(0, Math.min(500, aqi));
@@ -33,7 +34,7 @@ export const HeroDirective: React.FC = () => {
       {/* 1. Unified Scenic Atmospheric Backdrop (Matches Reference Image 2: Foliage, Sky, Sunrise Haze, India Gate, Skyline, Birds) */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <img
-          src="/images/hero-scenic-backdrop.png"
+          src={`${import.meta.env.BASE_URL}images/hero-scenic-backdrop.png`}
           alt="Atmospheric scenic Delhi landscape"
           className="w-full h-full object-cover object-center"
         />

@@ -39,7 +39,7 @@ export const WhatIfSimulator: React.FC = () => {
           </div>
         </div>
         <div className="w-8 h-8 rounded-lg overflow-hidden border border-amber-200/80 shrink-0">
-          <img src="/images/whatif-runner.png" alt="Runner" className="w-full h-full object-cover" />
+          <img src={`${import.meta.env.BASE_URL}images/whatif-runner.png`} alt="Runner" className="w-full h-full object-cover" />
         </div>
       </div>
 
@@ -109,7 +109,7 @@ export const WhatIfSimulator: React.FC = () => {
         {/* Left: Authentic Athletic Runner Illustration from Reference Image 2 */}
         <div className="w-24 sm:w-28 h-28 shrink-0 relative flex items-center justify-center rounded-2xl overflow-hidden shadow-2xs border border-amber-200/80 bg-gradient-to-tr from-amber-100/60 to-orange-50">
           <img
-            src="/images/whatif-runner.png"
+            src={`${import.meta.env.BASE_URL}images/whatif-runner.png`}
             alt="Outdoor Athletic Runner"
             className="w-full h-full object-cover"
           />

@@ -43,7 +43,7 @@ export const LandingPage: React.FC = () => {
       {/* Mountain & Cloud Silhouette at bottom horizon (Authentic Reference 1 Landscape) */}
       <div className="absolute bottom-0 inset-x-0 h-72 sm:h-80 pointer-events-none z-0 overflow-hidden">
         <img
-          src="/images/mountain-clouds.png"
+          src={`${import.meta.env.BASE_URL}images/mountain-clouds.png`}
           alt="Atmospheric landscape clouds"
           className="w-full h-full object-cover object-bottom opacity-85 mix-blend-screen"
         />

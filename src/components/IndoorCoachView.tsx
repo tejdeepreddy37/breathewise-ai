@@ -70,7 +70,7 @@ export const IndoorCoachView: React.FC = () => {
         {/* Authentic Living Room Backdrop from Reference Image 2 */}
         <div className="absolute inset-0 pointer-events-none z-0">
           <img
-            src="/images/indoor-backdrop.png"
+            src={`${import.meta.env.BASE_URL}images/indoor-backdrop.png`}
             alt="Living Room Atmosphere with Purifier"
             className="w-full h-full object-cover opacity-90"
           />

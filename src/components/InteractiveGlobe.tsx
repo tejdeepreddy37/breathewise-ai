@@ -380,11 +380,13 @@ export const InteractiveGlobe: React.FC<{
     // 4. Photorealistic Earth Sphere with High-Resolution NASA Blue Marble Texture
     const textureLoader = new THREE.TextureLoader();
     const earthGeometry = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64);
+    const baseUrl = import.meta.env.BASE_URL || '/';
+    const cleanBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
     
     // Load high-res NASA Blue Marble texture
-    const earthTexture = textureLoader.load('/textures/earth-blue-marble.jpg');
+    const earthTexture = textureLoader.load(`${cleanBase}textures/earth-blue-marble.jpg`);
     earthTexture.colorSpace = THREE.SRGBColorSpace;
-    const specularMap = textureLoader.load('/textures/earth-specular.jpg');
+    const specularMap = textureLoader.load(`${cleanBase}textures/earth-specular.jpg`);
 
     const earthMaterial = new THREE.MeshPhongMaterial({
       map: earthTexture,
@@ -396,7 +398,7 @@ export const InteractiveGlobe: React.FC<{
     globeGroup.add(earthMesh);
 
     // 5. Realistic Night City Lights Mesh (Blended on night side)
-    const lightsTexture = textureLoader.load('/textures/earth-lights.png');
+    const lightsTexture = textureLoader.load(`${cleanBase}textures/earth-lights.png`);
     const lightsMaterial = new THREE.MeshBasicMaterial({
       map: lightsTexture,
       blending: THREE.AdditiveBlending,
@@ -407,7 +409,7 @@ export const InteractiveGlobe: React.FC<{
     globeGroup.add(lightsMesh);
 
     // 6. Photorealistic Atmospheric Cloud Layer
-    const cloudTexture = textureLoader.load('/textures/earth-clouds.png');
+    const cloudTexture = textureLoader.load(`${cleanBase}textures/earth-clouds.png`);
     cloudTexture.colorSpace = THREE.SRGBColorSpace;
     const cloudGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 1.015, 64, 64);
     const cloudMaterial = new THREE.MeshStandardMaterial({
