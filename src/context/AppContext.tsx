@@ -23,6 +23,8 @@ interface AppContextType {
   isTransparencyOpen: boolean;
   sessionApiKey: string;
   setSessionApiKey: (key: string) => void;
+  isDemoMode: boolean;
+  toggleDemoMode: () => void;
   selectCity: (cityId: string) => void;
   updateProfile: (profile: VulnerabilityProfile) => void;
   updatePreferences: (prefs: Partial<UserPreferences>) => void;
@@ -107,6 +109,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeTab, setActiveTabState] = useState<NavigationTab>(() => {
     try {
       const hash = window.location.hash.replace('#', '');
+      if (hash === 'diurnal') return 'overview';
       if (['landing', 'overview', 'commute', 'indoor', 'simulator', 'assistant'].includes(hash)) {
         return hash as NavigationTab;
       }
@@ -128,12 +131,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return false;
   });
 
-  // Load telemetry when city changes
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('breathewise_demo_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleDemoMode = () => {
+    setIsDemoMode((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('breathewise_demo_mode', String(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  // Load telemetry when city changes or demo mode toggles
   const loadTelemetry = useCallback(async (cityId: string) => {
     setIsLoadingTelemetry(true);
     setTelemetryError(null);
     try {
-      const data = await getCityTelemetry(cityId);
+      let data: EnvironmentalTelemetry;
+      if (isDemoMode) {
+        data = FALLBACK_TELEMETRY[cityId] || FALLBACK_TELEMETRY['delhi-anand-vihar'];
+      } else {
+        data = await getCityTelemetry(cityId);
+      }
       setTelemetry(data);
       const window = calculateCleanAirWindow(data.hourly);
       setCleanAirWindow(window);
@@ -149,12 +175,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setLivingPlan(plan);
       setIsLoadingPlan(false);
     } catch (err: any) {
-      console.error('Failed to load telemetry:', err);
+      console.warn('Failed to load telemetry:', err);
+      // Fallback safely to demo profile
+      const fallback = FALLBACK_TELEMETRY[cityId] || FALLBACK_TELEMETRY['delhi-anand-vihar'];
+      setTelemetry(fallback);
+      setCleanAirWindow(calculateCleanAirWindow(fallback.hourly));
       setTelemetryError(err?.message || 'Could not load live telemetry');
     } finally {
       setIsLoadingTelemetry(false);
     }
-  }, [userPreferences.vulnerabilityProfile, sessionApiKey]);
+  }, [userPreferences.vulnerabilityProfile, sessionApiKey, isDemoMode]);
 
   useEffect(() => {
     loadTelemetry(selectedCityId);
@@ -214,6 +244,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isTransparencyOpen,
         sessionApiKey,
         setSessionApiKey,
+        isDemoMode,
+        toggleDemoMode,
         selectCity,
         updateProfile,
         updatePreferences,

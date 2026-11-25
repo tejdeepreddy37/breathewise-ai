@@ -10,8 +10,10 @@ export const WhatIfSimulator: React.FC = () => {
   const [activity, setActivity] = useState<ActivityType>('outdoor_running');
   const [durationMinutes, setDurationMinutes] = useState<number>(45);
   const [maskType, setMaskType] = useState<keyof typeof MASK_EFFICIENCIES>('n95');
+  const [useCityAir, setUseCityAir] = useState<boolean>(false);
 
-  const activePm25 = (activity === 'outdoor_running' && durationMinutes === 45 && maskType === 'n95') ? 100 : (telemetry.current.pm25 || 100);
+  const cityPm = telemetry.current.pm25 || 100;
+  const activePm25 = useCityAir ? cityPm : 100;
 
   const currentResult = calculateInhaledDose(activePm25, durationMinutes, activity, maskType);
   const unmaskedResult = calculateInhaledDose(activePm25, durationMinutes, activity, 'none');
@@ -76,6 +78,28 @@ export const WhatIfSimulator: React.FC = () => {
               Estimate the particulate dose you inhale
             </p>
           </div>
+        </div>
+
+        {/* Ambient Baseline Selector */}
+        <div className="flex items-center space-x-1 bg-stone-100/70 p-0.5 rounded-lg text-xs">
+          <button
+            onClick={() => setUseCityAir(false)}
+            className={`px-2 py-0.5 rounded font-bold text-[10px] transition-all cursor-pointer ${
+              !useCityAir ? 'bg-white text-slatecharcoal-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+            }`}
+            title="Standard Exercise Scenario (100 µg/m³)"
+          >
+            Benchmark (100 µg/m³)
+          </button>
+          <button
+            onClick={() => setUseCityAir(true)}
+            className={`px-2 py-0.5 rounded font-bold text-[10px] transition-all cursor-pointer ${
+              useCityAir ? 'bg-white text-slatecharcoal-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+            }`}
+            title={`Current City Ambient Level (${cityPm} µg/m³)`}
+          >
+            City ({cityPm} µg/m³)
+          </button>
         </div>
       </div>
 
@@ -177,6 +201,11 @@ export const WhatIfSimulator: React.FC = () => {
               </div>
             </div>
 
+          </div>
+
+          {/* Scientific Disclaimer & Fit Factor Disclosure */}
+          <div className="text-[9px] text-slate-400 text-center pt-0.5 leading-tight font-sans">
+            Baseline: {activePm25} µg/m³ • Inhaled mass model (VE × t × C); assumes ideal seal. Real-world fit leakage reduces nominal mask filtration.
           </div>
 
         </div>

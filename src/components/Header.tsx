@@ -33,6 +33,8 @@ export const Header: React.FC = () => {
     setIsTransparencyOpen,
     activeTab,
     setActiveTab,
+    isDemoMode,
+    toggleDemoMode,
   } = useApp();
 
   const profiles: Array<{ id: VulnerabilityProfile; label: string; icon: React.ReactNode }> = [
@@ -189,14 +191,30 @@ export const Header: React.FC = () => {
           {/* Right: Live/Demo Status Indicator (Matches Image 2) & Refresh */}
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-1.5 bg-stone-100/80 p-0.5 rounded-full border border-stone-200/80 text-[11px]">
-              <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-white text-slatecharcoal-900 font-bold shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <button
+                onClick={() => { if (isDemoMode) toggleDemoMode(); }}
+                className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
+                  isLive
+                    ? 'bg-white text-slatecharcoal-900 font-bold shadow-2xs'
+                    : 'text-slate-400 hover:text-slate-600 font-medium'
+                }`}
+                title={isLive ? 'Connected to European CAMS atmospheric model' : 'Click to connect to live Open-Meteo telemetry'}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
                 <span>Live (CAMS)</span>
-              </span>
-              <span className="inline-flex items-center space-x-1 px-2 py-0.5 text-slate-400 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full border border-slate-300" />
+              </button>
+              <button
+                onClick={() => { if (!isDemoMode) toggleDemoMode(); }}
+                className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full transition-all cursor-pointer ${
+                  !isLive
+                    ? 'bg-white text-slatecharcoal-900 font-bold shadow-2xs'
+                    : 'text-slate-400 hover:text-slate-600 font-medium'
+                }`}
+                title={!isLive ? 'Calibrated offline demonstration mode active' : 'Click to switch to calibrated offline demonstration'}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${!isLive ? 'bg-amber-500' : 'border border-slate-300'}`} />
                 <span>Demo Mode</span>
-              </span>
+              </button>
             </div>
 
             <button

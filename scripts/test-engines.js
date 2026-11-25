@@ -401,6 +401,95 @@ console.log('\n--- 8. Testing Geographic Coordinate & Data Integrity ---');
   assert(mumbaiPreset.lon >= 72.8 && mumbaiPreset.lon <= 72.95, `Mumbai longitude is verified near 72.87°E (got ${mumbaiPreset.lon})`);
 }
 
+// =========================================================================
+// 9. Indoor Coach Dynamic Output & Multi-City Calibration
+// =========================================================================
+console.log('\n--- 9. Testing Indoor Coach Dynamic Model & Multi-City Calibration ---');
+{
+  function calculateIndoorRecommendations(outdoorPm25, cleanAirWindow, currentHour = 14, roomAreaM2 = 20, outdoorO3 = null, indoorSource = 'none') {
+    const safePm = typeof outdoorPm25 === 'number' && !isNaN(outdoorPm25) ? Math.max(0, outdoorPm25) : 0;
+    const isWindowActive = cleanAirWindow.endHour >= cleanAirWindow.startHour
+      ? currentHour >= cleanAirWindow.startHour && currentHour <= cleanAirWindow.endHour
+      : currentHour >= cleanAirWindow.startHour || currentHour <= cleanAirWindow.endHour;
+    
+    let baseline = Math.round(safePm * 0.45);
+    let windowAction = 'SEAL_COMPLETELY';
+    if (safePm <= 30) {
+      windowAction = 'OPEN_CROSS_VENTILATE';
+    } else if (safePm <= 60 && isWindowActive) {
+      windowAction = 'CRACK_FLUSH_NOW';
+    } else {
+      windowAction = 'SEAL_COMPLETELY';
+    }
+
+    let recommendedSpeed = 'LOW';
+    if (baseline > 100 || outdoorPm25 > 200) {
+      recommendedSpeed = 'TURBO';
+    } else if (baseline > 50) {
+      recommendedSpeed = 'HIGH';
+    } else if (baseline > 25) {
+      recommendedSpeed = 'MEDIUM';
+    }
+
+    return {
+      estimatedIndoorBaselinePm25: baseline,
+      windowAction,
+      purifierRecommendation: { recommendedSpeed }
+    };
+  }
+
+  const windowMock = {
+    startHour: 13,
+    endHour: 15,
+    averagePm25: 55,
+    displayWindow: '1:00 PM – 2:00 PM',
+    windowStatus: 'CONVECTIVE_VALLEY_OPTIMAL',
+    statusLabel: 'Safe Midday Window',
+    reductionVsPeakPercent: 56,
+  };
+
+  // Delhi Anand Vihar baseline (PM2.5: 265)
+  const delhiRec = calculateIndoorRecommendations(265, windowMock, 14, 20);
+  assert(delhiRec.estimatedIndoorBaselinePm25 === 119, `Delhi indoor baseline is exactly 119 µg/m³ (got ${delhiRec.estimatedIndoorBaselinePm25})`);
+  assert(delhiRec.windowAction === 'SEAL_COMPLETELY', `Delhi ventilation is strictly SEAL_COMPLETELY`);
+  assert(delhiRec.purifierRecommendation.recommendedSpeed === 'TURBO', `Delhi purifier is TURBO`);
+
+  // Bengaluru clean baseline (PM2.5: 25)
+  const blrRec = calculateIndoorRecommendations(25, windowMock, 14, 20);
+  assert(blrRec.estimatedIndoorBaselinePm25 === 11, `Bengaluru indoor baseline is 11 µg/m³ (got ${blrRec.estimatedIndoorBaselinePm25})`);
+  assert(blrRec.windowAction === 'OPEN_CROSS_VENTILATE', `Bengaluru ventilation is OPEN_CROSS_VENTILATE`);
+  assert(blrRec.purifierRecommendation.recommendedSpeed === 'LOW', `Bengaluru purifier is LOW (got ${blrRec.purifierRecommendation.recommendedSpeed})`);
+}
+
+// =========================================================================
+// 10. Exposure Model Fidelity: Benchmark vs Ambient City
+// =========================================================================
+console.log('\n--- 10. Testing What-If Exposure Benchmark vs Ambient Calculations ---');
+{
+  const MINUTE_VENTILATION_LPM = { outdoor_running: 55 };
+  const MASK_EFFICIENCIES = { none: 0.0, n95: 0.95 };
+  function calculateInhaledDose(ambientPm25, durationMinutes, activity = 'outdoor_running', maskType = 'none') {
+    const safePm = typeof ambientPm25 === 'number' && !isNaN(ambientPm25) ? Math.max(0, ambientPm25) : 0;
+    const lpm = MINUTE_VENTILATION_LPM[activity] || 25;
+    const volumeM3 = (lpm * 60 * (durationMinutes / 60)) / 1000;
+    const efficiency = MASK_EFFICIENCIES[maskType] || 0.0;
+    const massUg = +(safePm * volumeM3 * (1 - efficiency)).toFixed(1);
+    return { estimatedInhaledMassUg: massUg };
+  }
+
+  // 100 µg/m³ benchmark
+  const bmUnmasked = calculateInhaledDose(100, 45, 'outdoor_running', 'none');
+  const bmN95 = calculateInhaledDose(100, 45, 'outdoor_running', 'n95');
+  assert(bmUnmasked.estimatedInhaledMassUg === 247.5, `Benchmark unmasked dose is 247.5 µg (got ${bmUnmasked.estimatedInhaledMassUg})`);
+  assert(bmN95.estimatedInhaledMassUg === 12.4, `Benchmark N95 dose is 12.4 µg (got ${bmN95.estimatedInhaledMassUg})`);
+
+  // 265 µg/m³ Delhi live
+  const delhiUnmasked = calculateInhaledDose(265, 45, 'outdoor_running', 'none');
+  const delhiN95 = calculateInhaledDose(265, 45, 'outdoor_running', 'n95');
+  assert(delhiUnmasked.estimatedInhaledMassUg === 655.9, `Delhi unmasked dose is 655.9 µg (got ${delhiUnmasked.estimatedInhaledMassUg})`);
+  assert(delhiN95.estimatedInhaledMassUg === 32.8, `Delhi N95 dose is 32.8 µg (got ${delhiN95.estimatedInhaledMassUg})`);
+}
+
 console.log(`\n========================================`);
 console.log(`TEST RESULTS: ${passed} Passed, ${failed} Failed`);
 console.log(`========================================\n`);

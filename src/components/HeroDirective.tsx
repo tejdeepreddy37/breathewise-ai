@@ -6,14 +6,13 @@ export const HeroDirective: React.FC = () => {
   const { telemetry, cleanAirWindow } = useApp();
 
   const cityName = telemetry.city.includes('—') ? telemetry.city.split('—')[0].trim() : telemetry.city;
-  const isDelhi = cityName === 'Delhi';
 
-  const pm = isDelhi ? 265 : (telemetry.current.pm25 || 265);
-  const aqi = isDelhi ? 405 : (telemetry.current.aqi || 405);
-  const aqiCat = isDelhi ? 'Severe' : (telemetry.current.aqiCategory || 'Severe');
+  const pm = telemetry.current.pm25 ?? 265;
+  const aqi = telemetry.current.aqi ?? 405;
+  const aqiCat = telemetry.current.aqiCategory ?? 'Severe';
   const primaryPollutant = telemetry.current.primaryPollutant || 'PM2.5';
 
-  const isSevere = pm > 120 || aqi > 300 || isDelhi;
+  const isSevere = pm > 120 || aqi > 300;
   const isPoor = pm > 60 && pm <= 120;
   const isGood = pm <= 30 && aqi <= 50;
 

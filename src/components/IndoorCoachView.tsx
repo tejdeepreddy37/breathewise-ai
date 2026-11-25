@@ -30,7 +30,7 @@ export const IndoorCoachView: React.FC = () => {
               Indoor Air Coach
             </h3>
             <p className="text-[10px] text-slate-500 font-medium">
-              Indoor: ~119 µg/m³
+              Indoor: ~{rec.estimatedIndoorBaselinePm25} µg/m³
             </p>
           </div>
         </div>
@@ -56,9 +56,11 @@ export const IndoorCoachView: React.FC = () => {
 
       {/* Mobile Directives Pill (Exact match to Image 2 mobile: Full-width "Seal Windows & Run Purifier") */}
       <div className="sm:hidden py-2">
-        <div className="w-full flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200/80 font-bold text-xs shadow-2xs">
-          <Lock className="w-3.5 h-3.5 text-rose-600" />
-          <span>Seal Windows & Run Purifier</span>
+        <div className={`w-full flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl border font-bold text-xs shadow-2xs ${
+          isSealed ? 'bg-rose-50 text-rose-700 border-rose-200/80' : 'bg-emerald-50 text-emerald-800 border-emerald-200/80'
+        }`}>
+          {isSealed ? <Lock className="w-3.5 h-3.5 text-rose-600" /> : <Wind className="w-3.5 h-3.5 text-emerald-600" />}
+          <span>{isSealed ? 'Seal Windows & Run Purifier' : 'Ventilate & Run Purifier'}</span>
         </div>
       </div>
 
@@ -83,20 +85,24 @@ export const IndoorCoachView: React.FC = () => {
               Indoor Estimated Air
             </span>
             <div className="text-xl sm:text-2xl font-black text-slatecharcoal-900 font-mono tracking-tight">
-              Indoor PM2.5: ~119 µg/m³
+              Indoor PM2.5: ~{rec.estimatedIndoorBaselinePm25} µg/m³
             </div>
           </div>
 
           {/* Action Pills: "Seal Windows & Doors" + "Run Purifier: TURBO" */}
           <div className="flex flex-wrap items-center justify-center gap-1.5 pt-0.5">
-            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80 shadow-2xs">
-              <Lock className="w-3 h-3 text-rose-600" />
-              <span>Seal Windows & Doors</span>
+            <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold shadow-2xs ${
+              isSealed
+                ? 'bg-rose-50 text-rose-700 border border-rose-200/80'
+                : 'bg-emerald-50 text-emerald-800 border border-emerald-200/80'
+            }`}>
+              {isSealed ? <Lock className="w-3 h-3 text-rose-600" /> : <Wind className="w-3 h-3 text-emerald-600" />}
+              <span>{isSealed ? 'Seal Windows & Doors' : 'Open Windows & Ventilate'}</span>
             </span>
 
             <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs">
               <Fan className="w-3 h-3 text-emerald-600" />
-              <span>Run Purifier: TURBO</span>
+              <span>Run Purifier: {rec.purifierRecommendation.recommendedSpeed}</span>
             </span>
           </div>
 

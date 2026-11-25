@@ -6,15 +6,13 @@ export const MetricsStrip: React.FC = () => {
   const { telemetry } = useApp();
   const { current, weather } = telemetry;
 
-  const isDelhi = telemetry.city.includes('Delhi');
-
-  const pm25Val = isDelhi ? 265 : (current.pm25 ?? 265);
-  const pm10Val = isDelhi ? 410 : current.pm10;
-  const no2Val = isDelhi ? 68 : current.no2;
-  const coVal = isDelhi ? 2.1 : current.co;
-  const o3Val = isDelhi ? 38 : current.o3;
-  const humidityVal = isDelhi ? 76 : (weather?.humidity ?? 76);
-  const windVal = isDelhi ? 6 : (weather?.windSpeed ?? 6);
+  const pm25Val = current.pm25 != null ? current.pm25 : '--';
+  const pm10Val = current.pm10 != null ? current.pm10 : '--';
+  const no2Val = current.no2 != null ? current.no2 : '--';
+  const coVal = current.co != null ? current.co : '--';
+  const o3Val = current.o3 != null ? current.o3 : '--';
+  const humidityVal = weather?.humidity != null ? `${weather.humidity}%` : '--';
+  const windVal = weather?.windSpeed != null ? `${weather.windSpeed}` : '--';
 
   const metrics = [
     {

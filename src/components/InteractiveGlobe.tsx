@@ -331,6 +331,7 @@ export const InteractiveGlobe: React.FC<{
 
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const isDraggingRef = useRef<boolean>(false);
   const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Three.js internal objects
@@ -498,19 +499,21 @@ export const InteractiveGlobe: React.FC<{
 
     // 10. Animation & Render Loop
     let animId: number;
+    let frameCount = 0;
     const animate = () => {
       animId = requestAnimationFrame(animate);
 
       // Subtle slow auto-rotation when user is not dragging
-      if (!isDragging && globeGroup) {
+      if (!isDraggingRef.current && globeGroup) {
         globeGroup.rotation.y -= 0.0012;
       }
       if (cloudMesh) {
         cloudMesh.rotation.y -= 0.0016;
       }
 
-      // Project 3D City Coordinates onto 2D Canvas Screen Pixels
-      if (container && camera && globeGroup) {
+      // Project 3D City Coordinates onto 2D Canvas Screen Pixels (throttled to every 2nd frame)
+      frameCount++;
+      if (frameCount % 2 === 0 && container && camera && globeGroup) {
         const rect = container.getBoundingClientRect();
         const positions: Array<{ city: GlobeCity; x: number; y: number; isVisible: boolean }> = [];
 
@@ -581,13 +584,14 @@ export const InteractiveGlobe: React.FC<{
 
   // Pointer Drag Interaction Handlers
   const handlePointerDown = (e: React.PointerEvent) => {
+    isDraggingRef.current = true;
     setIsDragging(true);
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging || !globeGroupRef.current) return;
+    if (!isDraggingRef.current || !globeGroupRef.current) return;
     const dx = e.clientX - dragStartRef.current.x;
     const dy = e.clientY - dragStartRef.current.y;
 
@@ -601,6 +605,7 @@ export const InteractiveGlobe: React.FC<{
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    isDraggingRef.current = false;
     setIsDragging(false);
     try {
       (e.target as HTMLElement).releasePointerCapture(e.pointerId);
