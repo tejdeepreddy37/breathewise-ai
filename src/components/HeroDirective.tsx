@@ -136,14 +136,16 @@ export const HeroDirective: React.FC = () => {
           
           {/* Card 1: Outdoor Exercise */}
           <div className="flex flex-col lg:flex-row items-center lg:space-x-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-stone-200/80 shadow-2xs hover:shadow-xs transition-all text-center lg:text-left">
-            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shrink-0 mb-1 lg:mb-0">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 mb-1 lg:mb-0 ${
+              isSevere || isPoor ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+            }`}>
               <Activity className="w-3.5 h-3.5" />
             </div>
             <div>
               <div className="hidden lg:block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
                 Outdoor Exercise
               </div>
-              <div className="text-[11px] sm:text-xs font-extrabold text-rose-600">
+              <div className={`text-[11px] sm:text-xs font-extrabold ${isSevere || isPoor ? 'text-rose-600' : 'text-emerald-700'}`}>
                 {isSevere ? 'Shift Indoors' : isPoor ? 'Use Best Window' : 'Favorable Today'}
               </div>
             </div>
@@ -151,14 +153,16 @@ export const HeroDirective: React.FC = () => {
 
           {/* Card 2: Window Ventilation */}
           <div className="flex flex-col lg:flex-row items-center lg:space-x-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-stone-200/80 shadow-2xs hover:shadow-xs transition-all text-center lg:text-left">
-            <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100 shrink-0 mb-1 lg:mb-0">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 mb-1 lg:mb-0 ${
+              pm > 60 ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+            }`}>
               {pm > 60 ? <DoorClosed className="w-3.5 h-3.5" /> : <DoorOpen className="w-3.5 h-3.5" />}
             </div>
             <div>
               <div className="hidden lg:block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
                 Window Ventilation
               </div>
-              <div className="text-[11px] sm:text-xs font-extrabold text-rose-600">
+              <div className={`text-[11px] sm:text-xs font-extrabold ${pm > 60 ? 'text-rose-600' : 'text-emerald-700'}`}>
                 {pm > 60 ? 'Keep Sealed' : 'Safe to Flush'}
               </div>
             </div>

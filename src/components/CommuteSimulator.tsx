@@ -107,8 +107,16 @@ export const CommuteSimulator: React.FC = () => {
                 <div className="w-8 h-8 rounded-xl bg-white border border-stone-200/80 flex items-center justify-center shadow-2xs">
                   {visual.icon}
                 </div>
-                <div className="text-[11px] font-bold text-slatecharcoal-900 line-clamp-1">
-                  {visual.title}
+                <div className="text-[11px] font-bold text-slatecharcoal-900 leading-tight">
+                  {c.mode === 'two_wheeler_open' ? (
+                    <div><div>Two-Wheeler</div><span className="text-[9px] text-slate-500 font-normal">(Open)</span></div>
+                  ) : c.mode === 'ac_metro' ? (
+                    <div><div>AC Metro</div><span className="text-[9px] text-emerald-700 font-semibold">(Recommended)</span></div>
+                  ) : c.mode === 'auto_rickshaw' ? (
+                    <div><div>Auto-Rickshaw</div><span className="text-[9px] text-slate-400 font-normal invisible">(Open)</span></div>
+                  ) : (
+                    <div><div>Car</div><span className="text-[9px] text-slate-500 font-normal">(Non-AC)</span></div>
+                  )}
                 </div>
               </div>
 
