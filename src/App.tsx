@@ -46,16 +46,6 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FAFBF8] flex flex-col font-sans text-slatecharcoal-900 pb-20 md:pb-12 selection:bg-emerald-100 selection:text-emerald-800 relative overflow-x-hidden">
-      
-      {/* Botanical Foliage Framing Overlay (Matches Image 2 top-left lush leaves) */}
-      <div className="absolute top-0 left-0 w-24 sm:w-32 lg:w-36 pointer-events-none z-20 select-none -ml-2 -mt-2">
-        <img
-          src="/images/foliage-branch.png"
-          alt="Framing botanical leaves"
-          className="w-full h-auto drop-shadow-sm"
-        />
-      </div>
-
       <Header />
 
       {/* Main Container */}

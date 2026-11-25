@@ -28,44 +28,23 @@ export const HeroDirective: React.FC = () => {
   const strokeDashoffset = circumference - (normalizedAqi / 500) * circumference;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#FBF8F5] via-[#FFF3EE] to-[#F5F8F7] border border-stone-200/80 p-5 sm:p-6 lg:p-7 shadow-xs">
+    <div className="relative overflow-hidden rounded-3xl border border-stone-200/80 p-5 sm:p-6 lg:p-7 shadow-xs">
       
-      {/* 1. Atmospheric Foliage & Monument Silhouette Background Graphic (Matches Image 2) */}
-      {/* Lush Green Trees along Bottom Left & Foreground */}
-      <div className="absolute bottom-0 left-0 w-64 h-16 opacity-30 pointer-events-none z-0">
-        <svg viewBox="0 0 280 80" fill="none" className="w-full h-full text-emerald-800">
-          <path
-            d="M0 80 Q 20 40 45 60 Q 70 30 100 55 Q 130 35 160 65 Q 190 40 220 70 Q 250 45 280 80 Z"
-            fill="currentColor"
-            opacity="0.4"
-          />
-        </svg>
-      </div>
-
-      {/* India Gate Silhouette between Left Headline and Center Radial Dial (Exact Image 2 Position: ~35% width) */}
-      <div className="absolute bottom-0 left-[30%] sm:left-[34%] lg:left-[35%] w-24 sm:w-28 h-20 pointer-events-none flex items-end justify-center z-0">
+      {/* 1. Unified Scenic Atmospheric Backdrop (Matches Reference Image 2: Foliage, Sky, Sunrise Haze, India Gate, Skyline, Birds) */}
+      <div className="absolute inset-0 pointer-events-none z-0">
         <img
-          src="/images/india-gate.png"
-          alt="India Gate Monument"
-          className="w-full h-auto object-contain mix-blend-multiply opacity-55"
+          src="/images/hero-scenic-backdrop.png"
+          alt="Atmospheric scenic Delhi landscape"
+          className="w-full h-full object-cover object-center"
         />
-      </div>
-
-      {/* Flock of Birds in the Morning Haze Sky (Matches Image 2 Sky) */}
-      <div className="absolute top-4 left-[44%] w-20 h-8 pointer-events-none opacity-40 z-0">
-        <svg viewBox="0 0 100 40" fill="currentColor" className="w-full h-full text-stone-700">
-          <path d="M10 20 Q 15 15 20 20 Q 25 15 30 20 Q 25 18 20 21 Q 15 18 10 20 Z" />
-          <path d="M40 12 Q 43 8 46 12 Q 49 8 52 12 Q 49 10 46 13 Q 43 10 40 12 Z" />
-          <path d="M65 18 Q 69 13 73 18 Q 77 13 81 18 Q 77 16 73 19 Q 69 16 65 18 Z" />
-          <path d="M85 8 Q 87 5 89 8 Q 91 5 93 8 Q 91 6 89 9 Q 87 6 85 8 Z" />
-        </svg>
+        <div className="absolute inset-0 bg-gradient-to-r from-white/30 via-transparent to-white/20" />
       </div>
 
       {/* 2. Main 3-Column Hero Grid: Left Text, Center Radial Dial, Right Quick Decision Cards */}
       <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-5 lg:gap-6">
         
-        {/* Left Column: Headline and Context */}
-        <div className="flex-1 text-center lg:text-left space-y-2 max-w-sm sm:max-w-md">
+        {/* Left Column: Headline and Context (Desktop only, matches Reference Image 2 layout) */}
+        <div className="hidden lg:block flex-1 text-left space-y-2 max-w-sm sm:max-w-md">
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slatecharcoal-900 tracking-tight leading-tight">
             {isSevere
               ? 'Severe Particulate Episode in '
