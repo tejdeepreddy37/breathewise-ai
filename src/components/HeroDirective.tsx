@@ -28,27 +28,37 @@ export const HeroDirective: React.FC = () => {
   const strokeDashoffset = circumference - (normalizedAqi / 500) * circumference;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-stone-50 via-white to-stone-50 border border-stone-200/80 p-6 sm:p-8 lg:p-10 shadow-sm">
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#FBF8F5] via-[#FFF3EE] to-[#F5F8F7] border border-stone-200/80 p-6 sm:p-8 lg:p-10 shadow-xs">
       
       {/* 1. Atmospheric Foliage & Monument Silhouette Background Graphic (Matches Image 2) */}
-      <div className="absolute top-0 left-0 w-64 h-64 opacity-25 pointer-events-none -ml-8 -mt-8">
-        {/* Soft green botanical leafy tree overlay */}
-        <svg viewBox="0 0 200 200" fill="none" className="w-full h-full text-emerald-800">
+      {/* Lush Green Trees along Bottom Left & Foreground */}
+      <div className="absolute bottom-0 left-0 w-72 h-20 opacity-30 pointer-events-none z-0">
+        <svg viewBox="0 0 280 80" fill="none" className="w-full h-full text-emerald-800">
           <path
-            d="M0,0 Q60,20 80,70 T20,120 Q0,80 0,0 Z M40,0 Q100,30 110,80 T60,140 Q30,90 40,0 Z M80,0 Q140,40 140,90 T90,150 Q60,90 80,0 Z"
+            d="M0 80 Q 20 40 45 60 Q 70 30 100 55 Q 130 35 160 65 Q 190 40 220 70 Q 250 45 280 80 Z"
             fill="currentColor"
-            opacity="0.35"
+            opacity="0.4"
           />
         </svg>
       </div>
 
-      {/* India Gate / Monument Silhouette in Background Center (Exact Image 2 Match) */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-64 h-28 pointer-events-none flex items-end justify-center z-0">
+      {/* India Gate Silhouette between Left Headline and Center Radial Dial (Exact Image 2 Position: ~35% width) */}
+      <div className="absolute bottom-0 left-[32%] sm:left-[35%] lg:left-[36%] w-28 sm:w-32 h-24 pointer-events-none flex items-end justify-center z-0">
         <img
           src="/images/india-gate.png"
           alt="India Gate Monument"
-          className="w-auto h-24 object-contain mix-blend-multiply opacity-45"
+          className="w-full h-auto object-contain mix-blend-multiply opacity-55"
         />
+      </div>
+
+      {/* Flock of Birds in the Morning Haze Sky (Matches Image 2 Sky) */}
+      <div className="absolute top-6 left-[44%] w-24 h-10 pointer-events-none opacity-40 z-0">
+        <svg viewBox="0 0 100 40" fill="currentColor" className="w-full h-full text-stone-700">
+          <path d="M10 20 Q 15 15 20 20 Q 25 15 30 20 Q 25 18 20 21 Q 15 18 10 20 Z" />
+          <path d="M40 12 Q 43 8 46 12 Q 49 8 52 12 Q 49 10 46 13 Q 43 10 40 12 Z" />
+          <path d="M65 18 Q 69 13 73 18 Q 77 13 81 18 Q 77 16 73 19 Q 69 16 65 18 Z" />
+          <path d="M85 8 Q 87 5 89 8 Q 91 5 93 8 Q 91 6 89 9 Q 87 6 85 8 Z" />
+        </svg>
       </div>
 
       {/* 2. Main 3-Column Hero Grid: Left Text, Center Radial Dial, Right Quick Decision Cards */}
