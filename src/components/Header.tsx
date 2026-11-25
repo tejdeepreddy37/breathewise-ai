@@ -86,7 +86,7 @@ export const Header: React.FC = () => {
           </div>
 
           {/* Center Navigation Pills (Exact match to Image 2) */}
-          <nav className="hidden md:flex items-center space-x-1.5 p-1 rounded-full bg-stone-200/50 border border-stone-200/80">
+          <nav className="hidden lg:flex items-center space-x-1.5 p-1 rounded-full bg-stone-200/50 border border-stone-200/80">
             {navItems.map((item) => {
               const isActive = activeTab === item.id;
               return (
@@ -148,6 +148,7 @@ export const Header: React.FC = () => {
                 aria-label="Select Target City"
                 value={selectedCityId}
                 onChange={(e) => selectCity(e.target.value)}
+                style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
                 className="appearance-none bg-white hover:bg-stone-50 text-slatecharcoal-900 text-xs font-bold py-1.5 pl-8 pr-7 rounded-full border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition-all shadow-2xs"
               >
                 {INDIAN_CITIES_PRESETS.map((city) => (
@@ -170,6 +171,7 @@ export const Header: React.FC = () => {
                 aria-label="Vulnerability Profile"
                 value={userPreferences.vulnerabilityProfile}
                 onChange={(e) => updateProfile(e.target.value as VulnerabilityProfile)}
+                style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
                 className="appearance-none bg-white hover:bg-stone-50 text-slatecharcoal-900 text-xs font-bold py-1.5 pl-8 pr-7 rounded-full border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition-all shadow-2xs"
               >
                 {profiles.map((p) => (

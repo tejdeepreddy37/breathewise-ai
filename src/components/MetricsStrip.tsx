@@ -11,7 +11,7 @@ export const MetricsStrip: React.FC = () => {
   const no2Val = current.no2 != null ? current.no2 : '--';
   const coVal = current.co != null ? current.co : '--';
   const o3Val = current.o3 != null ? current.o3 : '--';
-  const humidityVal = weather?.humidity != null ? `${weather.humidity}%` : '--';
+  const humidityVal = weather?.humidity != null ? weather.humidity : '--';
   const windVal = weather?.windSpeed != null ? `${weather.windSpeed}` : '--';
 
   const metrics = [

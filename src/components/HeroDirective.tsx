@@ -14,11 +14,12 @@ export const HeroDirective: React.FC = () => {
 
   const isSevere = pm > 120 || aqi > 300;
   const isPoor = pm > 60 && pm <= 120;
+  const isSatisfactory = (pm <= 60 && pm > 30) || (aqi <= 100 && aqi > 50);
   const isGood = pm <= 30 && aqi <= 50;
 
   // Semantic color mapping
-  const statusColor = isSevere ? '#DC2626' : isPoor ? '#EA580C' : isGood ? '#10B981' : '#D97706';
-  const statusBg = isSevere ? 'bg-rose-500' : isPoor ? 'bg-orange-500' : isGood ? 'bg-emerald-500' : 'bg-amber-500';
+  const statusColor = isSevere ? '#DC2626' : isPoor ? '#EA580C' : isSatisfactory ? '#16A34A' : isGood ? '#10B981' : '#D97706';
+  const statusBg = isSevere ? 'bg-rose-500' : isPoor ? 'bg-orange-500' : isSatisfactory ? 'bg-emerald-600' : isGood ? 'bg-emerald-500' : 'bg-amber-500';
 
   // SVG Radial Dial Math (500 scale, compact proportions matching Reference Image 2)
   const normalizedAqi = Math.max(0, Math.min(500, aqi));
