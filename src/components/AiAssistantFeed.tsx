@@ -92,7 +92,7 @@ export const AiAssistantFeed: React.FC = () => {
             <h3 className="text-xs sm:text-sm font-bold text-slatecharcoal-900">
               BreatheWise Living Assistant
             </h3>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-slate-500 truncate max-w-[190px] sm:max-w-none">
               {sessionApiKey ? 'Gemini 1.5 Flash Active' : 'Deterministic Engine + AI Synthesis'} • {telemetry.city}
             </p>
           </div>

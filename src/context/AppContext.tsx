@@ -117,6 +117,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return 'landing';
   });
 
+  useEffect(() => {
+    const handleHash = () => {
+      try {
+        const hash = window.location.hash.replace('#', '');
+        if (hash === 'diurnal') {
+          setActiveTabState('overview');
+        } else if (['landing', 'overview', 'commute', 'indoor', 'simulator', 'assistant'].includes(hash)) {
+          setActiveTabState(hash as NavigationTab);
+        }
+      } catch {}
+    };
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
   const setActiveTab = (tab: NavigationTab) => {
     setActiveTabState(tab);
     try {

@@ -14,6 +14,14 @@
     background-color: #FAFBF8;
     color: #0F172A;
   }
+
+  /* Prevent browser-native select arrows from conflicting with custom dropdown carets */
+  select {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background-image: none !important;
+  }
 }
 
 /* Atmospheric subtle glow classes */

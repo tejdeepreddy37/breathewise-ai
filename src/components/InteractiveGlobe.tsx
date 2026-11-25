@@ -321,6 +321,7 @@ export const InteractiveGlobe: React.FC<{
   onToggleView?: (view: 'globe' | 'map') => void;
 }> = ({ onExploreCity, activeView = 'globe', onToggleView }) => {
   const { selectedCityId, selectCity } = useApp();
+  const [activePinId, setActivePinId] = useState<string>('jakarta-indonesia');
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasMountRef = useRef<HTMLDivElement>(null);
 
@@ -647,6 +648,7 @@ export const InteractiveGlobe: React.FC<{
         {markerPositions.map(({ city, x, y, isVisible }) => {
           if (!isVisible) return null;
           const isSelected = city.id === selectedCityId;
+          const showPopover = activePinId === city.id;
 
           return (
             <div
@@ -659,6 +661,7 @@ export const InteractiveGlobe: React.FC<{
               className="absolute pointer-events-auto cursor-pointer group"
               onClick={(e) => {
                 e.stopPropagation();
+                setActivePinId(city.id);
                 selectCity(city.id);
                 rotateToCity(city);
               }}
@@ -672,7 +675,7 @@ export const InteractiveGlobe: React.FC<{
               {/* Glowing Badge with AQI Number (Exact match to Image 1) */}
               <div
                 className={`relative flex items-center justify-center font-extrabold text-[11px] font-mono px-2 py-0.5 rounded-full border shadow-lg transition-transform ${
-                  isSelected
+                  isSelected || showPopover
                     ? 'ring-4 ring-emerald-400 scale-125 z-30'
                     : 'group-hover:scale-115'
                 }`}
@@ -693,7 +696,7 @@ export const InteractiveGlobe: React.FC<{
               />
 
               {/* Floating City Info Popover (matches exact popup in Image 1) */}
-              {(isSelected || city.id === 'jakarta-indonesia') && (
+              {showPopover && (
                 <div
                   className="absolute bottom-9 right-4 sm:right-6 w-64 p-3 rounded-2xl bg-slate-900/95 border border-slate-700/80 backdrop-blur-xl shadow-2xl text-left pointer-events-auto animate-in fade-in zoom-in-95 duration-200 z-40"
                   style={{ boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)' }}
@@ -706,8 +709,8 @@ export const InteractiveGlobe: React.FC<{
 
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-300 pb-1.5 border-b border-slate-800">
                     <span className="flex items-center space-x-1">
-                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                      <span className="font-bold text-white">Jakarta, Indonesia • Air Quality</span>
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: city.color }} />
+                      <span className="font-bold text-white truncate max-w-[190px]">{city.name}, {city.country} • Air Quality</span>
                     </span>
                     <button
                       onClick={() => onExploreCity && onExploreCity(city.id)}
@@ -718,18 +721,18 @@ export const InteractiveGlobe: React.FC<{
                   </div>
 
                   <div className="flex items-center space-x-2 my-2">
-                    <span className="text-xs font-black px-2 py-0.5 rounded-md text-white font-mono bg-amber-500">
-                      137 AQI
+                    <span className="text-xs font-black px-2 py-0.5 rounded-md text-white font-mono" style={{ backgroundColor: city.color }}>
+                      {city.aqi} AQI
                     </span>
                     <span className="text-xs font-bold text-slate-200 truncate">
-                      Unhealthy for sensitive people
+                      {city.category}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-[11px] text-slate-300 pt-1.5 border-t border-slate-800 font-mono">
-                    <span>☀️ 34 °C</span>
-                    <span>💧 50%</span>
-                    <span>💨 13.2 km/h</span>
+                    <span>☀️ {city.temp} °C</span>
+                    <span>💧 {city.humidity}%</span>
+                    <span>💨 {city.windSpeed} km/h</span>
                   </div>
                 </div>
               )}

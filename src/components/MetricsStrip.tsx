@@ -88,7 +88,7 @@ export const MetricsStrip: React.FC = () => {
         </div>
 
         {/* Right Horizontal Metrics List (Exact match to Image 2) */}
-        <div className="flex-1 flex flex-wrap items-center justify-between gap-3 sm:gap-4 overflow-x-auto">
+        <div className="flex-1 grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
           {metrics.map((m) => (
             <div key={m.id} className="flex items-center space-x-2 shrink-0">
               <div className="p-1.5 rounded-lg bg-stone-50 border border-stone-200/60">

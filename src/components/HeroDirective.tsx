@@ -35,8 +35,10 @@ export const HeroDirective: React.FC = () => {
       <div className="absolute inset-0 pointer-events-none z-0">
         <img
           src={`${import.meta.env.BASE_URL}images/hero-scenic-backdrop.png`}
-          alt="Atmospheric scenic Delhi landscape"
-          className="w-full h-full object-cover object-center"
+          alt="Atmospheric scenic landscape"
+          className={`w-full h-full object-cover object-center transition-opacity duration-500 ${
+            telemetry.city.toLowerCase().includes('delhi') ? 'opacity-100' : 'opacity-40'
+          }`}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-white/30 via-transparent to-white/20" />
       </div>
@@ -136,7 +138,7 @@ export const HeroDirective: React.FC = () => {
         <div className="w-full lg:w-64 grid grid-cols-3 lg:flex lg:flex-col gap-2 lg:space-y-2 lg:gap-0">
           
           {/* Card 1: Outdoor Exercise */}
-          <div className="flex flex-col lg:flex-row items-center lg:space-x-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-stone-200/80 shadow-2xs hover:shadow-xs transition-all text-center lg:text-left">
+          <div className="flex flex-col lg:flex-row items-center lg:space-x-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-stone-200/80 shadow-2xs hover:shadow-xs transition-all text-center lg:text-left min-h-[58px] justify-center">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 mb-1 lg:mb-0 ${
               isSevere || isPoor ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'
             }`}>
@@ -153,7 +155,7 @@ export const HeroDirective: React.FC = () => {
           </div>
 
           {/* Card 2: Window Ventilation */}
-          <div className="flex flex-col lg:flex-row items-center lg:space-x-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-stone-200/80 shadow-2xs hover:shadow-xs transition-all text-center lg:text-left">
+          <div className="flex flex-col lg:flex-row items-center lg:space-x-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-stone-200/80 shadow-2xs hover:shadow-xs transition-all text-center lg:text-left min-h-[58px] justify-center">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 mb-1 lg:mb-0 ${
               pm > 60 ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'
             }`}>
@@ -170,7 +172,7 @@ export const HeroDirective: React.FC = () => {
           </div>
 
           {/* Card 3: Commute Protection */}
-          <div className="flex flex-col lg:flex-row items-center lg:space-x-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-stone-200/80 shadow-2xs hover:shadow-xs transition-all text-center lg:text-left">
+          <div className="flex flex-col lg:flex-row items-center lg:space-x-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-stone-200/80 shadow-2xs hover:shadow-xs transition-all text-center lg:text-left min-h-[58px] justify-center">
             <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-100 shrink-0 mb-1 lg:mb-0">
               <Train className="w-3.5 h-3.5" />
             </div>

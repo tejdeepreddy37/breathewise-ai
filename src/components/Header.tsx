@@ -86,14 +86,14 @@ export const Header: React.FC = () => {
           </div>
 
           {/* Center Navigation Pills (Exact match to Image 2) */}
-          <nav className="hidden lg:flex items-center space-x-1.5 p-1 rounded-full bg-stone-200/50 border border-stone-200/80">
+          <nav className="hidden lg:flex items-center space-x-1 xl:space-x-1.5 p-1 rounded-full bg-stone-200/50 border border-stone-200/80">
             {navItems.map((item) => {
               const isActive = activeTab === item.id;
               return (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id as any)}
-                  className={`flex items-center space-x-1.5 py-1.5 px-3.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex items-center space-x-1.5 py-1.5 px-2.5 xl:px-3.5 rounded-full text-[11px] xl:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                     isActive
                       ? 'bg-[#164E43] text-white shadow-sm ring-1 ring-[#164E43]'
                       : 'text-slate-600 hover:text-slatecharcoal-900 hover:bg-white/70'
@@ -149,7 +149,7 @@ export const Header: React.FC = () => {
                 value={selectedCityId}
                 onChange={(e) => selectCity(e.target.value)}
                 style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
-                className="appearance-none bg-white hover:bg-stone-50 text-slatecharcoal-900 text-xs font-bold py-1.5 pl-8 pr-7 rounded-full border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition-all shadow-2xs"
+                className="appearance-none bg-white hover:bg-stone-50 text-slatecharcoal-900 text-xs font-bold py-1.5 pl-8 pr-7 rounded-full border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition-all shadow-2xs truncate max-w-[130px] sm:max-w-none"
               >
                 {INDIAN_CITIES_PRESETS.map((city) => (
                   <option key={city.id} value={city.id}>
@@ -172,7 +172,7 @@ export const Header: React.FC = () => {
                 value={userPreferences.vulnerabilityProfile}
                 onChange={(e) => updateProfile(e.target.value as VulnerabilityProfile)}
                 style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
-                className="appearance-none bg-white hover:bg-stone-50 text-slatecharcoal-900 text-xs font-bold py-1.5 pl-8 pr-7 rounded-full border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition-all shadow-2xs"
+                className="appearance-none bg-white hover:bg-stone-50 text-slatecharcoal-900 text-xs font-bold py-1.5 pl-8 pr-7 rounded-full border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition-all shadow-2xs truncate max-w-[135px] sm:max-w-none"
               >
                 {profiles.map((p) => (
                   <option key={p.id} value={p.id}>

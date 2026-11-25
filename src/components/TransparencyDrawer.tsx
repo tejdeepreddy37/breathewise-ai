@@ -30,6 +30,7 @@ export const TransparencyDrawer: React.FC = () => {
           </div>
           <button
             onClick={() => setIsTransparencyOpen(false)}
+            aria-label="Close Methodology Modal"
             className="text-slate-400 hover:text-slatecharcoal-900 p-2 rounded-xl hover:bg-cream-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -61,7 +62,7 @@ export const TransparencyDrawer: React.FC = () => {
                 </span>
               </div>
               <div>
-                <span className="text-slate-500">Telemetry Status:</span>{' '}
+                <span className="text-slate-500">Observed Local Time:</span>{' '}
                 <span className="text-slatecharcoal-900 font-medium">{meta.fetchTimestamp}</span>
               </div>
               {meta.modelTimestamp && (
@@ -148,7 +149,7 @@ export const TransparencyDrawer: React.FC = () => {
             onClick={() => setIsTransparencyOpen(false)}
             className="px-5 py-2.5 bg-forest-600 hover:bg-forest-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer"
           >
-            Close Methodology Drawer
+            Close Methodology Modal
           </button>
         </div>
 

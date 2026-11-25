@@ -129,7 +129,7 @@ export const App: React.FC = () => {
       <MobileBottomNav />
 
       {/* Footer */}
-      <footer className="border-t border-cream-200/80 py-8 text-center text-xs text-slate-500 mt-auto bg-cream-50">
+      <footer className="border-t border-cream-200/80 py-8 pb-24 sm:pb-8 text-center text-xs text-slate-500 mt-auto bg-cream-50">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center space-x-2">
             <span className="font-bold text-slatecharcoal-900">BreatheWise AI</span>

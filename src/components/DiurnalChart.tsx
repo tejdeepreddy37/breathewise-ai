@@ -124,10 +124,11 @@ export const DiurnalChart: React.FC = () => {
               strokeWidth={1.5}
               label={{
                 value: 'NOW',
-                position: 'top',
+                position: 'insideTop',
                 fill: '#D97706',
                 fontSize: 9,
                 fontWeight: 'bold',
+                offset: 6,
               }}
             />
 
@@ -143,7 +144,7 @@ export const DiurnalChart: React.FC = () => {
               tick={{ fontSize: 10, fill: '#64748B' }}
               axisLine={{ stroke: '#E2E8F0' }}
               tickLine={false}
-              domain={[0, 300]}
+              domain={[0, (dataMax: number) => Math.max(250, Math.ceil(dataMax * 1.15))]}
               unit=""
             />
             <Tooltip content={<CustomTooltip />} />

@@ -102,8 +102,8 @@ export const AiLivingPlanCard: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center space-x-2 self-start sm:self-auto">
-          <span className="text-[11px] font-semibold text-slate-600 bg-cream-50 px-2.5 py-1 rounded-full border border-cream-200/80">
+        <div className="flex items-center space-x-2 self-start sm:self-auto shrink-0">
+          <span className="text-[11px] font-semibold text-slate-600 bg-cream-50 px-2.5 py-1 rounded-full border border-cream-200/80 whitespace-nowrap truncate max-w-[220px] sm:max-w-none">
             {livingPlan.scientificConfidence}
           </span>
         </div>
