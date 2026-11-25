@@ -148,7 +148,7 @@ export const Header: React.FC = () => {
                 aria-label="Select Target City"
                 value={selectedCityId}
                 onChange={(e) => selectCity(e.target.value)}
-                style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
+                style={{ appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none' }}
                 className="appearance-none bg-white hover:bg-stone-50 text-slatecharcoal-900 text-xs font-bold py-1.5 pl-8 pr-7 rounded-full border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition-all shadow-2xs truncate max-w-[130px] sm:max-w-none"
               >
                 {INDIAN_CITIES_PRESETS.map((city) => (
@@ -171,7 +171,7 @@ export const Header: React.FC = () => {
                 aria-label="Vulnerability Profile"
                 value={userPreferences.vulnerabilityProfile}
                 onChange={(e) => updateProfile(e.target.value as VulnerabilityProfile)}
-                style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
+                style={{ appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none' }}
                 className="appearance-none bg-white hover:bg-stone-50 text-slatecharcoal-900 text-xs font-bold py-1.5 pl-8 pr-7 rounded-full border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition-all shadow-2xs truncate max-w-[135px] sm:max-w-none"
               >
                 {profiles.map((p) => (

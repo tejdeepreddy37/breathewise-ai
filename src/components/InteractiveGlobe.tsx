@@ -649,6 +649,7 @@ export const InteractiveGlobe: React.FC<{
           if (!isVisible) return null;
           const isSelected = city.id === selectedCityId;
           const showPopover = activePinId === city.id;
+          const isNearLeftEdge = x < 280;
 
           return (
             <div
@@ -698,14 +699,21 @@ export const InteractiveGlobe: React.FC<{
               {/* Floating City Info Popover (matches exact popup in Image 1) */}
               {showPopover && (
                 <div
-                  className="absolute bottom-9 right-4 sm:right-6 w-64 p-3 rounded-2xl bg-slate-900/95 border border-slate-700/80 backdrop-blur-xl shadow-2xl text-left pointer-events-auto animate-in fade-in zoom-in-95 duration-200 z-40"
+                  className={`absolute bottom-9 ${isNearLeftEdge ? 'left-4 sm:left-6' : 'right-4 sm:right-6'} w-64 p-3 rounded-2xl bg-slate-900/95 border border-slate-700/80 backdrop-blur-xl shadow-2xl text-left pointer-events-auto animate-in fade-in zoom-in-95 duration-200 z-40`}
                   style={{ boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)' }}
                 >
-                  {/* Diagonal SVG leader pointer line from card bottom-right to pin matching Image 1 */}
-                  <svg className="absolute -bottom-6 -right-1 w-7 h-7 pointer-events-none" viewBox="0 0 28 28">
-                    <path d="M4 2 L22 20" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-                    <circle cx="22" cy="20" r="2.5" fill="white" />
-                  </svg>
+                  {/* Diagonal SVG leader pointer line from card to pin matching Image 1 */}
+                  {isNearLeftEdge ? (
+                    <svg className="absolute -bottom-6 -left-1 w-7 h-7 pointer-events-none" viewBox="0 0 28 28">
+                      <path d="M24 2 L6 20" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+                      <circle cx="6" cy="20" r="2.5" fill="white" />
+                    </svg>
+                  ) : (
+                    <svg className="absolute -bottom-6 -right-1 w-7 h-7 pointer-events-none" viewBox="0 0 28 28">
+                      <path d="M4 2 L22 20" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+                      <circle cx="22" cy="20" r="2.5" fill="white" />
+                    </svg>
+                  )}
 
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-300 pb-1.5 border-b border-slate-800">
                     <span className="flex items-center space-x-1">
