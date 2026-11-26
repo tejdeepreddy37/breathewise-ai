@@ -357,7 +357,7 @@ export const InteractiveGlobe: React.FC<{
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 1000);
-    camera.position.set(0, 0, 8.35);
+    camera.position.set(0, 0, 7.65);
     cameraRef.current = camera;
 
     // 2. WebGL Renderer with High-DPI & Antialiasing
@@ -480,12 +480,12 @@ export const InteractiveGlobe: React.FC<{
     const animate = () => {
       animId = requestAnimationFrame(animate);
 
-      // Subtle slow auto-rotation when user is not dragging
+      // Very gentle restrained idle drift so Asia-Pacific / India stays centered gracefully
       if (!prefersReducedMotion && !isDraggingRef.current && globeGroup) {
-        globeGroup.rotation.y -= 0.0009;
+        globeGroup.rotation.y -= 0.0003;
       }
       if (!prefersReducedMotion && cloudMesh) {
-        cloudMesh.rotation.y -= 0.0012;
+        cloudMesh.rotation.y -= 0.0005;
       }
 
       // Project 3D City Coordinates onto 2D Canvas Screen Pixels (throttled to every 2nd frame)
@@ -594,7 +594,7 @@ export const InteractiveGlobe: React.FC<{
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[290px] sm:h-[340px] md:h-full select-none flex items-center justify-center"
+      className="relative w-full h-full min-h-[300px] select-none flex items-center justify-center"
     >
       {/* 1. Seamless Radial Sky-Blue Atmospheric Glow */}
       <div
@@ -608,12 +608,13 @@ export const InteractiveGlobe: React.FC<{
       {/* Crisp Thin Elliptical White/Cyan Orbital Curves Framing the Earth (Unclipped, Target Image 2) */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible"
-        viewBox="-40 -30 540 420"
+        viewBox="-50 -20 600 540"
+        preserveAspectRatio="xMidYMid meet"
         fill="none"
       >
         <defs>
           <filter id="orbitGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="1.4" result="blur" />
+            <feGaussianBlur stdDeviation="1.6" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -621,22 +622,22 @@ export const InteractiveGlobe: React.FC<{
           </filter>
         </defs>
         <ellipse
-          cx="230"
-          cy="180"
-          rx="186"
-          ry="112"
-          transform="rotate(-24 230 180)"
-          stroke="rgba(255, 255, 255, 0.88)"
-          strokeWidth="1.25"
+          cx="250"
+          cy="250"
+          rx="278"
+          ry="162"
+          transform="rotate(-24 250 250)"
+          stroke="rgba(255, 255, 255, 0.8)"
+          strokeWidth="1.3"
           filter="url(#orbitGlow)"
         />
         <ellipse
-          cx="230"
-          cy="180"
-          rx="176"
-          ry="98"
-          transform="rotate(20 230 180)"
-          stroke="rgba(224, 242, 254, 0.78)"
+          cx="250"
+          cy="250"
+          rx="262"
+          ry="142"
+          transform="rotate(20 250 250)"
+          stroke="rgba(224, 242, 254, 0.68)"
           strokeWidth="1.05"
           filter="url(#orbitGlow)"
         />
