@@ -321,7 +321,7 @@ export const InteractiveGlobe: React.FC<{
   onToggleView?: (view: 'globe' | 'map') => void;
 }> = ({ onExploreCity, activeView = 'globe', onToggleView }) => {
   const { selectedCityId, selectCity } = useApp();
-  const [activePinId, setActivePinId] = useState<string>('jakarta-indonesia');
+  const [activePinId, setActivePinId] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasMountRef = useRef<HTMLDivElement>(null);
 
@@ -357,7 +357,7 @@ export const InteractiveGlobe: React.FC<{
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 1000);
-    camera.position.set(0, 0, 8.2);
+    camera.position.set(0, 0, 7.95);
     cameraRef.current = camera;
 
     // 2. WebGL Renderer with High-DPI & Antialiasing
@@ -372,30 +372,29 @@ export const InteractiveGlobe: React.FC<{
 
     // 3. Globe Group containing Earth, Atmosphere, and Clouds
     const globeGroup = new THREE.Group();
-    // Center on South Asia / India / Indian Ocean / Australia (lon ~85°E, lat ~16°N)
-    globeGroup.rotation.y = THREE.MathUtils.degToRad(-175);
+    // Center on India / South Asia / Southeast Asia / Australia (lon ~95°E, lat ~14°N) matching Reference Image 2
+    globeGroup.rotation.y = THREE.MathUtils.degToRad(-185);
     globeGroup.rotation.x = THREE.MathUtils.degToRad(14);
     scene.add(globeGroup);
     globeGroupRef.current = globeGroup;
 
-    // 4. Photorealistic Earth Sphere with High-Resolution NASA Blue Marble Texture
+    // 4. Photorealistic Daylight Earth Sphere (Vibrant Blue Oceans + Sunlit Continents)
     const textureLoader = new THREE.TextureLoader();
     const earthGeometry = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64);
     const baseUrl = import.meta.env.BASE_URL || '/';
     const cleanBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
     
-    // Load high-res NASA Blue Marble texture
-    const earthTexture = textureLoader.load(`${cleanBase}textures/earth-blue-marble.jpg`);
+    const earthTexture = textureLoader.load(`${cleanBase}textures/earth-daylight.jpg`);
     earthTexture.colorSpace = THREE.SRGBColorSpace;
     const specularMap = textureLoader.load(`${cleanBase}textures/earth-specular.jpg`);
 
     const earthMaterial = new THREE.MeshPhongMaterial({
       map: earthTexture,
       specularMap: specularMap,
-      specular: new THREE.Color(0x93c5fd),
+      specular: new THREE.Color(0x60a5fa),
       emissive: new THREE.Color(0x0369a1),
-      emissiveIntensity: 0.18,
-      shininess: 22,
+      emissiveIntensity: 0.08,
+      shininess: 24,
     });
     const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
     globeGroup.add(earthMesh);
@@ -407,9 +406,9 @@ export const InteractiveGlobe: React.FC<{
     const cloudMaterial = new THREE.MeshStandardMaterial({
       map: cloudTexture,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.42,
       blending: THREE.AdditiveBlending,
-      roughness: 0.85,
+      roughness: 0.9,
     });
     const cloudMesh = new THREE.Mesh(cloudGeometry, cloudMaterial);
     globeGroup.add(cloudMesh);
@@ -467,20 +466,20 @@ export const InteractiveGlobe: React.FC<{
     scene.add(createOrbitalEllipse(GLOBE_RADIUS * 1.32, 0.48, 0.35, -0.25, 0.42, 0.85));
     scene.add(createOrbitalEllipse(GLOBE_RADIUS * 1.24, 0.42, -0.45, 0.32, -0.52, 0.65));
 
-    // 8. Bright Daytime Sky Lighting System (Vibrant Blue Oceans, Zero Harsh Dark Side)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 2.25);
+    // 8. Balanced Natural Daytime Sky Lighting (Rich Blue Oceans + Crisp Continent Detail)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.15);
     scene.add(ambientLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x38bdf8, 1.65);
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x38bdf8, 0.85);
     scene.add(hemiLight);
 
     // Primary Sun directional light from upper-left
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.9);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.05);
     sunLight.position.set(-4, 5, 6);
     scene.add(sunLight);
 
-    // Front-right sky fill light so oceans stay luminous blue across the entire sphere
-    const fillLight = new THREE.DirectionalLight(0x7dd3fc, 1.5);
+    // Soft sky fill light on right hemisphere
+    const fillLight = new THREE.DirectionalLight(0x7dd3fc, 0.7);
     fillLight.position.set(5, -1, 6);
     scene.add(fillLight);
 
@@ -619,16 +618,53 @@ export const InteractiveGlobe: React.FC<{
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[340px] sm:h-[440px] lg:h-[520px] select-none flex items-center justify-center"
+      className="relative w-full h-[290px] sm:h-[340px] md:h-full select-none flex items-center justify-center"
     >
-      {/* 1. Seamless Radial Sky-Blue Atmospheric Glow (Never clips at container edges) */}
+      {/* 1. Seamless Radial Sky-Blue Atmospheric Glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(circle at 50% 50%, rgba(125, 211, 252, 0.38) 0%, rgba(186, 230, 253, 0.16) 44%, rgba(255, 255, 255, 0) 70%)',
+            'radial-gradient(circle at 50% 50%, rgba(125, 211, 252, 0.45) 0%, rgba(186, 230, 253, 0.18) 46%, rgba(255, 255, 255, 0) 72%)',
         }}
       />
+
+      {/* Crisp Thin Elliptical White Orbital Curves Framing the Earth (Reference Image 2) */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-15"
+        viewBox="0 0 460 360"
+        fill="none"
+      >
+        <defs>
+          <filter id="orbitGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="1.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <ellipse
+          cx="230"
+          cy="180"
+          rx="192"
+          ry="118"
+          transform="rotate(-24 230 180)"
+          stroke="rgba(255, 255, 255, 0.85)"
+          strokeWidth="1.2"
+          filter="url(#orbitGlow)"
+        />
+        <ellipse
+          cx="230"
+          cy="180"
+          rx="184"
+          ry="104"
+          transform="rotate(22 230 180)"
+          stroke="rgba(224, 242, 254, 0.72)"
+          strokeWidth="1.05"
+          filter="url(#orbitGlow)"
+        />
+      </svg>
 
       {/* 2. WebGL Canvas Mounting Point */}
       <div
@@ -645,7 +681,7 @@ export const InteractiveGlobe: React.FC<{
           if (!isVisible) return null;
           const isSelected = city.id === selectedCityId;
           const showPopover = activePinId === city.id;
-          const isNearLeftEdge = x < 280;
+          const isNearLeftEdge = x < 180;
 
           return (
             <div
@@ -665,15 +701,15 @@ export const InteractiveGlobe: React.FC<{
                 rotateToCity(city);
               }}
             >
-              {/* Subtle Low-Profile Interactive Pinpoint Dot */}
+              {/* Minimal Unobtrusive Interactive Dot */}
               <div
-                className={`relative w-2 h-2 rounded-full border border-white/80 transition-all ${
+                className={`relative w-1.5 h-1.5 rounded-full transition-all ${
                   isSelected || showPopover
-                    ? 'scale-150 bg-[#38BDF8] ring-3 ring-white/70 opacity-100 z-30'
-                    : 'bg-white/55 opacity-60 group-hover:opacity-100 group-hover:scale-150 group-hover:bg-white'
+                    ? 'scale-150 bg-white ring-2 ring-[#38BDF8] opacity-100 z-30'
+                    : 'bg-white/40 opacity-45 group-hover:opacity-100 group-hover:scale-150 group-hover:bg-white'
                 }`}
                 style={{
-                  boxShadow: '0 0 6px rgba(255, 255, 255, 0.75)',
+                  boxShadow: '0 0 4px rgba(255, 255, 255, 0.65)',
                 }}
                 title={`${city.name}, ${city.country}`}
               />
