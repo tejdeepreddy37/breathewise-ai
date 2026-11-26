@@ -58,9 +58,9 @@ export const App: React.FC = () => {
   const headerMeta = getHeaderMeta();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#EAF4FD] via-[#DDF0FC] to-[#CFE9FB] flex font-sans text-[#0C2340] selection:bg-[#BAE6FD] selection:text-[#0C2340] relative overflow-x-hidden">
-      {/* Subtle Bottom Horizon Clouds Matching Reference Panels 2–6 */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-40">
+    <div className="min-h-screen bg-gradient-to-br from-[#DDF1FE] via-[#CDE9FC] to-[#B7DFFA] flex font-sans text-[#0C2340] selection:bg-[#BAE6FD] selection:text-[#0C2340] relative overflow-x-hidden">
+      {/* Subtle Bottom Horizon Clouds Matching Reference Panels */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-55">
         <img
           src={`${import.meta.env.BASE_URL}images/sky-clouds-backdrop.png`}
           alt=""

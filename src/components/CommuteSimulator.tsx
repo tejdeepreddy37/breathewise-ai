@@ -6,8 +6,8 @@ import { CommuteMode } from '../types/engines';
 import { Bike, Car, Bus, Train, MapPin, ArrowRight, Sprout, ChevronDown } from 'lucide-react';
 
 const ORIGIN_ZONES = [
-  'Residential Locality',
   'HSR Layout',
+  'Residential Locality',
   'City Center',
   'Tech Corridor West',
   'Suburban Transit Hub',
@@ -86,12 +86,12 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
 
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
-      {/* Main 3-Column Row Matching Reference */}
+      {/* Main 3-Column Row Matching Reference Image 3 Bottom */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Column 1: Plan Your Commute */}
         <form
           onSubmit={handleAnalyze}
-          className="lg:col-span-4 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col justify-between space-y-4"
+          className="lg:col-span-4 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-4"
         >
           <div className="space-y-3">
             <h2 className="text-[14px] font-extrabold text-[#0C2340]">
@@ -99,7 +99,7 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
             </h2>
 
             {/* Origin Field */}
-            <div className="relative rounded-xl bg-white/95 border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
+            <div className="relative rounded-xl bg-white border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
               <MapPin className="w-4 h-4 text-[#5A7896] shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-[10px] font-semibold text-[#5A7896] leading-none">Origin</div>
@@ -107,7 +107,7 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
                   aria-label="Origin Locality"
                   value={origin}
                   onChange={(e) => handleOriginChange(e.target.value)}
-                  className="w-full bg-transparent text-xs font-bold text-[#0C2340] pt-0.5 pr-5 cursor-pointer focus:outline-none truncate"
+                  className="w-full bg-transparent text-xs font-extrabold text-[#0C2340] pt-0.5 pr-5 cursor-pointer focus:outline-none truncate"
                 >
                   {ORIGIN_ZONES.map((z) => (
                     <option key={z} value={z}>
@@ -120,7 +120,7 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
             </div>
 
             {/* Destination / Corridor Field */}
-            <div className="relative rounded-xl bg-white/95 border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
+            <div className="relative rounded-xl bg-white border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
               <MapPin className="w-4 h-4 text-[#5A7896] shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-[10px] font-semibold text-[#5A7896] leading-none">Destination</div>
@@ -128,7 +128,7 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
                   aria-label="Destination Corridor"
                   value={destinationLabel}
                   onChange={(e) => handleDestinationChange(e.target.value)}
-                  className="w-full bg-transparent text-xs font-bold text-[#0C2340] pt-0.5 pr-5 cursor-pointer focus:outline-none truncate"
+                  className="w-full bg-transparent text-xs font-extrabold text-[#0C2340] pt-0.5 pr-5 cursor-pointer focus:outline-none truncate"
                 >
                   {DESTINATION_CORRIDORS.map((d) => (
                     <option key={d.label} value={d.label}>
@@ -141,7 +141,7 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
             </div>
 
             {/* 4 Mode Buttons */}
-            <div className="grid grid-cols-4 gap-2 pt-1">
+            <div className="grid grid-cols-4 gap-2 pt-0.5">
               {modeButtons.map((m) => {
                 const active = selectedMode === m.id;
                 return (
@@ -152,7 +152,7 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
                       setSelectedMode(m.id);
                       syncScenario(distanceKm, m.id, origin, destinationLabel);
                     }}
-                    className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
+                    className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
                       active
                         ? 'bg-gradient-to-b from-[#0EA5E9] to-[#0284C7] border-[#0284C7] text-white shadow-[0_6px_14px_rgba(14,165,233,0.28)]'
                         : 'bg-[#F8FBFF] border-[#DCEBF7] text-[#334E68] hover:bg-white'
@@ -168,7 +168,7 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
 
           <button
             type="submit"
-            className="w-full inline-flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] hover:brightness-105 text-white text-xs font-extrabold shadow-[0_6px_16px_rgba(14,165,233,0.3)] transition-all cursor-pointer"
+            className="w-full inline-flex items-center justify-center space-x-2 py-2.5 px-5 rounded-full bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] hover:brightness-105 text-white text-xs font-extrabold shadow-[0_6px_16px_rgba(14,165,233,0.3)] transition-all cursor-pointer"
           >
             <span>Analyze Commute</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -176,15 +176,15 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
         </form>
 
         {/* Column 2: Route Comparison */}
-        <div className="lg:col-span-4 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col justify-between space-y-3">
+        <div className="lg:col-span-4 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-3">
           <h2 className="text-[14px] font-extrabold text-[#0C2340]">
             Route Comparison
           </h2>
 
           <div className="space-y-3 flex-1 flex flex-col justify-center">
-            {/* Selected Route Card */}
-            <div className="rounded-xl bg-[#FEF6E6] border border-[#FDE2B8] p-4 flex items-center justify-between gap-3">
-              <div className="min-w-0">
+            {/* Selected Mode Row — Crisp Light Card with Dedicated Warm Score Badge */}
+            <div className="rounded-xl bg-[#F8FBFF] border border-[#E5EEF6] p-3 flex items-center justify-between gap-3">
+              <div className="min-w-0 pl-1">
                 <div className="text-xs font-extrabold text-[#0C2340]">
                   Selected: {selectedComp.modeLabel.split('(')[0].trim()}
                 </div>
@@ -192,8 +192,8 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
                   {distanceKm} km • {selectedComp.travelTimeMinutes} min
                 </div>
               </div>
-              <div className="text-right shrink-0">
-                <div className="text-2xl font-extrabold text-[#D97706] leading-none tabular-nums">
+              <div className="w-24 rounded-xl bg-[#FEF0D4] py-2 px-2 text-center shrink-0">
+                <div className="text-xl font-extrabold text-[#D97706] leading-none tabular-nums">
                   {selectedCabinAqi ? selectedCabinAqi.aqi : '--'}
                 </div>
                 <div className="text-[10px] font-bold text-[#92400E] mt-1">
@@ -202,21 +202,21 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
               </div>
             </div>
 
-            {/* Cleaner Alternative Card */}
-            <div className="rounded-xl bg-[#E8FAEF] border border-[#BBEFD1] p-4 flex items-center justify-between gap-3">
-              <div className="min-w-0">
+            {/* Cleaner Alternative Row — Crisp Light Card with Dedicated Green Score Badge */}
+            <div className="rounded-xl bg-[#F8FBFF] border border-[#E5EEF6] p-3 flex items-center justify-between gap-3">
+              <div className="min-w-0 pl-1">
                 <div className="text-xs font-extrabold text-[#0C2340]">
                   Cleaner: Rapid AC Metro
                 </div>
-                <div className="text-[11px] font-medium text-[#047857] mt-0.5 tabular-nums">
+                <div className="text-[11px] font-medium text-[#476788] mt-0.5 tabular-nums">
                   {distanceKm} km • {metroComp.travelTimeMinutes} min
                 </div>
               </div>
-              <div className="text-right shrink-0">
-                <div className="text-2xl font-extrabold text-[#059669] leading-none tabular-nums">
+              <div className="w-24 rounded-xl bg-[#DCFCE7] py-2 px-2 text-center shrink-0">
+                <div className="text-xl font-extrabold text-[#059669] leading-none tabular-nums">
                   {cleanerCabinAqi ? cleanerCabinAqi.aqi : '--'}
                 </div>
-                <div className="text-[10px] font-bold text-[#047857] mt-1">
+                <div className="text-[10px] font-bold text-[#065F46] mt-1">
                   {cleanerCabinAqi ? `(${cleanerCabinAqi.category})` : 'Unavailable'}
                 </div>
               </div>
@@ -225,30 +225,34 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
         </div>
 
         {/* Column 3: Commute Exposure Estimate */}
-        <div className="lg:col-span-4 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-4 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-4">
           <h2 className="text-[14px] font-extrabold text-[#0C2340]">
             Commute Exposure Estimate
           </h2>
 
           <div className="flex items-center justify-between gap-3 py-1">
             <div>
-              <div className="text-xs font-semibold text-[#476788]">Inhaled Dose (PM₂.₅)</div>
-              <div className="text-[36px] leading-tight font-extrabold text-[#0C2340] tabular-nums mt-0.5">
+              <div className="text-xs font-semibold text-[#476788]">Inhaled Dose (PM2.5)</div>
+              <div className="text-[38px] leading-tight font-extrabold text-[#0C2340] tabular-nums mt-0.5">
                 {ambientPm25 != null ? `${selectedComp.inhaledDoseUg} µg` : '--'}
               </div>
             </div>
 
-            <div className="w-14 h-14 rounded-2xl bg-[#EAF4FD] border border-[#CFE4F7] flex items-center justify-center shrink-0">
-              <svg className="w-8 h-8 text-[#0EA5E9]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 3v9" />
-                <path d="M12 12c-2-2-6-2-7 3-.7 3.5 1 6 4 6 2 0 3-1 3-3v-6Z" />
-                <path d="M12 12c2-2 6-2 7 3 .7 3.5-1 6-4 6-2 0-3-1-3-3v-6Z" />
+            {/* Crisp Anatomical Lungs Illustration Matching Image 3 */}
+            <div className="w-16 h-16 rounded-2xl bg-[#EAF4FD] border border-[#CFE4F7] flex items-center justify-center shrink-0">
+              <svg className="w-9 h-9 text-[#0284C7]" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 5v9" />
+                <path d="M16 14l-4 3.5" />
+                <path d="M16 14l4 3.5" />
+                <path d="M12.5 11.5C9.2 10.2 5.5 13.5 5 20.5c-.3 4.2 1.8 6.5 5 6.5 2.4 0 4-1.5 4-5v-8.5" />
+                <path d="M19.5 11.5C22.8 10.2 26.5 13.5 27 20.5c.3 4.2-1.8 6.5-5 6.5-2.4 0-4-1.5-4-5v-8.5" />
+                <path d="M10.5 19.5l-2 2.5M12 22l-1.5 2M21.5 19.5l2 2.5M20 22l1.5 2" />
               </svg>
             </div>
           </div>
 
           <div className="pt-3 border-t border-[#E6F1FA]">
-            <div className="text-xs font-bold text-[#0C2340]">
+            <div className="text-xs font-extrabold text-[#0C2340]">
               Exposure vs. Cleaner Route
             </div>
             <div className="text-[30px] leading-tight font-extrabold text-[#16A34A] tabular-nums mt-0.5">
@@ -259,11 +263,11 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
       </div>
 
       {/* Bottom Recommendation Banner */}
-      <div className="rounded-2xl bg-white/90 backdrop-blur-md border border-white/95 px-5 py-3.5 flex items-center space-x-3 text-xs shadow-[0_8px_22px_-6px_rgba(15,44,76,0.08)]">
+      <div className="rounded-2xl bg-white border border-white px-5 py-3.5 flex items-center space-x-3 text-[13px] shadow-[0_10px_28px_-8px_rgba(14,165,233,0.14)]">
         <div className="w-8 h-8 rounded-lg bg-[#ECFDF5] border border-[#A7F3D0] flex items-center justify-center shrink-0">
           <Sprout className="w-4 h-4 text-[#059669]" />
         </div>
-        <div className="flex flex-wrap items-baseline gap-x-2">
+        <div className="flex flex-wrap items-baseline gap-x-2.5">
           <span className="font-extrabold text-[#0C2340]">Recommendation</span>
           <span className="text-[#334E68] font-medium">
             {ambientPm25 == null

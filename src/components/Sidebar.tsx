@@ -46,7 +46,7 @@ export const Sidebar: React.FC = () => {
   const isUnavailable = Boolean(meta.isUnavailable || telemetryError);
 
   return (
-    <aside className="hidden md:flex flex-col w-60 shrink-0 bg-white/65 backdrop-blur-xl border-r border-white/85 p-5 justify-between min-h-screen sticky top-0 h-screen">
+    <aside className="hidden md:flex flex-col w-60 shrink-0 bg-white/95 backdrop-blur-xl border-r border-white p-5 justify-between min-h-screen sticky top-0 h-screen">
       {/* Top Section: Brand + Navigation */}
       <div className="space-y-6">
         <button
