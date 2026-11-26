@@ -176,11 +176,20 @@ export const LandingPage: React.FC = () => {
             <div className="flex items-baseline space-x-3 my-2">
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">AQI</span>
-                <span className="text-5xl font-black text-emerald-400 tracking-tight font-mono">
+                <span className={`text-5xl font-black tracking-tight font-mono ${
+                  aqiCat === 'Severe' || aqiCat === 'Very Poor' || aqiVal >= 301 ? 'text-rose-400' :
+                  aqiCat === 'Poor' || aqiVal >= 201 ? 'text-orange-400' :
+                  aqiCat === 'Moderate' || aqiVal >= 101 ? 'text-amber-400' : 'text-emerald-400'
+                }`}>
                   {aqiVal}
                 </span>
               </div>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-slate-950 font-sans shadow-md shadow-emerald-500/20">
+              <span className={`px-3 py-1 rounded-full text-xs font-bold font-sans shadow-md ${
+                aqiCat === 'Severe' || aqiCat === 'Very Poor' || aqiVal >= 301 ? 'bg-rose-500 text-white shadow-rose-500/20' :
+                aqiCat === 'Poor' || aqiVal >= 201 ? 'bg-orange-500 text-white shadow-orange-500/20' :
+                aqiCat === 'Moderate' || aqiVal >= 101 ? 'bg-amber-500 text-slate-950 shadow-amber-500/20' :
+                'bg-emerald-500 text-slate-950 shadow-emerald-500/20'
+              }`}>
                 {aqiCat}
               </span>
             </div>

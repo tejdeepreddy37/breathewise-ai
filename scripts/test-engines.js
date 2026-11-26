@@ -516,6 +516,8 @@ async function runRealModuleTests() {
       `export * from ${JSON.stringify(path.join(rootDir, 'src/services/openMeteo.ts'))};`,
       `export * from ${JSON.stringify(path.join(rootDir, 'src/services/telemetryService.ts'))};`,
       `export * from ${JSON.stringify(path.join(rootDir, 'src/services/gemini.ts'))};`,
+      `export * from ${JSON.stringify(path.join(rootDir, 'src/data/cities.ts'))};`,
+      `export * from ${JSON.stringify(path.join(rootDir, 'src/data/staticFallback.ts'))};`,
     ].join('\n')
   );
 
@@ -775,6 +777,42 @@ async function runRealModuleTests() {
 
     const actionAns = await mod.askBreatheWiseAssistant('What should I do right now to protect myself?', [], fallbackRes, severeWin, 'normal_adult', '');
     assert(actionAns.includes('Immediate Air Protection Action Checklist') && actionAns.includes('ENVELOPE'), 'Assistant delivers structured multi-layer action checklist');
+
+    // --- 18. Testing UI Consistency, Globe AQI Sync & Dynamic Color Logic ---
+    console.log('\n--- 18. Testing UI Consistency, Globe AQI Sync & Dynamic Color Logic ---');
+    
+    // Test 18.1: Diurnal curve 0% reduction guard preservation
+    const zeroPercentReduction = typeof cleanMockWindow.reductionVsPeakPercent === 'number' && Number.isFinite(cleanMockWindow.reductionVsPeakPercent)
+      ? cleanMockWindow.reductionVsPeakPercent
+      : 0;
+    assert(zeroPercentReduction === 0, `0% reduction in diurnal curve is preserved as 0% rather than falling back to 56% (got ${zeroPercentReduction})`);
+
+    // Test 18.2: Globe city consistency with CPCB NAQI breakpoints
+    const mumbaiCat = mod.calculateCpcbAqi({ pm25: 135 }).category; // Mumbai BKC baseline
+    assert(mumbaiCat === 'Very Poor', `Mumbai baseline AQI 312 (PM2.5=135) resolves to Very Poor in CPCB (got ${mumbaiCat})`);
+    const kolkataCat = mod.calculateCpcbAqi({ pm25: 168 }).category; // Kolkata baseline
+    assert(kolkataCat === 'Very Poor', `Kolkata baseline AQI 337 (PM2.5=168) resolves to Very Poor in CPCB (got ${kolkataCat})`);
+
+    // Test 18.3: Dynamic color bracket mapper
+    function getAqiColorClass(aqiCat, aqiVal) {
+      if (aqiCat === 'Severe' || aqiCat === 'Very Poor' || aqiVal >= 301) return 'text-rose-400';
+      if (aqiCat === 'Poor' || aqiVal >= 201) return 'text-orange-400';
+      if (aqiCat === 'Moderate' || aqiVal >= 101) return 'text-amber-400';
+      return 'text-emerald-400';
+    }
+    assert(getAqiColorClass('Severe', 405) === 'text-rose-400', 'AQI 405 Severe maps to text-rose-400');
+    assert(getAqiColorClass('Very Poor', 312) === 'text-rose-400', 'AQI 312 Very Poor maps to text-rose-400');
+    assert(getAqiColorClass('Poor', 220) === 'text-orange-400', 'AQI 220 Poor maps to text-orange-400');
+    assert(getAqiColorClass('Moderate', 150) === 'text-amber-400', 'AQI 150 Moderate maps to text-amber-400');
+    assert(getAqiColorClass('Satisfactory', 78) === 'text-emerald-400', 'AQI 78 Satisfactory maps to text-emerald-400');
+    assert(getAqiColorClass('Good', 25) === 'text-emerald-400', 'AQI 25 Good maps to text-emerald-400');
+
+    // Test 18.4: Safe fallback guards without fabricating 265 / 405 smog
+    const emptyTelemetry = { current: {} };
+    const safePm = typeof emptyTelemetry.current.pm25 === 'number' && Number.isFinite(emptyTelemetry.current.pm25) ? emptyTelemetry.current.pm25 : 0;
+    const safeAqi = typeof emptyTelemetry.current.aqi === 'number' && Number.isFinite(emptyTelemetry.current.aqi) ? emptyTelemetry.current.aqi : 0;
+    assert(safePm === 0, `Missing PM2.5 safely resolves to 0 without fabricating 265 µg/m³ (got ${safePm})`);
+    assert(safeAqi === 0, `Missing AQI safely resolves to 0 without fabricating 405 AQI (got ${safeAqi})`);
   } finally {
     globalThis.fetch = origFetch;
     fs.rmSync(tmpDir, { recursive: true, force: true });

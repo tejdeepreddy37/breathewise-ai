@@ -52,7 +52,7 @@ export const GLOBE_CITIES: GlobeCity[] = [
     country: 'India',
     lat: 19.0657,
     lon: 72.8687,
-    aqi: 174,
+    aqi: 312,
     category: 'Very Poor',
     color: '#EF4444', // Red
     temp: 28,
@@ -66,9 +66,9 @@ export const GLOBE_CITIES: GlobeCity[] = [
     country: 'India',
     lat: 22.5448,
     lon: 88.3426,
-    aqi: 155,
+    aqi: 337,
     category: 'Very Poor',
-    color: '#F97316', // Orange
+    color: '#EF4444', // Red
     temp: 23,
     humidity: 78,
     windSpeed: 7.0,

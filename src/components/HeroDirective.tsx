@@ -7,9 +7,9 @@ export const HeroDirective: React.FC = () => {
 
   const cityName = telemetry.city.includes('—') ? telemetry.city.split('—')[0].trim() : telemetry.city;
 
-  const pm = telemetry.current.pm25 ?? 265;
-  const aqi = telemetry.current.aqi ?? 405;
-  const aqiCat = telemetry.current.aqiCategory ?? 'Severe';
+  const pm = typeof telemetry.current.pm25 === 'number' && Number.isFinite(telemetry.current.pm25) ? telemetry.current.pm25 : 0;
+  const aqi = typeof telemetry.current.aqi === 'number' && Number.isFinite(telemetry.current.aqi) ? telemetry.current.aqi : 0;
+  const aqiCat = telemetry.current.aqiCategory || (aqi > 0 ? 'Moderate' : 'Good');
   const primaryPollutant = telemetry.current.primaryPollutant || 'PM2.5';
 
   const isSevere = aqiCat === 'Severe' || aqiCat === 'Very Poor' || aqi >= 301;
