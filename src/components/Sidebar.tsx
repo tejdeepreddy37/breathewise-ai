@@ -80,7 +80,7 @@ export const Sidebar: React.FC = () => {
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[#0EA5E9] text-white font-bold shadow-[0_8px_20px_rgba(14,165,233,0.28)]'
+                    ? 'bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] text-white font-bold shadow-[0_6px_16px_rgba(14,165,233,0.32)]'
                     : 'text-[#334E68] hover:text-[#0C2340] hover:bg-white/70 font-semibold'
                 }`}
               >

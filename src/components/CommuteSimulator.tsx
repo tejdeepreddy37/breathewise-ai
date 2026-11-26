@@ -3,15 +3,23 @@ import { useApp } from '../context/AppContext';
 import { calculateCommuteTradeoffs } from '../engines/commuteSwap';
 import { calculateCpcbAqi } from '../engines/cpcbAqi';
 import { CommuteMode } from '../types/engines';
-import { Bike, Car, Bus, Train, MapPin, Navigation, ArrowRight, Sprout, ChevronDown } from 'lucide-react';
+import { Bike, Car, Bus, Train, MapPin, ArrowRight, Sprout, ChevronDown } from 'lucide-react';
 
-const CORRIDOR_DISTANCES: Record<string, number> = {
-  'Short Local Trip (5 km)': 5,
-  'Neighborhood Loop (10 km)': 10,
-  'City Core Corridor (16.8 km)': 16.8,
-  'Outer Ring / Tech Park (24 km)': 24,
-  'Cross-Metro Express (35 km)': 35,
-};
+const ORIGIN_ZONES = [
+  'Residential Locality',
+  'HSR Layout',
+  'City Center',
+  'Tech Corridor West',
+  'Suburban Transit Hub',
+];
+
+const DESTINATION_CORRIDORS: Array<{ label: string; km: number }> = [
+  { label: 'Short Local Trip (5 km)', km: 5 },
+  { label: 'Neighborhood Loop (10 km)', km: 10 },
+  { label: 'Electronic City (16.8 km)', km: 16.8 },
+  { label: 'Outer Ring Corridor (24 km)', km: 24 },
+  { label: 'Cross-Metro Express (35 km)', km: 35 },
+];
 
 export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () => {
   const { telemetry, cleanAirWindow, scenarioState, updateScenario } = useApp();
@@ -21,12 +29,12 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
       ? telemetry.current.pm25
       : null;
 
-  const [origin, setOrigin] = useState(scenarioState.commute.origin || 'City Center');
-  const [destination, setDestination] = useState(scenarioState.commute.destination || 'Tech / Work Hub');
-  const [corridorKey, setCorridorKey] = useState('City Core Corridor (16.8 km)');
+  const [origin, setOrigin] = useState(
+    ORIGIN_ZONES.includes(scenarioState.commute.origin) ? scenarioState.commute.origin : 'HSR Layout'
+  );
+  const [destinationLabel, setDestinationLabel] = useState('Electronic City (16.8 km)');
   const [distanceKm, setDistanceKm] = useState<number>(scenarioState.commute.distanceKm || 16.8);
   const [selectedMode, setSelectedMode] = useState<CommuteMode>(scenarioState.commute.mode || 'ac_cab');
-  const [analyzedCount, setAnalyzedCount] = useState<number>(0);
 
   const safePm = ambientPm25 ?? 0;
   const comparisons = calculateCommuteTradeoffs(distanceKm, safePm);
@@ -58,107 +66,81 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
     });
   };
 
-  const handleCorridorChange = (key: string) => {
-    setCorridorKey(key);
-    const km = CORRIDOR_DISTANCES[key] || 16.8;
+  const handleOriginChange = (val: string) => {
+    setOrigin(val);
+    syncScenario(distanceKm, selectedMode, val, destinationLabel);
+  };
+
+  const handleDestinationChange = (label: string) => {
+    setDestinationLabel(label);
+    const match = DESTINATION_CORRIDORS.find((d) => d.label === label);
+    const km = match ? match.km : 16.8;
     setDistanceKm(km);
-    syncScenario(km, selectedMode, origin, destination);
+    syncScenario(km, selectedMode, origin, label);
   };
 
   const handleAnalyze = (e: React.FormEvent) => {
     e.preventDefault();
-    syncScenario(distanceKm, selectedMode, origin, destination);
-    setAnalyzedCount((c) => c + 1);
+    syncScenario(distanceKm, selectedMode, origin, destinationLabel);
   };
 
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
-      {/* Main 3-Column Layout Matching Panel 3 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+      {/* Main 3-Column Row Matching Reference */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Column 1: Plan Your Commute */}
         <form
           onSubmit={handleAnalyze}
-          className="rounded-3xl bg-white/85 backdrop-blur-md border border-white p-5 shadow-soft flex flex-col justify-between space-y-4"
+          className="lg:col-span-4 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col justify-between space-y-4"
         >
-          <div className="space-y-3.5">
-            <h2 className="text-sm sm:text-base font-extrabold text-[#0C2340]">
+          <div className="space-y-3">
+            <h2 className="text-[14px] font-extrabold text-[#0C2340]">
               Plan Your Commute
             </h2>
 
-            {/* Origin */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-[#476788] flex items-center space-x-1">
-                <MapPin className="w-3 h-3 text-[#0EA5E9]" />
-                <span>Origin</span>
-              </label>
-              <input
-                type="text"
-                value={origin}
-                onChange={(e) => {
-                  setOrigin(e.target.value);
-                  syncScenario(distanceKm, selectedMode, e.target.value, destination);
-                }}
-                placeholder="Origin locality"
-                className="w-full bg-[#F4F9FE] border border-[#CBE0F2] rounded-xl px-3 py-2 text-xs font-semibold text-[#0C2340] focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/30"
-              />
-            </div>
-
-            {/* Destination */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-[#476788] flex items-center space-x-1">
-                <Navigation className="w-3 h-3 text-[#0EA5E9]" />
-                <span>Destination</span>
-              </label>
-              <input
-                type="text"
-                value={destination}
-                onChange={(e) => {
-                  setDestination(e.target.value);
-                  syncScenario(distanceKm, selectedMode, origin, e.target.value);
-                }}
-                placeholder="Destination locality"
-                className="w-full bg-[#F4F9FE] border border-[#CBE0F2] rounded-xl px-3 py-2 text-xs font-semibold text-[#0C2340] focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/30"
-              />
-            </div>
-
-            {/* Corridor / Distance Control */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-[11px] font-bold text-[#476788]">
-                <span>Modeled Trip Distance</span>
-                <span className="font-mono font-black text-[#0284C7]">{distanceKm} km</span>
-              </div>
-              <div className="relative">
+            {/* Origin Field */}
+            <div className="relative rounded-xl bg-white/95 border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
+              <MapPin className="w-4 h-4 text-[#5A7896] shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] font-semibold text-[#5A7896] leading-none">Origin</div>
                 <select
-                  aria-label="Distance Scenario Preset"
-                  value={corridorKey}
-                  onChange={(e) => handleCorridorChange(e.target.value)}
-                  className="w-full bg-[#F4F9FE] border border-[#CBE0F2] rounded-xl py-1.5 pl-3 pr-7 text-xs font-semibold text-[#0C2340] cursor-pointer focus:outline-none"
+                  aria-label="Origin Locality"
+                  value={origin}
+                  onChange={(e) => handleOriginChange(e.target.value)}
+                  className="w-full bg-transparent text-xs font-bold text-[#0C2340] pt-0.5 pr-5 cursor-pointer focus:outline-none truncate"
                 >
-                  {Object.keys(CORRIDOR_DISTANCES).map((k) => (
-                    <option key={k} value={k}>
-                      {k}
+                  {ORIGIN_ZONES.map((z) => (
+                    <option key={z} value={z}>
+                      {z}
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-[#5A7896] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
-              <input
-                type="range"
-                min="1"
-                max="50"
-                step="0.5"
-                value={distanceKm}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setDistanceKm(val);
-                  syncScenario(val, selectedMode, origin, destination);
-                }}
-                aria-label="Commute distance slider"
-                className="w-full h-1.5 bg-[#CBE0F2] rounded-lg appearance-none cursor-pointer accent-[#0EA5E9]"
-              />
+              <ChevronDown className="w-3.5 h-3.5 text-[#5A7896] pointer-events-none shrink-0" />
             </div>
 
-            {/* 4 Transport Mode Icon Buttons */}
+            {/* Destination / Corridor Field */}
+            <div className="relative rounded-xl bg-white/95 border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
+              <MapPin className="w-4 h-4 text-[#5A7896] shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] font-semibold text-[#5A7896] leading-none">Destination</div>
+                <select
+                  aria-label="Destination Corridor"
+                  value={destinationLabel}
+                  onChange={(e) => handleDestinationChange(e.target.value)}
+                  className="w-full bg-transparent text-xs font-bold text-[#0C2340] pt-0.5 pr-5 cursor-pointer focus:outline-none truncate"
+                >
+                  {DESTINATION_CORRIDORS.map((d) => (
+                    <option key={d.label} value={d.label}>
+                      {d.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <ChevronDown className="w-3.5 h-3.5 text-[#5A7896] pointer-events-none shrink-0" />
+            </div>
+
+            {/* 4 Mode Buttons */}
             <div className="grid grid-cols-4 gap-2 pt-1">
               {modeButtons.map((m) => {
                 const active = selectedMode === m.id;
@@ -168,12 +150,12 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
                     type="button"
                     onClick={() => {
                       setSelectedMode(m.id);
-                      syncScenario(distanceKm, m.id, origin, destination);
+                      syncScenario(distanceKm, m.id, origin, destinationLabel);
                     }}
                     className={`flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
                       active
-                        ? 'bg-[#0EA5E9] border-[#0EA5E9] text-white shadow-sm'
-                        : 'bg-[#F4F9FE] border-[#CBE0F2] text-[#334E68] hover:bg-white'
+                        ? 'bg-gradient-to-b from-[#0EA5E9] to-[#0284C7] border-[#0284C7] text-white shadow-[0_6px_14px_rgba(14,165,233,0.28)]'
+                        : 'bg-[#F8FBFF] border-[#DCEBF7] text-[#334E68] hover:bg-white'
                     }`}
                   >
                     {m.icon}
@@ -186,7 +168,7 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
 
           <button
             type="submit"
-            className="w-full inline-flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-extrabold shadow-sm transition-all cursor-pointer"
+            className="w-full inline-flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] hover:brightness-105 text-white text-xs font-extrabold shadow-[0_6px_16px_rgba(14,165,233,0.3)] transition-all cursor-pointer"
           >
             <span>Analyze Commute</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -194,83 +176,70 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
         </form>
 
         {/* Column 2: Route Comparison */}
-        <div className="rounded-3xl bg-white/85 backdrop-blur-md border border-white p-5 shadow-soft flex flex-col justify-between space-y-4">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm sm:text-base font-extrabold text-[#0C2340]">
-                Route Comparison
-              </h2>
-              {analyzedCount > 0 && (
-                <span className="text-[10px] font-bold text-[#0EA5E9]">Updated</span>
-              )}
-            </div>
+        <div className="lg:col-span-4 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col justify-between space-y-3">
+          <h2 className="text-[14px] font-extrabold text-[#0C2340]">
+            Route Comparison
+          </h2>
 
-            {/* Scenario A: Selected Mode */}
-            <div className="rounded-2xl bg-[#FFFBEB] border border-[#FDE68A] p-4 flex items-center justify-between gap-3">
-              <div>
+          <div className="space-y-3 flex-1 flex flex-col justify-center">
+            {/* Selected Route Card */}
+            <div className="rounded-xl bg-[#FEF6E6] border border-[#FDE2B8] p-4 flex items-center justify-between gap-3">
+              <div className="min-w-0">
                 <div className="text-xs font-extrabold text-[#0C2340]">
                   Selected: {selectedComp.modeLabel.split('(')[0].trim()}
                 </div>
-                <div className="text-[11px] font-medium text-[#5A7896] mt-0.5 font-mono">
+                <div className="text-[11px] font-medium text-[#5A7896] mt-0.5 tabular-nums">
                   {distanceKm} km • {selectedComp.travelTimeMinutes} min
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-xl font-black text-amber-600 font-mono">
+              <div className="text-right shrink-0">
+                <div className="text-2xl font-extrabold text-[#D97706] leading-none tabular-nums">
                   {selectedCabinAqi ? selectedCabinAqi.aqi : '--'}
                 </div>
-                <div className="text-[10px] font-bold text-amber-800">
+                <div className="text-[10px] font-bold text-[#92400E] mt-1">
                   {selectedCabinAqi ? `(${selectedCabinAqi.category})` : 'Unavailable'}
                 </div>
               </div>
             </div>
 
-            {/* Scenario B: Cleaner Alternative (AC Metro) */}
-            <div className="rounded-2xl bg-[#ECFDF5] border border-[#A7F3D0] p-4 flex items-center justify-between gap-3">
-              <div>
+            {/* Cleaner Alternative Card */}
+            <div className="rounded-xl bg-[#E8FAEF] border border-[#BBEFD1] p-4 flex items-center justify-between gap-3">
+              <div className="min-w-0">
                 <div className="text-xs font-extrabold text-[#0C2340]">
                   Cleaner: Rapid AC Metro
                 </div>
-                <div className="text-[11px] font-medium text-[#047857] mt-0.5 font-mono">
+                <div className="text-[11px] font-medium text-[#047857] mt-0.5 tabular-nums">
                   {distanceKm} km • {metroComp.travelTimeMinutes} min
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-xl font-black text-[#059669] font-mono">
+              <div className="text-right shrink-0">
+                <div className="text-2xl font-extrabold text-[#059669] leading-none tabular-nums">
                   {cleanerCabinAqi ? cleanerCabinAqi.aqi : '--'}
                 </div>
-                <div className="text-[10px] font-bold text-[#047857]">
+                <div className="text-[10px] font-bold text-[#047857] mt-1">
                   {cleanerCabinAqi ? `(${cleanerCabinAqi.category})` : 'Unavailable'}
                 </div>
               </div>
             </div>
           </div>
-
-          <p className="text-[10px] text-[#5A7896] leading-relaxed">
-            Modeled from {telemetry.city} ambient PM2.5 ({ambientPm25 != null ? `${ambientPm25} µg/m³` : 'Unavailable'}) and corridor micro-environment infiltration factors. Does not use live road traffic feeds.
-          </p>
         </div>
 
         {/* Column 3: Commute Exposure Estimate */}
-        <div className="rounded-3xl bg-white/85 backdrop-blur-md border border-white p-5 shadow-soft flex flex-col justify-between space-y-4">
-          <h2 className="text-sm sm:text-base font-extrabold text-[#0C2340]">
+        <div className="lg:col-span-4 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col justify-between space-y-4">
+          <h2 className="text-[14px] font-extrabold text-[#0C2340]">
             Commute Exposure Estimate
           </h2>
 
-          <div className="flex items-center justify-between gap-3 py-2">
+          <div className="flex items-center justify-between gap-3 py-1">
             <div>
-              <div className="text-xs font-bold text-[#476788]">Inhaled Dose (PM2.5)</div>
-              <div className="text-3xl sm:text-4xl font-black text-[#0C2340] font-mono mt-1">
+              <div className="text-xs font-semibold text-[#476788]">Inhaled Dose (PM₂.₅)</div>
+              <div className="text-[36px] leading-tight font-extrabold text-[#0C2340] tabular-nums mt-0.5">
                 {ambientPm25 != null ? `${selectedComp.inhaledDoseUg} µg` : '--'}
-              </div>
-              <div className="text-[11px] text-[#5A7896] mt-1 font-mono">
-                CO₂: {selectedComp.carbonEmissionKg.toFixed(2)} kg
               </div>
             </div>
 
-            {/* Soft Sky-Blue Lungs Vector Graphic Matching Panel 3 */}
-            <div className="w-16 h-16 rounded-2xl bg-[#E0F2FE] border border-[#BAE6FD] flex items-center justify-center shrink-0">
-              <svg className="w-9 h-9 text-[#0EA5E9]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <div className="w-14 h-14 rounded-2xl bg-[#EAF4FD] border border-[#CFE4F7] flex items-center justify-center shrink-0">
+              <svg className="w-8 h-8 text-[#0EA5E9]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 3v9" />
                 <path d="M12 12c-2-2-6-2-7 3-.7 3.5 1 6 4 6 2 0 3-1 3-3v-6Z" />
                 <path d="M12 12c2-2 6-2 7 3 .7 3.5-1 6-4 6-2 0-3-1-3-3v-6Z" />
@@ -278,31 +247,31 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
             </div>
           </div>
 
-          <div className="pt-4 border-t border-[#E2EFFA] flex items-center justify-between">
-            <span className="text-xs font-bold text-[#334E68]">
-              Exposure vs. Cleaner Mode
-            </span>
-            <span className="text-2xl font-black font-mono text-[#059669]">
+          <div className="pt-3 border-t border-[#E6F1FA]">
+            <div className="text-xs font-bold text-[#0C2340]">
+              Exposure vs. Cleaner Route
+            </div>
+            <div className="text-[30px] leading-tight font-extrabold text-[#16A34A] tabular-nums mt-0.5">
               {ambientPm25 != null ? (selectedMode === 'ac_metro' ? 'Optimal' : `-${doseDiffPercent}%`) : '--'}
-            </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Recommendation Banner Matching Panel 3 */}
-      <div className="rounded-2xl bg-[#ECFDF5] border border-[#A7F3D0] p-4 flex items-center space-x-3 text-xs shadow-2xs">
-        <div className="w-9 h-9 rounded-xl bg-white border border-[#A7F3D0] flex items-center justify-center shrink-0">
-          <Sprout className="w-5 h-5 text-[#059669]" />
+      {/* Bottom Recommendation Banner */}
+      <div className="rounded-2xl bg-white/90 backdrop-blur-md border border-white/95 px-5 py-3.5 flex items-center space-x-3 text-xs shadow-[0_8px_22px_-6px_rgba(15,44,76,0.08)]">
+        <div className="w-8 h-8 rounded-lg bg-[#ECFDF5] border border-[#A7F3D0] flex items-center justify-center shrink-0">
+          <Sprout className="w-4 h-4 text-[#059669]" />
         </div>
-        <div>
-          <div className="font-extrabold text-[#065F46]">Recommendation</div>
-          <p className="text-[#166534] font-medium mt-0.5">
+        <div className="flex flex-wrap items-baseline gap-x-2">
+          <span className="font-extrabold text-[#0C2340]">Recommendation</span>
+          <span className="text-[#334E68] font-medium">
             {ambientPm25 == null
-              ? `Live pollution data is currently unavailable for ${telemetry.city}. When commuting outdoors during uncertain air quality, enclosed filtered transit reduces intake.`
+              ? `Live pollution data unavailable for ${telemetry.city}. Enclosed filtered transit is safest during uncertain air quality.`
               : selectedMode === 'ac_metro'
-              ? `AC Metro is your lowest-exposure transit choice for ${origin} → ${destination} (${metroComp.inhaledDoseUg} µg inhaled, ${metroComp.carbonEmissionKg.toFixed(2)} kg CO₂). Optimal daytime travel window: ${cleanAirWindow.displayWindow}.`
-              : `Choose Rapid AC Metro (saves ${carbonSavedKg.toFixed(2)} kg CO₂ and cuts inhaled dose by ${doseDiffPercent}% to ${metroComp.inhaledDoseUg} µg) or travel during ${cleanAirWindow.displayWindow} for lower exposure.`}
-          </p>
+              ? `AC Metro gives lowest exposure for ${origin} → ${destinationLabel.split('(')[0].trim()} (${metroComp.inhaledDoseUg} µg inhaled, ${metroComp.carbonEmissionKg.toFixed(2)} kg CO₂). Ideal window: ${cleanAirWindow.displayWindow}.`
+              : `Choose Rapid AC Metro or travel during ${cleanAirWindow.displayWindow} for ~${doseDiffPercent}% lower exposure (saves ${carbonSavedKg.toFixed(2)} kg CO₂).`}
+          </span>
         </div>
       </div>
     </div>

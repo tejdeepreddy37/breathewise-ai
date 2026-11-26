@@ -31,7 +31,6 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
   const rec = calculateIndoorRecommendations(safeOutdoor, cleanAirWindow, currentHour, roomAreaM2, ambientO3, indoorSource);
 
   const roomVolumeM3 = +(roomAreaM2 * ceilingHeightM).toFixed(1);
-  // Single-zone well-mixed mass balance: indoor steady-state influenced by infiltration (ventilationAch) and purifier removal (purifierCadr / roomVolumeM3)
   const infiltrationAlpha = ventilationAch <= 0.5 ? 0.45 : ventilationAch <= 1.5 ? 0.65 : 0.85;
   const sourceBonus = indoorSource === 'cooking_frying' ? 85 : indoorSource === 'incense_smoke' ? 110 : 0;
   const rawIndoorBeforePurifier = safeOutdoor * infiltrationAlpha + sourceBonus;
@@ -45,7 +44,6 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
   const indoorAqiResult = modeledIndoorPm25 != null ? calculateCpcbAqi({ pm25: modeledIndoorPm25 }) : null;
   const indoorColors = getCpcbSemanticColors(indoorAqiResult?.aqi ?? 0, indoorAqiResult?.category ?? 'Good');
 
-  // Scenario impact calculations (truthful mass balance)
   const baselineSealedPm25 = safeOutdoor * 0.45 + sourceBonus;
   const vent3Pm25 = safeOutdoor * 0.85 + sourceBonus;
   const ventDeltaPct =
@@ -54,22 +52,21 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
       : 0;
   const purifierDeltaPct = -Math.round((purifierCadr / Math.max(10, roomVolumeM3) / (purifierCadr / Math.max(10, roomVolumeM3) + ventilationAch + 0.5)) * 100);
 
-  // Semi-circle arc gauge math
-  const gaugePct = indoorAqiResult ? Math.min(1, indoorAqiResult.aqi / 300) : 0;
+  const gaugePct = indoorAqiResult ? Math.min(1, Math.max(0.05, indoorAqiResult.aqi / 300)) : 0;
   const arcLen = Math.PI * 64;
   const dashOffset = arcLen * (1 - gaugePct);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch animate-in fade-in duration-200">
-      {/* Col 1 (4 Cols): Room Setup */}
-      <div className="lg:col-span-4 rounded-3xl bg-white/85 backdrop-blur-md border border-white p-5 shadow-soft flex flex-col justify-between space-y-3.5">
-        <h2 className="text-sm sm:text-base font-extrabold text-[#0C2340]">Room Setup</h2>
+      {/* Col 1 (4 Cols): Full-Height Room Setup Table */}
+      <div className="lg:col-span-4 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col justify-between space-y-3">
+        <h2 className="text-[14px] font-extrabold text-[#0C2340]">Room Setup</h2>
 
-        <div className="space-y-3 text-xs">
+        <div className="space-y-2.5 text-xs flex-1 flex flex-col justify-center">
           {/* Room Type */}
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-[#476788]">Room Type</label>
-            <div className="relative">
+          <div className="grid grid-cols-12 items-center gap-2">
+            <label className="col-span-5 text-[11px] font-semibold text-[#476788]">Room Type</label>
+            <div className="col-span-7 relative">
               <select
                 aria-label="Room Type"
                 value={roomType}
@@ -77,110 +74,108 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
                   setRoomType(e.target.value);
                   syncIndoor({ roomType: e.target.value });
                 }}
-                className="w-full bg-[#F4F9FE] border border-[#CBE0F2] rounded-xl py-2 pl-3 pr-7 font-bold text-[#0C2340] cursor-pointer focus:outline-none"
+                className="w-full bg-white border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
               >
                 <option value="Bedroom">Bedroom</option>
                 <option value="Living Room">Living Room</option>
                 <option value="Study / Office">Study / Office</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-[#5A7896] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-[#5A7896] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
-          {/* Room Size & Ceiling Height */}
-          <div className="grid grid-cols-2 gap-2.5">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-[#476788]">Room Size</label>
-              <div className="relative">
-                <select
-                  aria-label="Room Size"
-                  value={roomAreaM2}
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    setRoomAreaM2(val);
-                    syncIndoor({ roomAreaM2: val });
-                  }}
-                  className="w-full bg-[#F4F9FE] border border-[#CBE0F2] rounded-xl py-2 pl-3 pr-6 font-bold text-[#0C2340] cursor-pointer focus:outline-none"
-                >
-                  <option value={12}>12 m²</option>
-                  <option value={20}>20 m²</option>
-                  <option value={35}>35 m²</option>
-                  <option value={50}>50 m²</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-[#5A7896] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-[#476788]">Ceiling Height</label>
-              <div className="relative">
-                <select
-                  aria-label="Ceiling Height"
-                  value={ceilingHeightM}
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    setCeilingHeightM(val);
-                    syncIndoor({ ceilingHeightM: val });
-                  }}
-                  className="w-full bg-[#F4F9FE] border border-[#CBE0F2] rounded-xl py-2 pl-3 pr-6 font-bold text-[#0C2340] cursor-pointer focus:outline-none"
-                >
-                  <option value={2.5}>2.5 m</option>
-                  <option value={2.8}>2.8 m</option>
-                  <option value={3.2}>3.2 m</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-[#5A7896] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
+          {/* Room Size */}
+          <div className="grid grid-cols-12 items-center gap-2">
+            <label className="col-span-5 text-[11px] font-semibold text-[#476788]">Room Size</label>
+            <div className="col-span-7 relative">
+              <select
+                aria-label="Room Size"
+                value={roomAreaM2}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setRoomAreaM2(val);
+                  syncIndoor({ roomAreaM2: val });
+                }}
+                className="w-full bg-white border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
+              >
+                <option value={12}>12 m²</option>
+                <option value={20}>20 m²</option>
+                <option value={35}>35 m²</option>
+                <option value={50}>50 m²</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-[#5A7896] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
-          {/* Ventilation (ACH) & Indoor Source */}
-          <div className="grid grid-cols-2 gap-2.5">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-[#476788]">Ventilation (ACH)</label>
-              <div className="relative">
-                <select
-                  aria-label="Ventilation ACH"
-                  value={ventilationAch}
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    setVentilationAch(val);
-                    syncIndoor({ ventilationAch: val });
-                  }}
-                  className="w-full bg-[#F4F9FE] border border-[#CBE0F2] rounded-xl py-2 pl-3 pr-6 font-bold text-[#0C2340] cursor-pointer focus:outline-none"
-                >
-                  <option value={0.5}>0.5 (Sealed)</option>
-                  <option value={1.5}>1.5 (Crack)</option>
-                  <option value={3.0}>3.0 (Open)</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-[#5A7896] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-[#476788]">Indoor Source</label>
-              <div className="relative">
-                <select
-                  aria-label="Indoor Source"
-                  value={indoorSource}
-                  onChange={(e) => {
-                    const val = e.target.value as IndoorSourceType;
-                    setIndoorSource(val);
-                    syncIndoor({ indoorSource: val });
-                  }}
-                  className="w-full bg-[#F4F9FE] border border-[#CBE0F2] rounded-xl py-2 pl-2.5 pr-6 font-bold text-[#0C2340] cursor-pointer focus:outline-none truncate"
-                >
-                  <option value="none">None</option>
-                  <option value="cooking_frying">Cooking (+85)</option>
-                  <option value="incense_smoke">Incense (+110)</option>
-                  <option value="high_co2_stuffy">Stuffy CO₂</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-[#5A7896] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
+          {/* Ceiling Height */}
+          <div className="grid grid-cols-12 items-center gap-2">
+            <label className="col-span-5 text-[11px] font-semibold text-[#476788]">Ceiling Height</label>
+            <div className="col-span-7 relative">
+              <select
+                aria-label="Ceiling Height"
+                value={ceilingHeightM}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setCeilingHeightM(val);
+                  syncIndoor({ ceilingHeightM: val });
+                }}
+                className="w-full bg-white border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
+              >
+                <option value={2.5}>2.5 m</option>
+                <option value={2.8}>2.8 m</option>
+                <option value={3.2}>3.2 m</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-[#5A7896] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
-          {/* Using Air Purifier Switch + CADR */}
-          <div className="pt-2 border-t border-[#E2EFFA] space-y-2.5">
+          {/* Ventilation (ACH) */}
+          <div className="grid grid-cols-12 items-center gap-2">
+            <label className="col-span-5 text-[11px] font-semibold text-[#476788]">Ventilation (ACH)</label>
+            <div className="col-span-7 relative">
+              <select
+                aria-label="Ventilation ACH"
+                value={ventilationAch}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setVentilationAch(val);
+                  syncIndoor({ ventilationAch: val });
+                }}
+                className="w-full bg-white border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
+              >
+                <option value={0.5}>0.5 (Sealed)</option>
+                <option value={1.5}>1.5 (Crack)</option>
+                <option value={3.0}>3.0 (Open)</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-[#5A7896] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Indoor Source */}
+          <div className="grid grid-cols-12 items-center gap-2">
+            <label className="col-span-5 text-[11px] font-semibold text-[#476788]">Indoor Source</label>
+            <div className="col-span-7 relative">
+              <select
+                aria-label="Indoor Source"
+                value={indoorSource}
+                onChange={(e) => {
+                  const val = e.target.value as IndoorSourceType;
+                  setIndoorSource(val);
+                  syncIndoor({ indoorSource: val });
+                }}
+                className="w-full bg-white border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none truncate"
+              >
+                <option value="none">None</option>
+                <option value="cooking_frying">Cooking (+85)</option>
+                <option value="incense_smoke">Incense (+110)</option>
+                <option value="high_co2_stuffy">Stuffy CO₂</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-[#5A7896] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Using Air Purifier Toggle */}
+          <div className="pt-2 border-t border-[#E6F1FA] space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="font-bold text-[#0C2340]">Using Air Purifier</span>
               <button
@@ -204,26 +199,33 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
               </button>
             </div>
 
-            {usingPurifier && (
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-[#476788] font-semibold">Purifier CADR Rate:</span>
+            {/* Purifier CADR Rate */}
+            <div className="grid grid-cols-12 items-center gap-2">
+              <span className="col-span-5 text-[11px] font-semibold text-[#476788]">Purifier CADR Rate</span>
+              <div className="col-span-7 relative">
                 <select
                   aria-label="Purifier CADR"
+                  disabled={!usingPurifier}
                   value={purifierCadr}
                   onChange={(e) => {
                     const val = Number(e.target.value);
                     setPurifierCadr(val);
                     syncIndoor({ purifierCadr: val });
                   }}
-                  className="bg-[#F4F9FE] border border-[#CBE0F2] rounded-lg px-2 py-1 font-bold text-[#0284C7] cursor-pointer"
+                  className={`w-full rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold border focus:outline-none ${
+                    usingPurifier
+                      ? 'bg-[#E0F2FE] border-[#BAE6FD] text-[#0284C7] cursor-pointer'
+                      : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                  }`}
                 >
                   <option value={150}>150 m³/h</option>
                   <option value={250}>250 m³/h</option>
                   <option value={300}>300 m³/h</option>
                   <option value={400}>400 m³/h</option>
                 </select>
+                <ChevronDown className="w-3.5 h-3.5 text-[#0284C7] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
@@ -231,65 +233,72 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
       {/* Right Stack (8 Cols): Top Row (Analysis + Scenarios) & Bottom Insight */}
       <div className="lg:col-span-8 flex flex-col justify-between gap-4">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
-          {/* Card: Indoor Air Analysis (7 Cols) */}
-          <div className="md:col-span-7 rounded-3xl bg-white/85 backdrop-blur-md border border-white p-5 shadow-soft flex flex-col justify-between space-y-3">
-            <h2 className="text-sm sm:text-base font-extrabold text-[#0C2340]">
+          {/* Card: Indoor Air Analysis */}
+          <div className="md:col-span-7 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col justify-between space-y-3">
+            <h2 className="text-[14px] font-extrabold text-[#0C2340]">
               Indoor Air Analysis
             </h2>
 
             {indoorAqiResult ? (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                {/* Semi-Circular Radial Gauge */}
-                <div className="relative w-40 h-28 flex flex-col items-center justify-end shrink-0">
-                  <svg className="w-40 h-24 overflow-visible" viewBox="0 0 160 90">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 flex-1">
+                {/* Gradient Arc Gauge */}
+                <div className="relative w-40 h-32 flex flex-col items-center justify-end shrink-0">
+                  <svg className="w-40 h-28 overflow-visible" viewBox="0 0 160 95">
+                    <defs>
+                      <linearGradient id="indoorGaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#10B981" />
+                        <stop offset="55%" stopColor="#FACC15" />
+                        <stop offset="100%" stopColor="#F97316" />
+                      </linearGradient>
+                    </defs>
                     <path
-                      d="M 16 80 A 64 64 0 0 1 144 80"
+                      d="M 16 84 A 64 64 0 0 1 144 84"
                       fill="none"
-                      stroke="#E2EFFA"
-                      strokeWidth="14"
+                      stroke="#E6EEF6"
+                      strokeWidth="12"
                       strokeLinecap="round"
                     />
                     <path
-                      d="M 16 80 A 64 64 0 0 1 144 80"
+                      d="M 16 84 A 64 64 0 0 1 144 84"
                       fill="none"
-                      stroke={indoorColors.hexColor}
-                      strokeWidth="14"
+                      stroke="url(#indoorGaugeGrad)"
+                      strokeWidth="12"
                       strokeLinecap="round"
                       strokeDasharray={arcLen}
                       strokeDashoffset={dashOffset}
                       className="transition-all duration-700"
                     />
                   </svg>
-                  <div className="text-center -mt-10">
-                    <div className="text-3xl font-black text-[#0C2340] font-mono leading-none">
+                  <div className="text-center -mt-12">
+                    <div className="text-[36px] leading-none font-extrabold text-[#0C2340] tabular-nums">
                       {indoorAqiResult.aqi}
                     </div>
-                    <div className="text-[10px] font-bold text-[#5A7896] mt-0.5">
+                    <div className="text-[10px] font-semibold text-[#5A7896] mt-1">
                       AQI (Indoor Est.)
                     </div>
                   </div>
-                  <span className={`mt-1.5 px-3 py-0.5 rounded-full text-[11px] font-extrabold ${indoorColors.badgeClass}`}>
+                  <span className={`mt-1.5 px-3 py-0.5 rounded-lg text-[11px] font-bold ${indoorColors.badgeClass}`}>
                     {indoorAqiResult.category}
                   </span>
                 </div>
 
-                {/* Modeled Indoor Parameters */}
-                <div className="flex-1 w-full space-y-2 text-xs">
-                  <div className="flex justify-between py-1 border-b border-[#E2EFFA]">
-                    <span className="text-[#5A7896] font-semibold">Modeled PM2.5</span>
-                    <strong className="font-mono text-[#0C2340]">{modeledIndoorPm25} µg/m³</strong>
+                {/* Truthful Modeled Metrics Table */}
+                <div className="flex-1 min-w-0 w-full space-y-2.5 text-xs">
+                  <div className="flex justify-between items-center gap-3 py-1">
+                    <span className="text-[#476788] font-medium whitespace-nowrap">Modeled PM₂.₅</span>
+                    <strong className="font-extrabold text-[#0C2340] tabular-nums whitespace-nowrap">{modeledIndoorPm25} µg/m³</strong>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-[#E2EFFA]">
-                    <span className="text-[#5A7896] font-semibold">Outdoor PM2.5</span>
-                    <strong className="font-mono text-[#0C2340]">{ambientPm25} µg/m³</strong>
+                  <div className="flex justify-between items-center gap-3 py-1">
+                    <span className="text-[#476788] font-medium whitespace-nowrap">Outdoor PM₂.₅</span>
+                    <strong className="font-extrabold text-[#0C2340] tabular-nums whitespace-nowrap">{ambientPm25} µg/m³</strong>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-[#E2EFFA]">
-                    <span className="text-[#5A7896] font-semibold">Room Volume</span>
-                    <strong className="font-mono text-[#0C2340]">{roomVolumeM3} m³</strong>
+                  <div className="flex justify-between items-center gap-3 py-1">
+                    <span className="text-[#476788] font-medium whitespace-nowrap">Room Volume</span>
+                    <strong className="font-extrabold text-[#0C2340] tabular-nums whitespace-nowrap">{roomVolumeM3} m³</strong>
                   </div>
-                  <div className="flex justify-between py-1">
-                    <span className="text-[#5A7896] font-semibold">Purifier ACH</span>
-                    <strong className="font-mono text-[#0284C7]">{purifierAch.toFixed(1)} ACH</strong>
+                  <div className="flex justify-between items-center gap-3 py-1">
+                    <span className="text-[#476788] font-medium whitespace-nowrap">Purifier ACH</span>
+                    <strong className="font-extrabold text-[#0284C7] tabular-nums whitespace-nowrap">{purifierAch.toFixed(1)} ACH</strong>
                   </div>
                 </div>
               </div>
@@ -301,24 +310,22 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
             )}
           </div>
 
-          {/* Card: Scenarios & Impact (5 Cols) */}
-          <div className="md:col-span-5 rounded-3xl bg-white/85 backdrop-blur-md border border-white p-5 shadow-soft flex flex-col justify-between space-y-3">
-            <h2 className="text-sm sm:text-base font-extrabold text-[#0C2340]">
+          {/* Card: Scenarios & Impact */}
+          <div className="md:col-span-5 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col justify-between space-y-3">
+            <h2 className="text-[14px] font-extrabold text-[#0C2340]">
               Scenarios & Impact
             </h2>
 
-            <div className="space-y-3">
+            <div className="space-y-3 flex-1 flex flex-col justify-center">
               {/* Scenario 1: Open Ventilation */}
-              <div className="rounded-2xl bg-[#F4F9FE] border border-[#D6E7F5] p-3.5 flex items-center justify-between gap-2">
+              <div className="rounded-xl bg-[#F0F7FD] border border-[#DCEBF7] px-4 py-3 flex items-center justify-between gap-2">
                 <div>
                   <div className="text-xs font-extrabold text-[#0C2340]">With Ventilation</div>
-                  <div className="text-[11px] text-[#5A7896] font-mono">ACH 3.0</div>
+                  <div className="text-[11px] text-[#5A7896]">ACH 3.0</div>
                 </div>
                 <span
-                  className={`px-2.5 py-1 rounded-xl text-xs font-black font-mono ${
-                    ventDeltaPct > 0
-                      ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                      : 'bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]'
+                  className={`text-lg font-extrabold tabular-nums ${
+                    ventDeltaPct > 0 ? 'text-rose-600' : 'text-[#16A34A]'
                   }`}
                 >
                   {ambientPm25 == null ? '--' : ventDeltaPct > 0 ? `+${ventDeltaPct}%` : `${ventDeltaPct}%`}
@@ -326,35 +333,31 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
               </div>
 
               {/* Scenario 2: With Purifier */}
-              <div className="rounded-2xl bg-[#F4F9FE] border border-[#D6E7F5] p-3.5 flex items-center justify-between gap-2">
+              <div className="rounded-xl bg-[#F0F7FD] border border-[#DCEBF7] px-4 py-3 flex items-center justify-between gap-2">
                 <div>
                   <div className="text-xs font-extrabold text-[#0C2340]">With Purifier</div>
-                  <div className="text-[11px] text-[#5A7896] font-mono">CADR {purifierCadr} m³/h</div>
+                  <div className="text-[11px] text-[#5A7896]">CADR {purifierCadr} m³/h</div>
                 </div>
-                <span className="px-2.5 py-1 rounded-xl text-xs font-black font-mono bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]">
+                <span className="text-lg font-extrabold text-[#16A34A] tabular-nums">
                   {purifierDeltaPct}%
                 </span>
               </div>
             </div>
-
-            <p className="text-[10px] text-[#5A7896] leading-tight">
-              Single-zone steady-state mass-balance estimate ({roomType}, {roomAreaM2} m²).
-            </p>
           </div>
         </div>
 
-        {/* Bottom Insight Bar */}
-        <div className="rounded-2xl bg-white/85 backdrop-blur-md border border-[#CBE0F2] p-4 flex items-center space-x-3 text-xs shadow-2xs">
-          <div className="w-9 h-9 rounded-xl bg-[#E0F2FE] border border-[#BAE6FD] flex items-center justify-center shrink-0">
-            <Home className="w-4 h-4 text-[#0284C7]" />
+        {/* Bottom Insight Card */}
+        <div className="rounded-2xl bg-white/90 backdrop-blur-md border border-white/95 p-4 flex items-center space-x-3.5 text-xs shadow-[0_8px_22px_-6px_rgba(15,44,76,0.08)]">
+          <div className="w-10 h-10 rounded-xl bg-[#E0F2FE] border border-[#BAE6FD] flex items-center justify-center shrink-0">
+            <Home className="w-5 h-5 text-[#0284C7]" />
           </div>
           <div>
-            <span className="font-extrabold text-[#0C2340]">Insight: </span>
-            <span className="text-[#334E68] font-medium">
+            <div className="font-extrabold text-[#0C2340] text-xs">Insight</div>
+            <p className="text-[#334E68] font-medium mt-0.5 leading-snug">
               {ambientPm25 == null
-                ? 'Live outdoor PM2.5 is currently unavailable for this location. Keep HEPA filtration active indoors if haze is visible.'
+                ? 'Live outdoor PM2.5 unavailable for this location. Keep HEPA filtration active indoors if haze is visible.'
                 : `${rec.safetyReason} Purifier recommended on ${rec.purifierRecommendation.recommendedSpeed} speed (target clean-down ~${rec.purifierRecommendation.estimatedPostCleanPm25} µg/m³).`}
-            </span>
+            </p>
           </div>
         </div>
       </div>

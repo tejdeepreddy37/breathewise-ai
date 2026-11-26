@@ -5,10 +5,14 @@ import { ChatMessage } from '../types/ai';
 import {
   Send,
   User,
-  Key,
+  SlidersHorizontal,
   ShieldCheck,
   Trash2,
-  ChevronRight,
+  Activity,
+  Home,
+  Shield,
+  HelpCircle,
+  Radio,
 } from 'lucide-react';
 
 export const AiAssistantWorkspace: React.FC = () => {
@@ -26,9 +30,9 @@ export const AiAssistantWorkspace: React.FC = () => {
 
   const getWelcomeContent = () => {
     if (isUnavailable) {
-      return `Live telemetry is currently unavailable for ${telemetry.city}, ${telemetry.state}. Ask any general protection question or switch to a calibrated monitoring station in the header.`;
+      return `Live atmospheric measurements are unavailable for ${telemetry.city}, ${telemetry.state}. Ask any exposure-protection question or select a monitoring station in the header.`;
     }
-    return `Based on the current environmental readings in ${cityShort}:\n• Current AQI: ${telemetry.current.aqi} (${telemetry.current.aqiCategory}, driven by ${telemetry.current.primaryPollutant})\n• PM2.5: ${telemetry.current.pm25} µg/m³\n• Optimal Exposure Window: ${cleanAirWindow.displayWindow}\n• How can I help you plan safely today?`;
+    return `Based on the current air quality in ${cityShort}:\n• Current AQI: ${telemetry.current.aqi} (${telemetry.current.aqiCategory}, driven by ${telemetry.current.primaryPollutant})\n• PM₂.₅: ${telemetry.current.pm25} µg/m³\n• Optimal Exposure Window: ${cleanAirWindow.displayWindow}\n• Ask me about exercise timing, masks, indoor air, or AQI drivers.`;
   };
 
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -109,46 +113,44 @@ export const AiAssistantWorkspace: React.FC = () => {
   };
 
   const quickQuestions = [
-    'Is it safe to exercise today?',
-    'How can I reduce indoor pollution?',
-    'Which mask is best?',
-    'Why is AQI high when PM2.5 is low?',
-    'Is this based on live data?',
+    {
+      label: 'Is it safe to exercise today?',
+      icon: <Activity className="w-4 h-4 text-[#0284C7]" />,
+      bg: 'bg-[#E0F2FE]',
+    },
+    {
+      label: 'How can I reduce indoor pollution?',
+      icon: <Home className="w-4 h-4 text-[#16A34A]" />,
+      bg: 'bg-[#DCFCE7]',
+    },
+    {
+      label: 'Which mask is best?',
+      icon: <Shield className="w-4 h-4 text-[#2563EB]" />,
+      bg: 'bg-[#DBEAFE]',
+    },
+    {
+      label: 'Why is AQI high when PM2.5 is low?',
+      icon: <HelpCircle className="w-4 h-4 text-[#0D9488]" />,
+      bg: 'bg-[#CCFBF1]',
+    },
+    {
+      label: 'Is this based on live data?',
+      icon: <Radio className="w-4 h-4 text-[#D97706]" />,
+      bg: 'bg-[#FEF3C7]',
+    },
   ];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch animate-in fade-in duration-200">
       {/* Main Conversational Panel (8 Columns) */}
-      <div className="lg:col-span-8 rounded-3xl bg-white/85 backdrop-blur-md border border-white shadow-soft flex flex-col min-h-[460px] max-h-[600px] overflow-hidden">
-        {/* Compact Top Provenance / Key Header */}
-        <div className="px-5 py-3 border-b border-[#E2EFFA] flex items-center justify-between bg-[#F4F9FE]/70">
-          <div className="text-xs font-bold text-[#334E68]">
-            {sessionApiKey ? 'Gemini 2.0 Flash Grounded' : 'Grounded Deterministic Advisor'} •{' '}
-            <span className="text-[#0C2340]">{cityShort}</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowKeyModal(!showKeyModal)}
-            className={`text-[11px] flex items-center space-x-1.5 px-3 py-1 rounded-full border transition-all cursor-pointer font-bold ${
-              sessionApiKey
-                ? 'bg-[#E0F2FE] border-[#0EA5E9] text-[#0369A1]'
-                : 'bg-white border-[#CBE0F2] hover:bg-[#F0F7FD] text-[#476788]'
-            }`}
-            title="Optional temporary Gemini API key"
-          >
-            <Key className="w-3 h-3 text-[#0EA5E9]" />
-            <span>{sessionApiKey ? 'Gemini Key Active' : 'Gemini Key (Optional)'}</span>
-          </button>
-        </div>
-
-        {/* Optional Session API Key Drawer */}
+      <div className="lg:col-span-8 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col min-h-[430px] max-h-[540px] overflow-hidden">
+        {/* Collapsible Session API Key Panel (triggered via bottom-left sliders icon) */}
         {showKeyModal && (
           <div className="p-3.5 bg-[#F0F7FD] border-b border-[#CBE0F2] text-xs space-y-2 animate-in fade-in">
             <div className="flex justify-between items-center">
               <span className="font-bold text-[#0C2340] flex items-center space-x-1.5">
                 <ShieldCheck className="w-4 h-4 text-[#0EA5E9]" />
-                <span>Session-Only Gemini API Key</span>
+                <span>Session-Only Gemini API Key {sessionApiKey ? '(Active)' : '(Optional)'}</span>
               </span>
               <button
                 type="button"
@@ -198,37 +200,37 @@ export const AiAssistantWorkspace: React.FC = () => {
         )}
 
         {/* Chat Messages Feed */}
-        <div className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-4 text-xs">
+        <div className="flex-1 p-5 overflow-y-auto space-y-4 text-[13px]">
           {messages.map((m) => (
             <div
               key={m.id}
-              className={`flex items-start space-x-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex items-start space-x-3 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {m.role === 'assistant' && (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-b from-[#38BDF8] to-[#0284C7] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-b from-[#38BDF8] to-[#0284C7] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                  <svg className="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
                   </svg>
                 </div>
               )}
 
               <div
-                className={`p-4 rounded-2xl max-w-[85%] sm:max-w-[78%] leading-relaxed ${
+                className={`p-4 rounded-2xl max-w-[85%] sm:max-w-[80%] leading-relaxed ${
                   m.role === 'user'
-                    ? 'bg-[#0EA5E9] text-white rounded-tr-sm shadow-xs font-medium'
-                    : 'bg-[#F4F9FE] text-[#0C2340] rounded-tl-sm border border-[#D6E7F5]'
+                    ? 'bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] text-white shadow-sm font-medium'
+                    : 'bg-white/95 text-[#0C2340] border border-[#E6F1FA] shadow-2xs'
                 }`}
               >
                 {m.role === 'assistant' && (
-                  <div className="font-extrabold text-[#0C2340] mb-1 flex items-center justify-between">
-                    <span>BreatheWise <span className="text-[#10B981]">AI</span></span>
+                  <div className="font-extrabold text-[#0C2340] mb-1.5">
+                    BreatheWise <span className="text-[#10B981]">AI</span>
                   </div>
                 )}
                 <div className="whitespace-pre-wrap">{m.content}</div>
               </div>
 
               {m.role === 'user' && (
-                <div className="w-8 h-8 rounded-full bg-white border border-[#CBE0F2] text-[#0EA5E9] flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-b from-[#38BDF8] to-[#0284C7] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                   <User className="w-4 h-4" />
                 </div>
               )}
@@ -245,27 +247,41 @@ export const AiAssistantWorkspace: React.FC = () => {
           <div ref={chatEndRef} />
         </div>
 
-        {/* Input Bar */}
-        <div className="p-3.5 sm:p-4 border-t border-[#E2EFFA] bg-white/90">
+        {/* Bottom Input Bar Matching Image 8 */}
+        <div className="p-3.5 border-t border-[#E6F1FA] bg-white/85">
           <form
             onSubmit={(e) => {
               e.preventDefault();
               handleSend();
             }}
-            className="flex items-center space-x-2.5"
+            className="flex items-center space-x-2"
           >
+            <button
+              type="button"
+              onClick={() => setShowKeyModal((prev) => !prev)}
+              aria-label="Gemini API Key Settings"
+              title={sessionApiKey ? 'Gemini Key Active (Click to manage)' : 'Optional Session Gemini Key'}
+              className={`p-2.5 rounded-xl border transition-all cursor-pointer shrink-0 ${
+                sessionApiKey || showKeyModal
+                  ? 'bg-[#E0F2FE] border-[#0EA5E9] text-[#0284C7]'
+                  : 'bg-white border-[#DCEBF7] text-[#476788] hover:text-[#0C2340]'
+              }`}
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+            </button>
+
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about air quality, health tips, or exposure..."
-              className="flex-1 bg-[#F4F9FE] border border-[#CBE0F2] rounded-xl px-4 py-2.5 text-xs text-[#0C2340] placeholder:text-[#7B97B2] focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/25 focus:border-[#0EA5E9] transition-all"
+              className="flex-1 bg-white border border-[#DCEBF7] rounded-xl px-4 py-2.5 text-xs text-[#0C2340] placeholder:text-[#7B97B2] focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/25 focus:border-[#0EA5E9] transition-all"
             />
             <button
               type="submit"
               disabled={!input.trim() || isSubmitting}
-              aria-label="Send message"
-              className="w-10 h-10 rounded-xl bg-[#0EA5E9] hover:bg-[#0284C7] disabled:opacity-40 text-white flex items-center justify-center shadow-sm transition-all shrink-0 cursor-pointer"
+              aria-label="Send question"
+              className="p-2.5 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] hover:brightness-105 disabled:opacity-45 text-white transition-all cursor-pointer shadow-sm shrink-0"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -273,28 +289,29 @@ export const AiAssistantWorkspace: React.FC = () => {
         </div>
       </div>
 
-      {/* Right Sidebar: Quick Questions (4 Columns) */}
-      <div className="lg:col-span-4 rounded-3xl bg-white/85 backdrop-blur-md border border-white p-5 shadow-soft flex flex-col space-y-3">
-        <h2 className="text-sm sm:text-base font-extrabold text-[#0C2340]">
+      {/* Right Column: Quick Questions (4 Columns) Matching Image 8 */}
+      <div className="lg:col-span-4 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col space-y-3">
+        <h2 className="text-[15px] font-extrabold text-[#0C2340]">
           Quick Questions
         </h2>
 
-        <div className="space-y-2.5 flex-1">
+        <div className="space-y-2.5 flex-1 flex flex-col justify-center">
           {quickQuestions.map((q) => (
             <button
-              key={q}
+              key={q.label}
               type="button"
-              onClick={() => handleSend(q)}
-              className="w-full p-3.5 rounded-2xl bg-[#F4F9FE] hover:bg-white border border-[#D6E7F5] hover:border-[#0EA5E9] flex items-center justify-between gap-2 text-left text-xs font-bold text-[#1E3A5F] hover:text-[#0C2340] transition-all cursor-pointer shadow-2xs"
+              onClick={() => handleSend(q.label)}
+              disabled={isSubmitting}
+              className="w-full px-3.5 py-3 rounded-xl bg-white/95 hover:bg-white border border-[#E6F1FA] hover:border-[#0EA5E9]/60 flex items-center space-x-3 transition-all cursor-pointer text-left shadow-2xs"
             >
-              <span>{q}</span>
-              <ChevronRight className="w-4 h-4 text-[#5A7896] shrink-0" />
+              <div className={`w-8 h-8 rounded-lg ${q.bg} flex items-center justify-center shrink-0`}>
+                {q.icon}
+              </div>
+              <span className="text-xs font-bold text-[#0C2340] leading-snug">
+                {q.label}
+              </span>
             </button>
           ))}
-        </div>
-
-        <div className="pt-3 border-t border-[#E2EFFA] text-[10px] text-[#5A7896] leading-relaxed">
-          Context-aware responses use your selected Indian location, data provenance, vulnerability profile, and active Commute, Indoor, and Exposure parameters.
         </div>
       </div>
     </div>
