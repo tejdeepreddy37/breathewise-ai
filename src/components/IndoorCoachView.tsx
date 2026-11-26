@@ -54,13 +54,45 @@ export const IndoorCoachView: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Directives Pill (Exact match to Image 2 mobile: Full-width "Seal Windows & Run Purifier") */}
-      <div className="sm:hidden py-2">
+      {/* Mobile Directives Pill & Controls */}
+      <div className="sm:hidden space-y-2 py-1.5">
         <div className={`w-full flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl border font-bold text-xs shadow-2xs ${
           isSealed ? 'bg-rose-50 text-rose-700 border-rose-200/80' : 'bg-emerald-50 text-emerald-800 border-emerald-200/80'
         }`}>
           {isSealed ? <Lock className="w-3.5 h-3.5 text-rose-600" /> : <Wind className="w-3.5 h-3.5 text-emerald-600" />}
           <span>{isSealed ? 'Seal Windows & Run Purifier' : 'Ventilate & Run Purifier'}</span>
+        </div>
+
+        {/* Mobile Room & Source Controls */}
+        <div className="flex items-center justify-between text-[10px] px-1">
+          <div className="flex items-center space-x-1">
+            <span className="text-slate-400 font-semibold uppercase text-[9px]">Room:</span>
+            {[12, 20, 35].map((area) => (
+              <button
+                key={area}
+                onClick={() => setRoomAreaM2(area)}
+                className={`px-1.5 py-0.5 rounded font-bold transition-colors cursor-pointer ${
+                  roomAreaM2 === area ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'text-slate-500'
+                }`}
+              >
+                {area}m²
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center space-x-1">
+            <span className="text-slate-400 font-semibold uppercase text-[9px]">Src:</span>
+            <select
+              aria-label="Indoor Pollution Source Mobile"
+              value={indoorSource}
+              onChange={(e) => setIndoorSource(e.target.value as IndoorSourceType)}
+              className="bg-stone-50 border border-stone-200/80 rounded px-1.5 py-0.5 font-bold text-slatecharcoal-900 text-[9px] focus:outline-none"
+            >
+              <option value="none">None</option>
+              <option value="cooking_frying">Cooking</option>
+              <option value="incense_smoke">Incense</option>
+              <option value="high_co2_stuffy">Stuffy</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -72,9 +104,9 @@ export const IndoorCoachView: React.FC = () => {
           <img
             src={`${import.meta.env.BASE_URL}images/indoor-backdrop.png`}
             alt="Living Room Atmosphere with Purifier"
-            className="w-full h-full object-cover opacity-90"
+            className="w-full h-full object-cover opacity-60 filter blur-[0.8px]"
           />
-          <div className="absolute inset-0 bg-stone-900/10 backdrop-blur-[0.5px]" />
+          <div className="absolute inset-0 bg-stone-900/15 backdrop-blur-[0.5px]" />
         </div>
 
         {/* Center: Clean Air Quality & Directives Card (Exact match to Image 2) */}

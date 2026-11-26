@@ -41,14 +41,14 @@ export const LandingPage: React.FC = () => {
       {/* 1. Cinematic Atmospheric Background with Mountain Horizon (Matches Image 1) */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#060B16] via-[#091528] to-[#040812] pointer-events-none" />
       
-      {/* Mountain & Cloud Silhouette at bottom horizon (Authentic Reference 1 Landscape) */}
-      <div className="absolute bottom-0 inset-x-0 h-72 sm:h-80 pointer-events-none z-0 overflow-hidden">
+      {/* Mountain & Cloud Silhouette at bottom horizon (Subtle feathered atmospheric depth without seam or collision) */}
+      <div className="absolute bottom-0 inset-x-0 h-44 sm:h-56 pointer-events-none z-0 overflow-hidden">
         <img
           src={`${import.meta.env.BASE_URL}images/mountain-clouds.png`}
           alt="Atmospheric landscape clouds"
-          className="w-full h-full object-cover object-bottom opacity-85 mix-blend-screen"
+          className="w-full h-full object-cover object-bottom opacity-30 mix-blend-screen"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#040812] via-transparent to-transparent opacity-90" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#070D18] via-transparent to-[#070D18]/90" />
       </div>
 
       {/* 2. Top Navigation Bar (Exact match to Image 1) */}
@@ -116,11 +116,11 @@ export const LandingPage: React.FC = () => {
         </div>
       </header>
 
-      {/* 3. Main Hero Viewport (Split Layout: Left Intelligence Cards, Right Cinematic 3D Earth) */}
-      <main className="relative z-20 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+      {/* 3. Main Hero Viewport (Balanced Split Layout: Left Intelligence Cards, Right Cinematic 3D Earth) */}
+      <main className="relative z-20 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-6 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-8 xl:gap-12">
         
-        {/* Left Column: Typography, Time Context & Glass Intelligence Cards */}
-        <div className="w-full lg:w-[440px] flex flex-col justify-center space-y-4 sm:space-y-4.5 z-30 text-left">
+        {/* Left Column: Typography, Time Context & Glass Intelligence Cards (Pinned safely with crisp z-30) */}
+        <div className="w-full lg:w-[410px] xl:w-[430px] shrink-0 flex flex-col justify-center space-y-3.5 sm:space-y-4 z-30 text-left">
           
           {/* Small Top Tag */}
           <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-400/90 flex items-center space-x-2">

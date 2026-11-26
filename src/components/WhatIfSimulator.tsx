@@ -31,11 +31,11 @@ export const WhatIfSimulator: React.FC = () => {
   };
 
   return (
-    <div className="rounded-3xl bg-white border border-stone-200/80 p-4 sm:p-6 shadow-xs flex flex-col justify-between h-full">
+    <div className="rounded-3xl bg-white border border-stone-200/80 p-4 sm:p-5 shadow-2xs flex flex-col justify-between h-full space-y-3">
       
-      {/* Mobile Card Header & Thumbnail */}
+      {/* Mobile Card Header & Baseline Selector */}
       <div className="sm:hidden flex items-center justify-between pb-2 border-b border-stone-100">
-        <div className="flex items-center space-x-2.5">
+        <div className="flex items-center space-x-2">
           <div className="w-7 h-7 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100 shrink-0">
             <Sliders className="w-3.5 h-3.5" />
           </div>
@@ -44,17 +44,84 @@ export const WhatIfSimulator: React.FC = () => {
               What-If Exposure
             </h3>
             <p className="text-[10px] text-slate-500 font-medium">
-              {activityLabels[activity]} • {durationMinutes} min • {maskType === 'none' ? 'No Mask' : maskType.toUpperCase()}
+              {activityLabels[activity]} • {durationMinutes}m • {maskType === 'none' ? 'No Mask' : maskType.toUpperCase()}
             </p>
           </div>
         </div>
-        <div className="w-8 h-8 rounded-lg overflow-hidden border border-amber-200/80 shrink-0">
-          <img src={`${import.meta.env.BASE_URL}images/whatif-runner.png`} alt="Runner" className="w-full h-full object-cover" />
+
+        {/* Ambient Baseline Toggle (Mobile) */}
+        <div className="flex items-center space-x-1 bg-stone-100/70 p-0.5 rounded-lg text-[10px]">
+          <button
+            onClick={() => setUseCityAir(false)}
+            className={`px-1.5 py-0.5 rounded font-bold transition-all cursor-pointer ${
+              !useCityAir ? 'bg-white text-slatecharcoal-900 shadow-2xs' : 'text-slate-500'
+            }`}
+          >
+            100 µg
+          </button>
+          <button
+            onClick={() => setUseCityAir(true)}
+            className={`px-1.5 py-0.5 rounded font-bold transition-all cursor-pointer ${
+              useCityAir ? 'bg-white text-slatecharcoal-900 shadow-2xs' : 'text-slate-500'
+            }`}
+          >
+            City
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Interactive Parameter Selectors */}
+      <div className="sm:hidden grid grid-cols-3 gap-1.5 py-1">
+        <div className="bg-stone-50 p-1.5 rounded-xl border border-stone-200/70">
+          <span className="block text-[8px] font-semibold text-slate-400 uppercase">Activity</span>
+          <select
+            aria-label="Activity Intensity Mobile"
+            value={activity}
+            onChange={(e) => setActivity(e.target.value as ActivityType)}
+            className="w-full bg-transparent text-[10px] font-bold text-slatecharcoal-900 focus:outline-none"
+          >
+            <option value="outdoor_running">Running</option>
+            <option value="light_walking">Walking</option>
+            <option value="cycling_commute">Cycling</option>
+            <option value="heavy_cardio">HIIT</option>
+          </select>
+        </div>
+
+        <div className="bg-stone-50 p-1.5 rounded-xl border border-stone-200/70">
+          <span className="block text-[8px] font-semibold text-slate-400 uppercase">Duration</span>
+          <select
+            aria-label="Exposure Duration Mobile"
+            value={durationMinutes}
+            onChange={(e) => setDurationMinutes(Number(e.target.value))}
+            className="w-full bg-transparent text-[10px] font-bold text-slatecharcoal-900 focus:outline-none"
+          >
+            <option value="15">15 min</option>
+            <option value="30">30 min</option>
+            <option value="45">45 min</option>
+            <option value="60">60 min</option>
+            <option value="90">90 min</option>
+          </select>
+        </div>
+
+        <div className="bg-stone-50 p-1.5 rounded-xl border border-stone-200/70">
+          <span className="block text-[8px] font-semibold text-slate-400 uppercase">Mask</span>
+          <select
+            aria-label="Mask Type Mobile"
+            value={maskType}
+            onChange={(e) => setMaskType(e.target.value as keyof typeof MASK_EFFICIENCIES)}
+            className="w-full bg-transparent text-[10px] font-bold text-emerald-700 focus:outline-none"
+          >
+            <option value="none">None (0%)</option>
+            <option value="cloth">Cloth (25%)</option>
+            <option value="surgical">Surgical (60%)</option>
+            <option value="n95">N95 (95%)</option>
+            <option value="n99">N99 (99%)</option>
+          </select>
         </div>
       </div>
 
       {/* Mobile Dose Output Comparison Row */}
-      <div className="sm:hidden py-2 flex items-center justify-around gap-2 text-center">
+      <div className="sm:hidden py-1 px-2.5 rounded-xl bg-stone-50/80 border border-stone-200/80 flex items-center justify-around gap-2 text-center">
         <div>
           <div className="text-sm font-black text-rose-600 font-mono">
             {currentResult.unmaskedDoseUg} µg
@@ -69,7 +136,7 @@ export const WhatIfSimulator: React.FC = () => {
             {currentResult.estimatedInhaledMassUg} µg
           </div>
           <div className="text-[9px] font-bold text-emerald-700">
-            {maskType === 'none' ? 'Unmasked' : `With ${maskType.toUpperCase()}`}
+            {maskType === 'none' ? 'Without Mask' : `With ${maskType.toUpperCase()} (↓ ${reductionPercent}%)`}
           </div>
         </div>
       </div>

@@ -357,7 +357,8 @@ export const InteractiveGlobe: React.FC<{
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
-    camera.position.set(0, 0, 7.6);
+    // Adjusted camera distance from 7.6 to 8.6 to eliminate card collision while preserving full 3D visual fidelity
+    camera.position.set(0, 0, 8.6);
     cameraRef.current = camera;
 
     // 2. WebGL Renderer with High-DPI & Antialiasing
@@ -615,12 +616,12 @@ export const InteractiveGlobe: React.FC<{
     } catch {}
   };
 
-  // Zoom controls
+  // Zoom controls with safe boundaries preventing viewport clipping
   const handleZoom = (delta: number) => {
     if (!cameraRef.current) return;
-    const newZ = Math.max(5.0, Math.min(10.5, cameraRef.current.position.z + delta));
+    const newZ = Math.max(6.2, Math.min(11.0, cameraRef.current.position.z + delta));
     cameraRef.current.position.z = newZ;
-    setZoomLevel(+(7.6 / newZ).toFixed(2));
+    setZoomLevel(+(8.6 / newZ).toFixed(2));
   };
 
   const activeCity = GLOBE_CITIES.find((c) => c.id === selectedCityId) || GLOBE_CITIES[1]; // Bengaluru or selected
@@ -628,11 +629,11 @@ export const InteractiveGlobe: React.FC<{
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[580px] sm:h-[660px] lg:h-[720px] overflow-hidden select-none"
+      className="relative w-full h-[460px] sm:h-[530px] lg:h-[590px] overflow-hidden select-none"
     >
-      {/* 1. Atmospheric Sunrise Flare Backdrop (matches Image 1 upper-left glow) */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-amber-400/30 via-orange-500/20 to-transparent rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/3 left-1/3 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white/40 rounded-full blur-2xl pointer-events-none" />
+      {/* 1. Atmospheric Sunrise Flare Backdrop (Confined to globe container to prevent card spillover) */}
+      <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gradient-to-tr from-amber-400/20 via-orange-500/15 to-transparent rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 left-1/3 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-white/25 rounded-full blur-2xl pointer-events-none" />
 
       {/* 2. WebGL Canvas Mounting Point */}
       <div
@@ -698,10 +699,12 @@ export const InteractiveGlobe: React.FC<{
                 style={{ backgroundColor: city.color }}
               />
 
-              {/* Floating City Info Popover (matches exact popup in Image 1) */}
+              {/* Floating City Info Popover (Anchored safely inside globe container without card overlap or screen clipping) */}
               {showPopover && (
                 <div
-                  className={`absolute bottom-9 ${isNearLeftEdge ? 'left-4 sm:left-6' : 'right-4 sm:right-6'} w-64 p-3 rounded-2xl bg-slate-900/95 border border-slate-700/80 backdrop-blur-xl shadow-2xl text-left pointer-events-auto animate-in fade-in zoom-in-95 duration-200 z-40`}
+                  className={`absolute bottom-16 ${
+                    isNearLeftEdge ? 'left-3 sm:left-10' : 'right-3 sm:right-8'
+                  } max-w-[calc(100%-24px)] w-60 sm:w-64 p-3 rounded-2xl bg-slate-900/95 border border-slate-700/80 backdrop-blur-xl shadow-2xl text-left pointer-events-auto animate-in fade-in zoom-in-95 duration-200 z-40`}
                   style={{ boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)' }}
                 >
                   {/* Diagonal SVG leader pointer line from card to pin matching Image 1 */}
@@ -757,25 +760,25 @@ export const InteractiveGlobe: React.FC<{
       </div>
 
       {/* 4. Bottom Controls Pill Bar (Exact match to Image 1) */}
-      <div className="absolute bottom-6 inset-x-0 flex items-center justify-center space-x-3 z-30 pointer-events-auto">
-        <div className="flex items-center space-x-1.5 p-1 rounded-full bg-slate-900/85 border border-slate-700/80 backdrop-blur-xl shadow-2xl">
+      <div className="absolute bottom-6 inset-x-0 flex items-center justify-center space-x-2 sm:space-x-3 z-30 pointer-events-auto px-2">
+        <div className="flex items-center space-x-1 sm:space-x-1.5 p-1 rounded-full bg-slate-900/85 border border-slate-700/80 backdrop-blur-xl shadow-2xl">
           <button
             onClick={() => onToggleView && onToggleView('globe')}
-            className={`flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
               activeView === 'globe'
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 ring-1 ring-emerald-400'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
           >
-            <span className="text-sm">🧊</span>
+            <span className="text-xs sm:text-sm">🧊</span>
             <span>3D GLOBE</span>
           </button>
 
           <button
             onClick={() => onExploreCity && onExploreCity(selectedCityId)}
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all cursor-pointer"
+            className="flex items-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/80 whitespace-nowrap transition-all cursor-pointer"
           >
-            <span className="text-sm">🗺️</span>
+            <span className="text-xs sm:text-sm">🗺️</span>
             <span>IQ AIR MAP</span>
           </button>
         </div>

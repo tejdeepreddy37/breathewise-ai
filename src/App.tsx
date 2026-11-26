@@ -42,24 +42,24 @@ export const App: React.FC = () => {
             <MetricsStrip />
 
             {/* Exact 2x2 Grid Matching Image 2 Desktop and Sequential Mobile Stack */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4 items-stretch">
               {/* Item 1: WindowSafe Diurnal Forecast (Desktop Top-Left, Mobile 1st) */}
-              <div className="w-full order-1">
+              <div className="w-full order-1 flex flex-col">
                 <DiurnalChart />
               </div>
 
               {/* Item 2: What-If Exposure Sandbox (Desktop Top-Right, Mobile 2nd) */}
-              <div className="w-full order-2">
+              <div className="w-full order-2 flex flex-col">
                 <WhatIfSimulator />
               </div>
 
               {/* Item 3: Commute Exposure & Eco-Swap (Desktop Bottom-Left, Mobile 4th) */}
-              <div className="w-full order-4 lg:order-3">
+              <div className="w-full order-4 lg:order-3 flex flex-col">
                 <CommuteSimulator />
               </div>
 
               {/* Item 4: Indoor Envelope & Air Coach (Desktop Bottom-Right, Mobile 3rd) */}
-              <div className="w-full order-3 lg:order-4">
+              <div className="w-full order-3 lg:order-4 flex flex-col">
                 <IndoorCoachView />
               </div>
             </div>

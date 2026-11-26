@@ -77,7 +77,7 @@ export const CommuteSimulator: React.FC = () => {
             <button
               key={km}
               onClick={() => setDistanceKm(km)}
-              className={`px-2 py-0.5 rounded font-bold text-[10px] transition-all cursor-pointer ${
+              className={`whitespace-nowrap px-2 py-0.5 rounded font-bold text-[10px] transition-all cursor-pointer ${
                 distanceKm === km ? 'bg-white text-slatecharcoal-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
