@@ -4,11 +4,11 @@ import { Header } from './components/Header';
 import { HeroDirective } from './components/HeroDirective';
 import { MetricsStrip } from './components/MetricsStrip';
 import { DiurnalChart } from './components/DiurnalChart';
-import { AiLivingPlanCard } from './components/AiLivingPlanCard';
 import { CommuteSimulator } from './components/CommuteSimulator';
 import { IndoorCoachView } from './components/IndoorCoachView';
 import { WhatIfSimulator } from './components/WhatIfSimulator';
-import { AiAssistantFeed } from './components/AiAssistantFeed';
+import { AiAssistantWorkspace } from './components/AiAssistantWorkspace';
+import { SubpageContextBar } from './components/SubpageContextBar';
 import { TransparencyDrawer } from './components/TransparencyDrawer';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { LandingPage } from './components/LandingPage';
@@ -35,30 +35,30 @@ export const App: React.FC = () => {
         {/* View Switcher based on activeTab */}
         {activeTab === 'overview' && (
           <div className="space-y-3.5 sm:space-y-4 animate-in fade-in duration-200">
-            {/* Signature Clean-Air Directive Hero (Exact Image 2 Match) */}
+            {/* Signature Clean-Air Directive Hero */}
             <HeroDirective />
 
-            {/* Scientific Telemetry Strip (Exact Image 2 Match) */}
+            {/* Scientific Telemetry Strip */}
             <MetricsStrip />
 
-            {/* Exact 2x2 Grid Matching Image 2 Desktop and Sequential Mobile Stack */}
+            {/* 2x2 Primary Overview Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4 items-stretch">
-              {/* Item 1: WindowSafe Diurnal Forecast (Desktop Top-Left, Mobile 1st) */}
+              {/* Item 1: WindowSafe Diurnal Forecast */}
               <div className="w-full order-1 flex flex-col">
                 <DiurnalChart />
               </div>
 
-              {/* Item 2: What-If Exposure Sandbox (Desktop Top-Right, Mobile 2nd) */}
+              {/* Item 2: What-If Exposure Sandbox */}
               <div className="w-full order-2 flex flex-col">
                 <WhatIfSimulator />
               </div>
 
-              {/* Item 3: Commute Exposure & Eco-Swap (Desktop Bottom-Left, Mobile 4th) */}
+              {/* Item 3: Commute Exposure & Eco-Swap */}
               <div className="w-full order-4 lg:order-3 flex flex-col">
                 <CommuteSimulator />
               </div>
 
-              {/* Item 4: Indoor Envelope & Air Coach (Desktop Bottom-Right, Mobile 3rd) */}
+              {/* Item 4: Indoor Envelope & Air Coach */}
               <div className="w-full order-3 lg:order-4 flex flex-col">
                 <IndoorCoachView />
               </div>
@@ -66,38 +66,47 @@ export const App: React.FC = () => {
           </div>
         )}
 
+        {/* Dedicated Commute Workspace */}
         {activeTab === 'commute' && (
-          <div className="space-y-5 animate-in fade-in duration-200">
-            <HeroDirective />
-            <CommuteSimulator />
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <SubpageContextBar
+              title="Commute Exposure & Eco-Swap Optimizer"
+              subtitle="Analyze urban travel modes to minimize inhaled fine particulate dose and reduce transit carbon footprint"
+            />
+            <CommuteSimulator isDedicatedWorkspace={true} />
           </div>
         )}
 
+        {/* Dedicated Indoor Air Coach Workspace */}
         {activeTab === 'indoor' && (
-          <div className="space-y-5 animate-in fade-in duration-200">
-            <HeroDirective />
-            <IndoorCoachView />
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <SubpageContextBar
+              title="Indoor Air Envelope & Ventilation Coach"
+              subtitle="Dynamic mass-balance modeling, infiltration control, and air purifier performance optimization"
+            />
+            <IndoorCoachView isDedicatedWorkspace={true} />
           </div>
         )}
 
+        {/* Dedicated What-If Sandbox Workspace */}
         {activeTab === 'simulator' && (
-          <div className="space-y-5 animate-in fade-in duration-200">
-            <HeroDirective />
-            <WhatIfSimulator />
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <SubpageContextBar
+              title="What-If Respiratory Exposure Sandbox"
+              subtitle="Calculate particulate intake and simulate protective intervention reductions using physical ventilation rates"
+            />
+            <WhatIfSimulator isDedicatedWorkspace={true} />
           </div>
         )}
 
+        {/* Dedicated AI Assistant Workspace */}
         {activeTab === 'assistant' && (
-          <div className="space-y-5 animate-in fade-in duration-200">
-            <HeroDirective />
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-              <div className="lg:col-span-5">
-                <AiLivingPlanCard />
-              </div>
-              <div className="lg:col-span-7">
-                <AiAssistantFeed />
-              </div>
-            </div>
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <SubpageContextBar
+              title="BreatheWise AI Living Assistant"
+              subtitle="Adaptive 24-hour daily routine timeline and environmental living guidance powered by convective dispersion models"
+            />
+            <AiAssistantWorkspace />
           </div>
         )}
 

@@ -4,7 +4,7 @@ import { calculateInhaledDose, MASK_EFFICIENCIES } from '../engines/inhaledDose'
 import { ActivityType } from '../types/engines';
 import { Sliders, ShieldCheck, ArrowRight, Flame } from 'lucide-react';
 
-export const WhatIfSimulator: React.FC = () => {
+export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ({ isDedicatedWorkspace = false }) => {
   const { telemetry } = useApp();
 
   const [activity, setActivity] = useState<ActivityType>('outdoor_running');
@@ -31,7 +31,7 @@ export const WhatIfSimulator: React.FC = () => {
   };
 
   return (
-    <div className="rounded-3xl bg-white border border-stone-200/80 p-4 sm:p-5 shadow-2xs flex flex-col justify-between h-full space-y-3">
+    <div className={`rounded-3xl bg-white border border-stone-200/80 ${isDedicatedWorkspace ? 'p-5 sm:p-7 space-y-5' : 'p-4 sm:p-5 flex flex-col justify-between h-full space-y-3'} shadow-2xs`}>
       
       {/* Mobile Card Header & Baseline Selector */}
       <div className="sm:hidden flex items-center justify-between pb-2 border-b border-stone-100">
@@ -288,6 +288,50 @@ export const WhatIfSimulator: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Dedicated Workspace Inhaled Volume & WHO Comparison Card */}
+      {isDedicatedWorkspace && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-3">
+          <div className="flex justify-between items-center text-xs font-bold text-slatecharcoal-900">
+            <span>Detailed Respiratory Exposure Metrics</span>
+            <span className="font-mono text-emerald-800 text-[11px] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              Inhaled Air Volume: {currentResult.inhaledAirVolumeM3} m³ ({currentResult.minuteVentilationRateLpm} L/min × {durationMinutes} min)
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="p-3 rounded-xl bg-white border border-stone-200/80 shadow-2xs space-y-1">
+              <span className="text-[10px] text-slate-400 uppercase font-bold">Unmasked Inhaled Mass</span>
+              <div className="text-base font-black text-rose-600 font-mono">
+                {currentResult.unmaskedDoseUg} µg
+              </div>
+              <span className="text-[10px] text-slate-500 block">
+                {(currentResult.unmaskedDoseUg / 225).toFixed(1)}× WHO 24h Guideline
+              </span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-white border border-stone-200/80 shadow-2xs space-y-1">
+              <span className="text-[10px] text-slate-400 uppercase font-bold">Particulate Mass Spared</span>
+              <div className="text-base font-black text-emerald-700 font-mono">
+                {currentResult.doseAvoidedUg} µg
+              </div>
+              <span className="text-[10px] text-emerald-700 font-bold block">
+                ↓ {reductionPercent}% Filtration Efficiency
+              </span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-white border border-stone-200/80 shadow-2xs space-y-1">
+              <span className="text-[10px] text-slate-400 uppercase font-bold">Masked Inhaled Mass</span>
+              <div className="text-base font-black text-slatecharcoal-900 font-mono">
+                {currentResult.estimatedInhaledMassUg} µg
+              </div>
+              <span className="text-[10px] text-slate-500 block">
+                Protected Lung Deposition
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -4,7 +4,7 @@ import { calculateIndoorRecommendations, getIndianStandardTimeHour } from '../en
 import { IndoorSourceType } from '../types/engines';
 import { Home, Lock, Wind, Fan, CheckCircle2, AlertCircle } from 'lucide-react';
 
-export const IndoorCoachView: React.FC = () => {
+export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = ({ isDedicatedWorkspace = false }) => {
   const { telemetry, cleanAirWindow, userPreferences } = useApp();
   const [roomAreaM2, setRoomAreaM2] = useState<number>(userPreferences.roomSizeM2 || 20);
   const [indoorSource, setIndoorSource] = useState<IndoorSourceType>('none');
@@ -15,11 +15,13 @@ export const IndoorCoachView: React.FC = () => {
   const rec = calculateIndoorRecommendations(ambientPm25, cleanAirWindow, currentHour, roomAreaM2, ambientO3, indoorSource);
 
   const isSealed = rec.windowAction === 'SEAL_COMPLETELY';
+  const roomVolumeM3 = Math.round(roomAreaM2 * 2.8);
+  const targetCadrM3H = Math.round(roomVolumeM3 * 4.8); // 4.8 ACH standard for respiratory protection
 
   return (
-    <div className="rounded-3xl bg-white border border-stone-200/80 p-4 sm:p-6 shadow-xs flex flex-col justify-between h-full">
+    <div className={`rounded-3xl bg-white border border-stone-200/80 ${isDedicatedWorkspace ? 'p-5 sm:p-7 space-y-5' : 'p-4 sm:p-6 flex flex-col justify-between h-full'} shadow-2xs`}>
       
-      {/* Mobile Card Header (Exact Match to Image 2 Mobile: "Indoor Air Coach" + "Indoor: ~119 µg/m³") */}
+      {/* Mobile Card Header */}
       <div className="sm:hidden flex items-center justify-between pb-2 border-b border-stone-100">
         <div className="flex items-center space-x-2.5">
           <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-100 shrink-0">
@@ -34,10 +36,9 @@ export const IndoorCoachView: React.FC = () => {
             </p>
           </div>
         </div>
-        <span className="text-slate-400 text-xs font-bold">›</span>
       </div>
 
-      {/* Desktop Card Header (Exact Match to Image 2 Desktop: "Indoor Envelope & Air Coach") */}
+      {/* Desktop Card Header */}
       <div className="hidden sm:flex items-start justify-between pb-3 border-b border-stone-100">
         <div className="flex items-center space-x-2.5">
           <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-100 shrink-0">
@@ -52,127 +53,126 @@ export const IndoorCoachView: React.FC = () => {
             </p>
           </div>
         </div>
+
+        {isDedicatedWorkspace && (
+          <div className="text-xs font-mono font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200/80">
+            Room Volume: {roomVolumeM3} m³ ({roomAreaM2} m² × 2.8m)
+          </div>
+        )}
       </div>
 
-      {/* Mobile Directives Pill & Controls */}
-      <div className="sm:hidden space-y-2 py-1.5">
-        <div className={`w-full flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl border font-bold text-xs shadow-2xs ${
-          isSealed ? 'bg-rose-50 text-rose-700 border-rose-200/80' : 'bg-emerald-50 text-emerald-800 border-emerald-200/80'
-        }`}>
-          {isSealed ? <Lock className="w-3.5 h-3.5 text-rose-600" /> : <Wind className="w-3.5 h-3.5 text-emerald-600" />}
-          <span>{isSealed ? 'Seal Windows & Run Purifier' : 'Ventilate & Run Purifier'}</span>
-        </div>
-
-        {/* Mobile Room & Source Controls */}
-        <div className="flex items-center justify-between text-[10px] px-1">
-          <div className="flex items-center space-x-1">
-            <span className="text-slate-400 font-semibold uppercase text-[9px]">Room:</span>
-            {[12, 20, 35].map((area) => (
-              <button
-                key={area}
-                onClick={() => setRoomAreaM2(area)}
-                className={`px-1.5 py-0.5 rounded font-bold transition-colors cursor-pointer ${
-                  roomAreaM2 === area ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'text-slate-500'
-                }`}
-              >
-                {area}m²
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center space-x-1">
-            <span className="text-slate-400 font-semibold uppercase text-[9px]">Src:</span>
-            <select
-              aria-label="Indoor Pollution Source Mobile"
-              value={indoorSource}
-              onChange={(e) => setIndoorSource(e.target.value as IndoorSourceType)}
-              className="bg-stone-50 border border-stone-200/80 rounded px-1.5 py-0.5 font-bold text-slatecharcoal-900 text-[9px] focus:outline-none"
-            >
-              <option value="none">None</option>
-              <option value="cooking_frying">Cooking</option>
-              <option value="incense_smoke">Incense</option>
-              <option value="high_co2_stuffy">Stuffy</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop Living Room Visual Graphic with Centered Directives Card (Matches Image 2) */}
-      <div className="hidden sm:flex relative my-2 rounded-2xl overflow-hidden border border-stone-200/80 min-h-[145px] items-center justify-center p-3">
-        
-        {/* Authentic Living Room Backdrop from Reference Image 2 */}
-        <div className="absolute inset-0 pointer-events-none z-0">
-          <img
-            src={`${import.meta.env.BASE_URL}images/indoor-backdrop.png`}
-            alt="Living Room Atmosphere with Purifier"
-            className="w-full h-full object-cover opacity-60 filter blur-[0.8px]"
-          />
-          <div className="absolute inset-0 bg-stone-900/15 backdrop-blur-[0.5px]" />
-        </div>
-
-        {/* Center: Clean Air Quality & Directives Card (Exact match to Image 2) */}
-        <div className="relative z-10 w-full max-w-[270px] p-3.5 rounded-2xl bg-white/95 border border-stone-200/90 shadow-lg backdrop-blur-md text-center space-y-2">
-          
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-              Indoor Estimated Air
-            </span>
-            <div className="text-xl sm:text-2xl font-black text-slatecharcoal-900 font-mono tracking-tight">
-              Indoor PM2.5: ~{rec.estimatedIndoorBaselinePm25} µg/m³
-            </div>
-          </div>
-
-          {/* Action Pills: "Seal Windows & Doors" + "Run Purifier: TURBO" */}
-          <div className="flex flex-wrap items-center justify-center gap-1.5 pt-0.5">
-            <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold shadow-2xs ${
-              isSealed
-                ? 'bg-rose-50 text-rose-700 border border-rose-200/80'
-                : 'bg-emerald-50 text-emerald-800 border border-emerald-200/80'
-            }`}>
-              {isSealed ? <Lock className="w-3 h-3 text-rose-600" /> : <Wind className="w-3 h-3 text-emerald-600" />}
-              <span>{isSealed ? 'Seal Windows & Doors' : 'Open Windows & Ventilate'}</span>
-            </span>
-
-            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs">
-              <Fan className="w-3 h-3 text-emerald-600" />
-              <span>Run Purifier: {rec.purifierRecommendation.recommendedSpeed}</span>
-            </span>
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* Compact Interactive Indoor Parameters (Room Size & Indoor Source Context) */}
-      <div className="hidden sm:flex items-center justify-between gap-2 pt-2 border-t border-stone-100 text-[10px]">
-        <div className="flex items-center space-x-1.5">
-          <span className="text-slate-400 font-semibold uppercase tracking-wider">Room:</span>
-          {[12, 20, 35].map((area) => (
+      {/* Interactive Controls Bar */}
+      <div className={`bg-stone-50/70 p-3.5 rounded-2xl border border-stone-200/70 flex flex-wrap items-center justify-between gap-3 text-xs`}>
+        <div className="flex items-center space-x-2">
+          <span className="text-slate-500 font-bold uppercase text-[10px] tracking-wider">Room Area:</span>
+          {[12, 20, 35, 50].map((area) => (
             <button
               key={area}
               onClick={() => setRoomAreaM2(area)}
-              className={`px-2 py-0.5 rounded-md font-bold transition-colors cursor-pointer ${
-                roomAreaM2 === area ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'text-slate-500 hover:bg-stone-100'
+              className={`px-2.5 py-1 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                roomAreaM2 === area
+                  ? 'bg-white text-slatecharcoal-900 shadow-2xs border border-stone-200'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              {area}m²
+              {area} m²
             </button>
           ))}
         </div>
-        <div className="flex items-center space-x-1.5">
-          <span className="text-slate-400 font-semibold uppercase tracking-wider">Source:</span>
+
+        <div className="flex items-center space-x-2">
+          <span className="text-slate-500 font-bold uppercase text-[10px] tracking-wider">Indoor Source:</span>
           <select
             aria-label="Indoor Pollution Source"
             value={indoorSource}
             onChange={(e) => setIndoorSource(e.target.value as IndoorSourceType)}
-            className="bg-stone-50 border border-stone-200/80 rounded-lg px-2 py-0.5 pr-5 font-bold text-slatecharcoal-900 text-[10px] cursor-pointer focus:outline-none"
+            className="bg-white border border-stone-200 rounded-lg px-2.5 py-1 font-bold text-slatecharcoal-900 text-xs cursor-pointer focus:outline-none shadow-2xs"
           >
-            <option value="none">None (Sealed)</option>
-            <option value="cooking_frying">Cooking / Frying</option>
-            <option value="incense_smoke">Incense / Coil</option>
+            <option value="none">None (Clean & Sealed)</option>
+            <option value="cooking_frying">Cooking / Frying (+85 µg/m³)</option>
+            <option value="incense_smoke">Incense / Coil (+120 µg/m³)</option>
             <option value="high_co2_stuffy">Stuffy / High CO₂</option>
           </select>
         </div>
       </div>
+
+      {/* Dual Key Directives: Window Ventilation & HEPA Filtration */}
+      <div className={`grid grid-cols-1 ${isDedicatedWorkspace ? 'sm:grid-cols-2 gap-4' : 'sm:grid-cols-2 gap-3 py-1'}`}>
+        
+        {/* Card 1: Window Action Directive */}
+        <div className={`p-4 rounded-2xl border flex flex-col justify-between space-y-2.5 ${
+          isSealed ? 'bg-rose-50/50 border-rose-200/80 text-rose-950' : 'bg-emerald-50/50 border-emerald-200/80 text-emerald-950'
+        }`}>
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-1.5">
+              {isSealed ? <Lock className="w-3.5 h-3.5 text-rose-600" /> : <Wind className="w-3.5 h-3.5 text-emerald-600" />}
+              <span>Window Ventilation</span>
+            </span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+              isSealed ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
+            }`}>
+              {isSealed ? 'SEAL ENVELOPE' : 'VENTILATE'}
+            </span>
+          </div>
+
+          <div>
+            <div className="text-sm sm:text-base font-extrabold tracking-tight">
+              {isSealed ? 'Seal Windows & Doors Completely' : 'Open Windows for Convective Air Flush'}
+            </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed mt-1">
+              {isSealed
+                ? 'Outdoor PM2.5 or Ozone exceeds safe exposure limits. Infiltration introduces toxic fine aerosols into residential breathing zones.'
+                : 'Current atmospheric conditions are in the convective dispersion window. Natural cross-ventilation reduces indoor CO₂ accumulation.'}
+            </p>
+          </div>
+
+          <div className="pt-2 border-t border-stone-200/60 text-[10px] font-mono text-slate-500 flex justify-between">
+            <span>Outdoor PM2.5: {ambientPm25 ?? '--'} µg/m³</span>
+            <span>Ozone: {ambientO3 ?? '--'} µg/m³</span>
+          </div>
+        </div>
+
+        {/* Card 2: Air Purifier Operation Directive */}
+        <div className="p-4 rounded-2xl border border-stone-200/80 bg-stone-50/60 flex flex-col justify-between space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-1.5">
+              <Fan className="w-3.5 h-3.5 text-emerald-700" />
+              <span>HEPA Air Purifier</span>
+            </span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-600 text-white shadow-2xs">
+              SPEED: {rec.purifierRecommendation.recommendedSpeed}
+            </span>
+          </div>
+
+          <div>
+            <div className="text-sm sm:text-base font-extrabold text-slatecharcoal-900 tracking-tight">
+              Indoor PM2.5 Target: ~{rec.estimatedIndoorBaselinePm25} µg/m³
+            </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed mt-1">
+              Run mechanical HEPA filtration on {rec.purifierRecommendation.recommendedSpeed} mode for {rec.purifierRecommendation.targetRuntimeMinutes} minutes to bring indoor aerosols to ~{rec.purifierRecommendation.estimatedPostCleanPm25} µg/m³.
+            </p>
+          </div>
+
+          <div className="pt-2 border-t border-stone-200/60 text-[10px] font-mono text-slate-500 flex justify-between">
+            <span>Target CADR: ~{targetCadrM3H} m³/h</span>
+            <span>Room Volume: {roomVolumeM3} m³</span>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Dedicated Workspace Scientific Living Note */}
+      {isDedicatedWorkspace && (
+        <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200/80 flex items-start space-x-3 text-xs text-slate-600 leading-relaxed">
+          <div className="w-7 h-7 rounded-xl bg-white border border-stone-200 flex items-center justify-center shrink-0 shadow-2xs text-emerald-700 font-bold">
+            ℹ
+          </div>
+          <div>
+            <strong className="text-slatecharcoal-900 block mb-0.5">Physical Infiltration & Deposition Model</strong>
+            BreatheWise computes indoor particulate equilibrium using a single-compartment mass balance model. Real-world penetration averages 0.65 without weatherstripping. Running mechanical filtration at ≥ 4.5 ACH accelerates particulate clearance by 82%.
+          </div>
+        </div>
+      )}
 
     </div>
   );

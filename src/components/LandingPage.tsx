@@ -68,37 +68,19 @@ export const LandingPage: React.FC = () => {
             </span>
           </div>
 
-          {/* Center Navigation Links with Active Green Pill */}
+          {/* Clean Navigation Links with Clear Primary Hierarchy */}
           <nav className="hidden lg:flex items-center space-x-1.5 p-1 rounded-full bg-slate-900/60 border border-slate-800/80 backdrop-blur-md">
             <button
-              onClick={() => setActiveTab('landing')}
-              className="px-4 py-1.5 rounded-full text-xs font-bold bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20 cursor-pointer"
-            >
-              Air Quality
-            </button>
-            <button
               onClick={() => handleLaunchApp()}
-              className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+              className="px-4 py-1.5 rounded-full text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all cursor-pointer"
             >
-              Air Monitors
-            </button>
-            <button
-              onClick={() => handleLaunchApp()}
-              className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
-            >
-              Discover
+              Air Intelligence
             </button>
             <button
               onClick={() => setIsTransparencyOpen(true)}
-              className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+              className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all cursor-pointer"
             >
-              About
-            </button>
-            <button
-              onClick={() => setIsTransparencyOpen(true)}
-              className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
-            >
-              Technology
+              Science & Methodology
             </button>
           </nav>
 
@@ -108,7 +90,7 @@ export const LandingPage: React.FC = () => {
               onClick={() => handleLaunchApp()}
               className="flex items-center space-x-1.5 px-5 py-2.5 rounded-full text-xs font-extrabold bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 transition-all shadow-lg shadow-emerald-500/25 hover:scale-[1.02] cursor-pointer"
             >
-              <span>Get Started</span>
+              <span>Launch Dashboard</span>
               <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
             </button>
           </div>
@@ -258,15 +240,14 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Social Share Icons (Bottom Left match to Image 1) */}
-          <div className="flex items-center space-x-2 pt-1 text-slate-400">
-            <div className="w-8 h-8 rounded-full bg-slate-900/80 border border-slate-700/80 flex items-center justify-center hover:text-white cursor-pointer transition-colors">
-              <span className="text-xs font-bold">f</span>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-slate-900/80 border border-slate-700/80 flex items-center justify-center hover:text-white cursor-pointer transition-colors">
-              <span className="text-xs font-bold">w</span>
-            </div>
-          </div>
+          {/* Primary Action Button to Enter Dashboard */}
+          <button
+            onClick={() => handleLaunchApp()}
+            className="w-full flex items-center justify-center space-x-2 py-3 px-5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-extrabold text-xs shadow-lg shadow-emerald-500/25 hover:scale-[1.01] transition-all cursor-pointer"
+          >
+            <span>Open Air Intelligence Dashboard</span>
+            <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+          </button>
 
         </div>
 

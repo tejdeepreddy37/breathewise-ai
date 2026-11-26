@@ -106,38 +106,33 @@ export const Header: React.FC = () => {
             })}
           </nav>
 
-          {/* Right Header Controls (Bell, Avatar, Globe Switcher) */}
-          <div className="flex items-center space-x-2.5">
-            {/* Return to 3D Earth Globe */}
+          {/* Right Header Controls (3D Globe & Science Methodology) */}
+          <div className="flex items-center space-x-2">
+            {/* 3D Earth Globe Link */}
             <button
               onClick={() => setActiveTab('landing')}
-              className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-100 text-xs font-semibold shadow-2xs border border-slate-700 transition-all cursor-pointer"
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-100 text-xs font-semibold shadow-2xs border border-slate-700 transition-all cursor-pointer"
               title="Switch to 3D Earth Globe View"
             >
               <Globe2 className="w-3.5 h-3.5 text-emerald-400" />
               <span className="hidden sm:inline">3D Globe</span>
             </button>
 
-            {/* Notification Bell */}
+            {/* Science & Transparency Modal Button */}
             <button
               onClick={() => setIsTransparencyOpen(true)}
-              className="w-9 h-9 rounded-full bg-white hover:bg-stone-100 border border-stone-200 flex items-center justify-center text-slate-600 shadow-2xs transition-colors cursor-pointer"
-              title="Methodology & Alerts"
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-stone-100 border border-stone-200 text-slate-700 text-xs font-semibold shadow-2xs transition-all cursor-pointer"
+              title="Methodology, CPCB Standards & Data Provenance"
             >
-              <Bell className="w-4 h-4" />
+              <Info className="w-3.5 h-3.5 text-emerald-700" />
+              <span className="hidden sm:inline">Science</span>
             </button>
-
-            {/* User Avatar with Green Active Ring */}
-            <div className="relative w-9 h-9 rounded-full bg-emerald-900 text-white font-bold text-xs flex items-center justify-center border-2 border-emerald-500 shadow-sm">
-              <User className="w-4 h-4 text-emerald-100" />
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
-            </div>
           </div>
 
         </div>
 
-        {/* Secondary Filter & Telemetry Row (Matches subheader in Image 2) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 py-2.5 border-t border-stone-200/50 text-xs">
+        {/* Secondary Filter & Authoritative Telemetry Row */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 py-2.5 border-t border-stone-200/50 text-xs">
           
           {/* Left: Location & Profile Selector Pills */}
           <div className="flex items-center space-x-2">
@@ -190,41 +185,37 @@ export const Header: React.FC = () => {
 
           </div>
 
-          {/* Right: Live/Demo Status Indicator (Matches Image 2) & Refresh */}
+          {/* Right: Authoritative Provenance Status Badge & Refresh Action */}
           <div className="flex items-center space-x-2">
-            <div className="flex items-center space-x-1.5 bg-stone-100/80 p-0.5 rounded-full border border-stone-200/80 text-[11px]">
-              <button
-                onClick={() => { if (isDemoMode) toggleDemoMode(); }}
-                className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
-                  isLive
-                    ? 'bg-white text-slatecharcoal-900 font-bold shadow-2xs'
-                    : 'text-slate-400 hover:text-slate-600 font-medium'
-                }`}
-                title={isLive ? 'Connected to European CAMS atmospheric model' : 'Click to connect to live Open-Meteo telemetry'}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
-                <span>Live (CAMS)</span>
-              </button>
-              <button
-                onClick={() => { if (!isDemoMode) toggleDemoMode(); }}
-                className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full transition-all cursor-pointer ${
-                  !isLive
-                    ? 'bg-white text-slatecharcoal-900 font-bold shadow-2xs'
-                    : 'text-slate-400 hover:text-slate-600 font-medium'
-                }`}
-                title={!isLive ? 'Calibrated offline demonstration mode active' : 'Click to switch to calibrated offline demonstration'}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${!isLive ? 'bg-amber-500' : 'border border-slate-300'}`} />
-                <span>Demo Mode</span>
-              </button>
-            </div>
+            <button
+              onClick={() => setIsTransparencyOpen(true)}
+              className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full border text-[11px] font-bold shadow-2xs cursor-pointer transition-all hover:bg-stone-100/80"
+              title="Click to view full scientific data provenance and CPCB breakpoints"
+            >
+              {meta.isLive ? (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-emerald-900">Live (CAMS Copernicus)</span>
+                </>
+              ) : meta.fetchTimestamp?.includes('Cached') ? (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-stone-400" />
+                  <span className="text-slate-700">{meta.fetchTimestamp}</span>
+                </>
+              ) : (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <span className="text-amber-800">Calibrated Baseline</span>
+                </>
+              )}
+            </button>
 
             <button
               onClick={refreshData}
               disabled={isLoadingTelemetry}
               aria-label="Refresh telemetry data"
               className="p-1.5 rounded-full bg-white hover:bg-stone-100 border border-stone-200 text-slate-600 transition-colors shadow-2xs cursor-pointer"
-              title="Refresh Telemetry"
+              title="Refresh Live Atmospheric Telemetry"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoadingTelemetry ? 'animate-spin text-emerald-600' : ''}`} />
             </button>

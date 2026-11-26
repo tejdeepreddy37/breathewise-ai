@@ -759,28 +759,12 @@ export const InteractiveGlobe: React.FC<{
         })}
       </div>
 
-      {/* 4. Bottom Controls Pill Bar (Exact match to Image 1) */}
-      <div className="absolute bottom-6 inset-x-0 flex items-center justify-center space-x-2 sm:space-x-3 z-30 pointer-events-auto px-2">
-        <div className="flex items-center space-x-1 sm:space-x-1.5 p-1 rounded-full bg-slate-900/85 border border-slate-700/80 backdrop-blur-xl shadow-2xl">
-          <button
-            onClick={() => onToggleView && onToggleView('globe')}
-            className={`flex items-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-              activeView === 'globe'
-                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 ring-1 ring-emerald-400'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-            }`}
-          >
-            <span className="text-xs sm:text-sm">🧊</span>
-            <span>3D GLOBE</span>
-          </button>
-
-          <button
-            onClick={() => onExploreCity && onExploreCity(selectedCityId)}
-            className="flex items-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/80 whitespace-nowrap transition-all cursor-pointer"
-          >
-            <span className="text-xs sm:text-sm">🗺️</span>
-            <span>IQ AIR MAP</span>
-          </button>
+      {/* 4. Bottom Controls: Interactive Guidance & Zoom */}
+      <div className="absolute bottom-6 inset-x-0 flex items-center justify-center space-x-2.5 z-30 pointer-events-auto px-3">
+        <div className="flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-slate-900/85 border border-slate-700/80 backdrop-blur-xl text-xs font-semibold text-slate-300 shadow-xl">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-[11px] text-slate-300 font-medium hidden sm:inline">Interactive 3D Earth • Drag to rotate</span>
+          <span className="text-[11px] text-slate-300 font-medium sm:hidden">3D Earth</span>
         </div>
 
         {/* Zoom Controls */}
@@ -801,21 +785,6 @@ export const InteractiveGlobe: React.FC<{
             −
           </button>
         </div>
-
-        {/* Share Button (Exact match to Image 1 bottom right button) */}
-        <button
-          onClick={() => {
-            if (navigator.share) {
-              navigator.share({ title: 'BreatheWise AI', url: window.location.href }).catch(() => {});
-            }
-          }}
-          className="w-9 h-9 rounded-full bg-slate-900/85 border border-slate-700/80 backdrop-blur-xl flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 shadow-xl cursor-pointer transition-all"
-          title="Share"
-        >
-          <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-          </svg>
-        </button>
       </div>
     </div>
   );
