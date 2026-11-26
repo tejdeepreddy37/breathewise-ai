@@ -542,6 +542,7 @@ async function runRealModuleTests() {
   assert(mod.calculateCpcbAqi({ pm25: 90 }).category === 'Moderate', 'Boundary PM2.5=90 is Moderate');
   assert(mod.calculateCpcbAqi({ pm25: 120 }).category === 'Poor', 'Boundary PM2.5=120 is Poor');
   assert(mod.calculateCpcbAqi({ pm25: 250 }).category === 'Very Poor', 'Boundary PM2.5=250 is Very Poor');
+  assert(mod.calculateCpcbAqi({ pm25: 300 }).category === 'Severe', 'Boundary PM2.5=300 is Severe');
 
   // SO2 Breakpoint verification across standard schedules
   assert(mod.calculateSubIndex(20, mod.SO2_BREAKPOINTS) === 25, 'SO2=20 µg/m³ yields sub-index 25 (Good)');
@@ -787,32 +788,82 @@ async function runRealModuleTests() {
       : 0;
     assert(zeroPercentReduction === 0, `0% reduction in diurnal curve is preserved as 0% rather than falling back to 56% (got ${zeroPercentReduction})`);
 
-    // Test 18.2: Globe city consistency with CPCB NAQI breakpoints
-    const mumbaiCat = mod.calculateCpcbAqi({ pm25: 135 }).category; // Mumbai BKC baseline
-    assert(mumbaiCat === 'Very Poor', `Mumbai baseline AQI 312 (PM2.5=135) resolves to Very Poor in CPCB (got ${mumbaiCat})`);
-    const kolkataCat = mod.calculateCpcbAqi({ pm25: 168 }).category; // Kolkata baseline
-    assert(kolkataCat === 'Very Poor', `Kolkata baseline AQI 337 (PM2.5=168) resolves to Very Poor in CPCB (got ${kolkataCat})`);
+    // Test 18.2: Production Canonical CPCB Categories & Breakpoints
+    assert(mod.getCpcbCategory(0) === 'Good', 'AQI 0 resolves to Good');
+    assert(mod.getCpcbCategory(50) === 'Good', 'AQI 50 resolves to Good');
+    assert(mod.getCpcbCategory(51) === 'Satisfactory', 'AQI 51 resolves to Satisfactory');
+    assert(mod.getCpcbCategory(100) === 'Satisfactory', 'AQI 100 resolves to Satisfactory');
+    assert(mod.getCpcbCategory(101) === 'Moderate', 'AQI 101 resolves to Moderate');
+    assert(mod.getCpcbCategory(200) === 'Moderate', 'AQI 200 resolves to Moderate');
+    assert(mod.getCpcbCategory(201) === 'Poor', 'AQI 201 resolves to Poor');
+    assert(mod.getCpcbCategory(300) === 'Poor', 'AQI 300 resolves to Poor');
+    assert(mod.getCpcbCategory(301) === 'Very Poor', 'AQI 301 resolves to Very Poor');
+    assert(mod.getCpcbCategory(400) === 'Very Poor', 'AQI 400 resolves to Very Poor');
+    assert(mod.getCpcbCategory(401) === 'Severe', 'AQI 401 resolves to Severe');
+    assert(mod.getCpcbCategory(405) === 'Severe', 'AQI 405 resolves to Severe');
+    assert(mod.getCpcbCategory(null) === 'Good', 'null AQI safely resolves to Good');
+    assert(mod.getCpcbCategory(NaN) === 'Good', 'NaN AQI safely resolves to Good');
 
-    // Test 18.3: Dynamic color bracket mapper
-    function getAqiColorClass(aqiCat, aqiVal) {
-      if (aqiCat === 'Severe' || aqiCat === 'Very Poor' || aqiVal >= 301) return 'text-rose-400';
-      if (aqiCat === 'Poor' || aqiVal >= 201) return 'text-orange-400';
-      if (aqiCat === 'Moderate' || aqiVal >= 101) return 'text-amber-400';
-      return 'text-emerald-400';
-    }
-    assert(getAqiColorClass('Severe', 405) === 'text-rose-400', 'AQI 405 Severe maps to text-rose-400');
-    assert(getAqiColorClass('Very Poor', 312) === 'text-rose-400', 'AQI 312 Very Poor maps to text-rose-400');
-    assert(getAqiColorClass('Poor', 220) === 'text-orange-400', 'AQI 220 Poor maps to text-orange-400');
-    assert(getAqiColorClass('Moderate', 150) === 'text-amber-400', 'AQI 150 Moderate maps to text-amber-400');
-    assert(getAqiColorClass('Satisfactory', 78) === 'text-emerald-400', 'AQI 78 Satisfactory maps to text-emerald-400');
-    assert(getAqiColorClass('Good', 25) === 'text-emerald-400', 'AQI 25 Good maps to text-emerald-400');
+    // Test 18.3: Production Canonical Semantic Colors
+    assert(mod.getCpcbSemanticColors(405).textClass === 'text-rose-400', 'Production AQI 405 maps to text-rose-400');
+    assert(mod.getCpcbSemanticColors(405).hexColor === '#DC2626', 'Production AQI 405 maps to #DC2626');
+    assert(mod.getCpcbSemanticColors(312).hexColor === '#EF4444', 'Production AQI 312 Very Poor maps to #EF4444');
+    assert(mod.getCpcbSemanticColors(220).hexColor === '#EA580C', 'Production AQI 220 Poor maps to #EA580C');
+    assert(mod.getCpcbSemanticColors(150).hexColor === '#D97706', 'Production AQI 150 Moderate maps to #D97706');
+    assert(mod.getCpcbSemanticColors(78).hexColor === '#16A34A', 'Production AQI 78 Satisfactory maps to #16A34A');
+    assert(mod.getCpcbSemanticColors(25).hexColor === '#10B981', 'Production AQI 25 Good maps to #10B981');
 
     // Test 18.4: Safe fallback guards without fabricating 265 / 405 smog
     const emptyTelemetry = { current: {} };
     const safePm = typeof emptyTelemetry.current.pm25 === 'number' && Number.isFinite(emptyTelemetry.current.pm25) ? emptyTelemetry.current.pm25 : 0;
     const safeAqi = typeof emptyTelemetry.current.aqi === 'number' && Number.isFinite(emptyTelemetry.current.aqi) ? emptyTelemetry.current.aqi : 0;
+    const safeCat = emptyTelemetry.current.aqiCategory || mod.getCpcbCategory(safeAqi);
     assert(safePm === 0, `Missing PM2.5 safely resolves to 0 without fabricating 265 µg/m³ (got ${safePm})`);
     assert(safeAqi === 0, `Missing AQI safely resolves to 0 without fabricating 405 AQI (got ${safeAqi})`);
+    assert(safeCat === 'Good', `Missing AQI and category safely resolves to Good (got ${safeCat})`);
+
+    // --- 19. Testing Critical Medical Triage Unconditional Pre-Filter & Network Suppression ---
+    console.log('\n--- 19. Testing Medical Triage Unconditional Pre-Filter & Network Suppression ---');
+    let suppressedNetworkCalls = 0;
+    globalThis.fetch = async () => {
+      suppressedNetworkCalls++;
+      throw new Error('NETWORK CALL DETECTED: Medical query should have been intercepted before network!');
+    };
+
+    // 19.1: Offline / No API Key
+    const medOffline = await mod.askBreatheWiseAssistant('How should I use my inhaler today?', [], fallbackRes, severeWin, 'normal_adult', '');
+    assert(medOffline.includes('Medical & Clinical Triage Notice') && medOffline.includes('NOT a medical diagnostic'), 'Offline query receives deterministic triage refusal');
+    assert(suppressedNetworkCalls === 0, `Zero network calls made for offline medical query (count: ${suppressedNetworkCalls})`);
+
+    // 19.2: With Valid-Looking Custom API Key (Proves P1 defect is resolved)
+    const medWithKey = await mod.askBreatheWiseAssistant('What dosage of budecort steroid inhaler should I use?', [], fallbackRes, severeWin, 'normal_adult', 'AIzaSyMockKeyForAdversarialTesting9988');
+    assert(medWithKey.includes('Medical & Clinical Triage Notice') && medWithKey.includes('NOT a medical diagnostic'), 'Query with active API key receives deterministic triage refusal without LLM bypass');
+    assert(suppressedNetworkCalls === 0, `CRITICAL: Zero network calls made when API key is present for medical query (count: ${suppressedNetworkCalls})`);
+
+    // 19.3: Emergency acute symptom interception
+    const medEmergency = await mod.askBreatheWiseAssistant('I have severe chest pain and acute shortness of breath', [], fallbackRes, severeWin, 'normal_adult', 'AIzaSyMockKeyForAdversarialTesting9988');
+    assert(medEmergency.includes('emergency medical care immediately'), 'Acute respiratory/chest pain symptoms direct user to emergency care');
+    assert(suppressedNetworkCalls === 0, 'Zero network calls made for emergency triage query');
+
+    // --- 20. Testing 100% City Preset Fallback Telemetry Coverage ---
+    console.log('\n--- 20. Testing 100% City Preset Fallback Telemetry Coverage ---');
+    assert(Array.isArray(mod.INDIAN_CITIES_PRESETS) && mod.INDIAN_CITIES_PRESETS.length === 9, 'All 9 Indian city presets configured');
+
+    for (const preset of mod.INDIAN_CITIES_PRESETS) {
+      const fb = mod.FALLBACK_TELEMETRY[preset.id];
+      assert(fb !== undefined, `Fallback telemetry exists for preset: ${preset.id}`);
+      assert(fb.city.includes(preset.name.split('—')[0].trim()), `Fallback city matches preset name: ${fb.city} vs ${preset.name}`);
+      assert(Math.abs(fb.metadata.latitude - preset.lat) < 0.01, `Fallback lat matches preset lat for ${preset.id}`);
+      assert(Math.abs(fb.metadata.longitude - preset.lon) < 0.01, `Fallback lon matches preset lon for ${preset.id}`);
+      assert(Array.isArray(fb.hourly) && fb.hourly.length === 24, `24 hourly points present for ${preset.id}`);
+      assert(typeof fb.current.aqi === 'number' && fb.current.aqi > 0, `Valid AQI for ${preset.id} (got ${fb.current.aqi})`);
+      assert(fb.current.aqiCategory === mod.getCpcbCategory(fb.current.aqi), `AQI category consistent for ${preset.id} (${fb.current.aqiCategory} matches CPCB ${mod.getCpcbCategory(fb.current.aqi)})`);
+      
+      // Proves P1 city contamination defect is resolved: non-Delhi presets do NOT silently borrow Delhi Anand Vihar
+      if (preset.id !== 'delhi-anand-vihar') {
+        assert(fb.city !== 'Delhi' || preset.id.startsWith('delhi-'), `Non-Delhi preset ${preset.id} does not silently resolve to Delhi Anand Vihar`);
+      }
+    }
   } finally {
     globalThis.fetch = origFetch;
     fs.rmSync(tmpDir, { recursive: true, force: true });

@@ -195,3 +195,65 @@ export function calculateCpcbAqi(pollutants: {
     },
   };
 }
+
+export function getCpcbCategory(aqi: number | null | undefined): CpcbAqiCategory {
+  if (aqi == null || typeof aqi !== 'number' || !Number.isFinite(aqi) || aqi <= 0) return 'Good';
+  if (aqi <= 50) return 'Good';
+  if (aqi <= 100) return 'Satisfactory';
+  if (aqi <= 200) return 'Moderate';
+  if (aqi <= 300) return 'Poor';
+  if (aqi <= 400) return 'Very Poor';
+  return 'Severe';
+}
+
+export interface CpcbSemanticColors {
+  textClass: string;
+  badgeClass: string;
+  hexColor: string;
+}
+
+export function getCpcbSemanticColors(aqi: number | null | undefined, category?: string): CpcbSemanticColors {
+  const cat = category || getCpcbCategory(aqi);
+  const val = typeof aqi === 'number' && Number.isFinite(aqi) ? aqi : 0;
+
+  if (cat === 'Severe' || val >= 401) {
+    return {
+      textClass: 'text-rose-400',
+      badgeClass: 'bg-rose-500 text-white shadow-rose-500/20',
+      hexColor: '#DC2626',
+    };
+  }
+  if (cat === 'Very Poor' || val >= 301) {
+    return {
+      textClass: 'text-rose-400',
+      badgeClass: 'bg-rose-500 text-white shadow-rose-500/20',
+      hexColor: '#EF4444',
+    };
+  }
+  if (cat === 'Poor' || val >= 201) {
+    return {
+      textClass: 'text-orange-400',
+      badgeClass: 'bg-orange-500 text-white shadow-orange-500/20',
+      hexColor: '#EA580C',
+    };
+  }
+  if (cat === 'Moderate' || val >= 101) {
+    return {
+      textClass: 'text-amber-400',
+      badgeClass: 'bg-amber-500 text-slate-950 shadow-amber-500/20',
+      hexColor: '#D97706',
+    };
+  }
+  if (cat === 'Satisfactory' || val >= 51) {
+    return {
+      textClass: 'text-emerald-400',
+      badgeClass: 'bg-emerald-500 text-slate-950 shadow-emerald-500/20',
+      hexColor: '#16A34A',
+    };
+  }
+  return {
+    textClass: 'text-emerald-400',
+    badgeClass: 'bg-emerald-500 text-slate-950 shadow-emerald-500/20',
+    hexColor: '#10B981',
+  };
+}

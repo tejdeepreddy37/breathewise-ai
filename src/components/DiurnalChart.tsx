@@ -90,12 +90,32 @@ export const DiurnalChart: React.FC = () => {
       {/* Main Curved Diurnal Chart with Highlighted Optimal Window (Exact match to Image 2) */}
       <div className="relative h-40 sm:h-44 w-full pt-2">
         
-        {/* Floating Optimal Window Badge (Matches Image 2 green pill above the valley) */}
-        <div className="absolute top-1 left-1/2 -translate-x-1/2 z-10 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] sm:text-[11px] font-bold shadow-xs flex items-center space-x-1 whitespace-nowrap">
-          <Sun className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 shrink-0" />
-          <span>Optimal Window: {cleanAirWindow.displayWindow || '1:00 PM – 2:00 PM'}</span>
-          <span className="hidden sm:inline text-emerald-600 ml-1">↓ ~{typeof cleanAirWindow.reductionVsPeakPercent === 'number' && Number.isFinite(cleanAirWindow.reductionVsPeakPercent) ? cleanAirWindow.reductionVsPeakPercent : 0}% vs peak</span>
-        </div>
+        {/* Floating Dynamic Window Badge */}
+        {(() => {
+          const isHazardous = cleanAirWindow.windowStatus === 'HAZARDOUS_LIMIT_EXERTION';
+          const isElevated = cleanAirWindow.windowStatus === 'UNHEALTHY_ELEVATED';
+          const badgeBg = isHazardous
+            ? 'bg-rose-50 border-rose-300 text-rose-800'
+            : isElevated
+            ? 'bg-amber-50 border-amber-300 text-amber-800'
+            : 'bg-emerald-50 border-emerald-200 text-emerald-800';
+          const iconColor = isHazardous ? 'text-rose-600' : isElevated ? 'text-amber-600' : 'text-emerald-600';
+          const labelPrefix = isHazardous
+            ? 'Diurnal Minimum (Severe Smog)'
+            : isElevated
+            ? 'Lower Exposure Window'
+            : 'Optimal Window';
+
+          return (
+            <div className={`absolute top-1 left-1/2 -translate-x-1/2 z-10 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border text-[10px] sm:text-[11px] font-bold shadow-xs flex items-center space-x-1 whitespace-nowrap ${badgeBg}`}>
+              <Sun className={`w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 ${iconColor}`} />
+              <span>{labelPrefix}: {cleanAirWindow.displayWindow || '1:00 PM – 2:00 PM'}</span>
+              <span className={`hidden sm:inline ml-1 ${iconColor}`}>
+                ↓ ~{typeof cleanAirWindow.reductionVsPeakPercent === 'number' && Number.isFinite(cleanAirWindow.reductionVsPeakPercent) ? cleanAirWindow.reductionVsPeakPercent : 0}% vs peak
+              </span>
+            </div>
+          );
+        })()}
 
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 28, right: 10, left: -20, bottom: 0 }}>
@@ -112,8 +132,8 @@ export const DiurnalChart: React.FC = () => {
               x1={activeX1}
               x2={activeX2}
               strokeOpacity={0.25}
-              stroke="#10B981"
-              fill="#10B981"
+              stroke={cleanAirWindow.windowStatus === 'HAZARDOUS_LIMIT_EXERTION' ? '#EF4444' : cleanAirWindow.windowStatus === 'UNHEALTHY_ELEVATED' ? '#F59E0B' : '#10B981'}
+              fill={cleanAirWindow.windowStatus === 'HAZARDOUS_LIMIT_EXERTION' ? '#EF4444' : cleanAirWindow.windowStatus === 'UNHEALTHY_ELEVATED' ? '#F59E0B' : '#10B981'}
               fillOpacity={0.12}
             />
 

@@ -663,7 +663,9 @@ export const InteractiveGlobe: React.FC<{
               onClick={(e) => {
                 e.stopPropagation();
                 setActivePinId(city.id);
-                selectCity(city.id);
+                if (city.country === 'India') {
+                  selectCity(city.id);
+                }
                 rotateToCity(city);
               }}
             >
@@ -720,12 +722,17 @@ export const InteractiveGlobe: React.FC<{
                       <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: city.color }} />
                       <span className="font-bold text-white truncate max-w-[190px]">{city.name}, {city.country} • Air Quality</span>
                     </span>
-                    <button
-                      onClick={() => onExploreCity && onExploreCity(city.id)}
-                      className="text-[11px] text-slate-400 hover:text-white font-bold ml-1 cursor-pointer"
-                    >
-                      ›
-                    </button>
+                    {city.country === 'India' ? (
+                      <button
+                        onClick={() => onExploreCity && onExploreCity(city.id)}
+                        className="text-[11px] text-slate-400 hover:text-white font-bold ml-1 cursor-pointer"
+                        title="Switch active city dashboard"
+                      >
+                        ›
+                      </button>
+                    ) : (
+                      <span className="text-[9px] text-slate-400 font-mono ml-1 px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">Reference</span>
+                    )}
                   </div>
 
                   <div className="flex items-center space-x-2 my-2">

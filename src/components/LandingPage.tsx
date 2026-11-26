@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { useApp } from '../context/AppContext';
 import { ErrorBoundary } from './ErrorBoundary';
 import { INDIAN_CITIES_PRESETS } from '../data/cities';
+import { getCpcbCategory, getCpcbSemanticColors } from '../engines/cpcbAqi';
 import { 
   Leaf, 
   ShieldAlert, 
@@ -18,8 +19,9 @@ export const LandingPage: React.FC = () => {
   const { setActiveTab, selectedCityId, selectCity, setIsTransparencyOpen, telemetry } = useApp();
 
   const activeCity = INDIAN_CITIES_PRESETS.find((c) => c.id === selectedCityId);
-  const aqiVal = telemetry.current.aqi ?? 78;
-  const aqiCat = telemetry.current.aqiCategory ?? 'Satisfactory';
+  const aqiVal = typeof telemetry.current.aqi === 'number' && Number.isFinite(telemetry.current.aqi) ? telemetry.current.aqi : 78;
+  const aqiCat = telemetry.current.aqiCategory || getCpcbCategory(aqiVal);
+  const semanticColors = getCpcbSemanticColors(aqiVal, aqiCat);
   const dominant = telemetry.current.primaryPollutant || 'PM2.5';
   const windSpd = telemetry.weather?.windSpeed ?? 13.2;
   const riskPercent = Math.min(99, Math.max(8, Math.round((aqiVal / 500) * 100)));
@@ -176,20 +178,11 @@ export const LandingPage: React.FC = () => {
             <div className="flex items-baseline space-x-3 my-2">
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">AQI</span>
-                <span className={`text-5xl font-black tracking-tight font-mono ${
-                  aqiCat === 'Severe' || aqiCat === 'Very Poor' || aqiVal >= 301 ? 'text-rose-400' :
-                  aqiCat === 'Poor' || aqiVal >= 201 ? 'text-orange-400' :
-                  aqiCat === 'Moderate' || aqiVal >= 101 ? 'text-amber-400' : 'text-emerald-400'
-                }`}>
+                <span className={`text-5xl font-black tracking-tight font-mono ${semanticColors.textClass}`}>
                   {aqiVal}
                 </span>
               </div>
-              <span className={`px-3 py-1 rounded-full text-xs font-bold font-sans shadow-md ${
-                aqiCat === 'Severe' || aqiCat === 'Very Poor' || aqiVal >= 301 ? 'bg-rose-500 text-white shadow-rose-500/20' :
-                aqiCat === 'Poor' || aqiVal >= 201 ? 'bg-orange-500 text-white shadow-orange-500/20' :
-                aqiCat === 'Moderate' || aqiVal >= 101 ? 'bg-amber-500 text-slate-950 shadow-amber-500/20' :
-                'bg-emerald-500 text-slate-950 shadow-emerald-500/20'
-              }`}>
+              <span className={`px-3 py-1 rounded-full text-xs font-bold font-sans shadow-md ${semanticColors.badgeClass}`}>
                 {aqiCat}
               </span>
             </div>

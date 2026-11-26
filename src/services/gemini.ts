@@ -364,33 +364,35 @@ export async function askBreatheWiseAssistant(
   profile: VulnerabilityProfile,
   customApiKey?: string
 ): Promise<string> {
+  const qLower = (question || '').toLowerCase();
+  const pm = telemetry.current.pm25;
+
+  // CRITICAL SAFETY GATE: Medical Triage, Clinical Diagnosis & Prescription Refusal
+  // Executes UNCONDITIONALLY before API key evaluation, before network calls, before LLM request
+  if (
+    qLower.includes('inhaler') ||
+    qLower.includes('puff') ||
+    qLower.includes('dosage') ||
+    qLower.includes('dose') ||
+    qLower.includes('medicine') ||
+    qLower.includes('medication') ||
+    qLower.includes('steroid') ||
+    qLower.includes('albuterol') ||
+    qLower.includes('budecort') ||
+    qLower.includes('foracort') ||
+    qLower.includes('asthma attack') ||
+    qLower.includes('chest pain') ||
+    qLower.includes('diagnos') ||
+    qLower.includes('prescri') ||
+    qLower.includes('shortness of breath')
+  ) {
+    return `Medical & Clinical Triage Notice:\nBreatheWise AI is an environmental lifestyle and exposure-reduction assistant, NOT a medical diagnostic or clinical prescribing service.\n\nWe cannot recommend medication dosages, advise on prescription inhaler adjustments, or diagnose clinical symptoms.\n\n• If you are experiencing acute shortness of breath, continuous wheezing, chest tightness, or declining peak flow, please consult your licensed physician or seek emergency medical care immediately.\n• Environmental Safety Advice: In ${telemetry.city}, current PM2.5 is ${pm} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}). Maintain a sealed indoor envelope with continuous HEPA filtration active, and avoid any outdoor physical exertion.`;
+  }
+
   const apiKey = customApiKey || import.meta.env?.VITE_GEMINI_API_KEY;
 
   if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY') {
     // Structured intent-based deterministic assistant
-    const qLower = question.toLowerCase();
-    const pm = telemetry.current.pm25;
-
-    // Intent 0: Medical Triage, Clinical Diagnosis & Prescription Refusal
-    if (
-      qLower.includes('inhaler') ||
-      qLower.includes('puff') ||
-      qLower.includes('dosage') ||
-      qLower.includes('dose') ||
-      qLower.includes('medicine') ||
-      qLower.includes('medication') ||
-      qLower.includes('steroid') ||
-      qLower.includes('albuterol') ||
-      qLower.includes('budecort') ||
-      qLower.includes('foracort') ||
-      qLower.includes('asthma attack') ||
-      qLower.includes('chest pain') ||
-      qLower.includes('diagnos') ||
-      qLower.includes('prescri') ||
-      qLower.includes('shortness of breath')
-    ) {
-      return `Medical & Clinical Triage Notice:\nBreatheWise AI is an environmental lifestyle and exposure-reduction assistant, NOT a medical diagnostic or clinical prescribing service.\n\nWe cannot recommend medication dosages, advise on prescription inhaler adjustments, or diagnose clinical symptoms.\n\n• If you are experiencing acute shortness of breath, continuous wheezing, chest tightness, or declining peak flow, please consult your licensed physician or seek emergency medical care immediately.\n• Environmental Safety Advice: In ${telemetry.city}, current PM2.5 is ${pm} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}). Maintain a sealed indoor envelope with continuous HEPA filtration active, and avoid any outdoor physical exertion.`;
-    }
 
     // Intent 1: Outdoor Exercise / Running / Cardio
     if (qLower.includes('run') || qLower.includes('jog') || qLower.includes('exercise') || qLower.includes('workout') || (qLower.includes('bike') && qLower.includes('exercise'))) {

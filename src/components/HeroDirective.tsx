@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { Activity, DoorClosed, DoorOpen, Train } from 'lucide-react';
+import { getCpcbCategory, getCpcbSemanticColors } from '../engines/cpcbAqi';
 
 export const HeroDirective: React.FC = () => {
   const { telemetry, cleanAirWindow } = useApp();
@@ -9,7 +10,7 @@ export const HeroDirective: React.FC = () => {
 
   const pm = typeof telemetry.current.pm25 === 'number' && Number.isFinite(telemetry.current.pm25) ? telemetry.current.pm25 : 0;
   const aqi = typeof telemetry.current.aqi === 'number' && Number.isFinite(telemetry.current.aqi) ? telemetry.current.aqi : 0;
-  const aqiCat = telemetry.current.aqiCategory || (aqi > 0 ? 'Moderate' : 'Good');
+  const aqiCat = telemetry.current.aqiCategory || getCpcbCategory(aqi);
   const primaryPollutant = telemetry.current.primaryPollutant || 'PM2.5';
 
   const isSevere = aqiCat === 'Severe' || aqiCat === 'Very Poor' || aqi >= 301;
@@ -22,9 +23,10 @@ export const HeroDirective: React.FC = () => {
   const isOzoneUnsafe = typeof telemetry.current.o3 === 'number' && telemetry.current.o3 > 100;
   const shouldSealWindows = pm > 60 || isOzoneUnsafe;
 
-  // Semantic color mapping
-  const statusColor = isSevere ? '#DC2626' : isPoor ? '#EA580C' : isModerate ? '#D97706' : isSatisfactory ? '#16A34A' : '#10B981';
-  const statusBg = isSevere ? 'bg-rose-500' : isPoor ? 'bg-orange-500' : isModerate ? 'bg-amber-500' : isSatisfactory ? 'bg-emerald-600' : 'bg-emerald-500';
+  // Canonical semantic color mapping from CPCB engine
+  const colors = getCpcbSemanticColors(aqi, aqiCat);
+  const statusColor = colors.hexColor;
+  const statusBg = colors.badgeClass;
 
   // SVG Radial Dial Math (500 scale, compact proportions matching Reference Image 2)
   const normalizedAqi = Math.max(0, Math.min(500, aqi));
