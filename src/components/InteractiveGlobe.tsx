@@ -357,8 +357,7 @@ export const InteractiveGlobe: React.FC<{
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
-    // Adjusted camera distance from 7.6 to 8.6 to eliminate card collision while preserving full 3D visual fidelity
-    camera.position.set(0, 0, 8.6);
+    camera.position.set(0, 0, 7.2);
     cameraRef.current = camera;
 
     // 2. WebGL Renderer with High-DPI & Antialiasing
@@ -393,43 +392,32 @@ export const InteractiveGlobe: React.FC<{
     const earthMaterial = new THREE.MeshPhongMaterial({
       map: earthTexture,
       specularMap: specularMap,
-      specular: new THREE.Color(0x224455),
-      shininess: 18,
+      specular: new THREE.Color(0x60a5fa),
+      shininess: 24,
     });
     const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
     globeGroup.add(earthMesh);
 
-    // 5. Realistic Night City Lights Mesh (Blended on night side)
-    const lightsTexture = textureLoader.load(`${cleanBase}textures/earth-lights.png`);
-    const lightsMaterial = new THREE.MeshBasicMaterial({
-      map: lightsTexture,
-      blending: THREE.AdditiveBlending,
-      transparent: true,
-      opacity: 0.85,
-    });
-    const lightsMesh = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_RADIUS * 1.002, 64, 64), lightsMaterial);
-    globeGroup.add(lightsMesh);
-
-    // 6. Photorealistic Atmospheric Cloud Layer
+    // 5. Photorealistic Atmospheric Cloud Layer
     const cloudTexture = textureLoader.load(`${cleanBase}textures/earth-clouds.png`);
     cloudTexture.colorSpace = THREE.SRGBColorSpace;
     const cloudGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 1.015, 64, 64);
     const cloudMaterial = new THREE.MeshStandardMaterial({
       map: cloudTexture,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.65,
       blending: THREE.AdditiveBlending,
-      roughness: 0.9,
+      roughness: 0.85,
     });
     const cloudMesh = new THREE.Mesh(cloudGeometry, cloudMaterial);
     globeGroup.add(cloudMesh);
     cloudMeshRef.current = cloudMesh;
 
-    // 7. Atmospheric Glow Outer Shell
+    // 6. Luminous Sky-Cyan Atmospheric Glow Outer Shell
     const glowGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 1.09, 64, 64);
     const glowMaterial = new THREE.ShaderMaterial({
       uniforms: {
-        glowColor: { value: new THREE.Color(0x38bdf8) },
+        glowColor: { value: new THREE.Color(0x7dd3fc) },
       },
       vertexShader: `
         varying vec3 vNormal;
@@ -442,8 +430,8 @@ export const InteractiveGlobe: React.FC<{
         varying vec3 vNormal;
         uniform vec3 glowColor;
         void main() {
-          float intensity = pow(0.68 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.6);
-          gl_FragColor = vec4(glowColor, intensity * 0.85);
+          float intensity = pow(0.68 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.5);
+          gl_FragColor = vec4(glowColor, intensity * 0.9);
         }
       `,
       blending: THREE.AdditiveBlending,
@@ -453,39 +441,43 @@ export const InteractiveGlobe: React.FC<{
     const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
     globeGroup.add(glowMesh);
 
-    // 7. Glowing Orbital Rings around the Earth (Image 1 aesthetic)
-    const createOrbitalRing = (radiusX: number, radiusY: number, tiltX: number, tiltY: number, colorHex: number) => {
+    // 7. Delicate Luminous Elliptical Orbital Curves (Matching Reference)
+    const createOrbitalRing = (radiusX: number, radiusY: number, tiltX: number, tiltY: number, tiltZ: number, colorHex: number, opacity: number) => {
       const curve = new THREE.EllipseCurve(0, 0, radiusX, radiusY, 0, 2 * Math.PI, false, 0);
-      const points = curve.getPoints(100);
+      const points = curve.getPoints(128);
       const ringGeom = new THREE.BufferGeometry().setFromPoints(
         points.map((p) => new THREE.Vector3(p.x, p.y, 0))
       );
       const ringMat = new THREE.LineBasicMaterial({
         color: colorHex,
         transparent: true,
-        opacity: 0.45,
+        opacity,
         blending: THREE.AdditiveBlending,
       });
       const ringLine = new THREE.Line(ringGeom, ringMat);
       ringLine.rotation.x = tiltX;
       ringLine.rotation.y = tiltY;
+      ringLine.rotation.z = tiltZ;
       return ringLine;
     };
 
-    globeGroup.add(createOrbitalRing(GLOBE_RADIUS * 1.45, GLOBE_RADIUS * 1.45, Math.PI / 3, Math.PI / 6, 0x10b981));
-    globeGroup.add(createOrbitalRing(GLOBE_RADIUS * 1.35, GLOBE_RADIUS * 1.35, -Math.PI / 4, Math.PI / 4, 0x38bdf8));
+    scene.add(createOrbitalRing(GLOBE_RADIUS * 1.38, GLOBE_RADIUS * 1.12, Math.PI / 2.6, Math.PI / 7, -0.35, 0xffffff, 0.6));
+    scene.add(createOrbitalRing(GLOBE_RADIUS * 1.28, GLOBE_RADIUS * 1.06, -Math.PI / 3.1, -Math.PI / 6, 0.45, 0xe0f2fe, 0.45));
 
-    // 8. Lighting System (Sunrise flare effect from top-left)
-    const ambientLight = new THREE.AmbientLight(0x0f172a, 1.2);
+    // 8. Bright Daytime Sky Lighting System
+    const ambientLight = new THREE.AmbientLight(0xe0f2fe, 1.85);
     scene.add(ambientLight);
 
-    // Primary Sun directional light (matches sunrise flare on top-left of Image 1)
-    const sunLight = new THREE.DirectionalLight(0xfffbeb, 3.2);
-    sunLight.position.set(-6, 4, 5);
+    const hemiLight = new THREE.HemisphereLight(0xf0f9ff, 0x38bdf8, 1.1);
+    scene.add(hemiLight);
+
+    // Primary Sun directional light from upper-left
+    const sunLight = new THREE.DirectionalLight(0xffffff, 2.4);
+    sunLight.position.set(-5, 4, 6);
     scene.add(sunLight);
 
-    // Subtle blue rim light from bottom-right
-    const rimLight = new THREE.DirectionalLight(0x0284c7, 1.8);
+    // Soft cyan rim light from bottom-right
+    const rimLight = new THREE.DirectionalLight(0x38bdf8, 1.4);
     rimLight.position.set(6, -3, -2);
     scene.add(rimLight);
 
@@ -501,18 +493,21 @@ export const InteractiveGlobe: React.FC<{
 
     window.addEventListener('resize', handleResize);
 
-    // 10. Animation & Render Loop
+    // 10. Animation & Render Loop (respecting prefers-reduced-motion)
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     let animId: number;
     let frameCount = 0;
     const animate = () => {
       animId = requestAnimationFrame(animate);
 
       // Subtle slow auto-rotation when user is not dragging
-      if (!isDraggingRef.current && globeGroup) {
-        globeGroup.rotation.y -= 0.0012;
+      if (!prefersReducedMotion && !isDraggingRef.current && globeGroup) {
+        globeGroup.rotation.y -= 0.0009;
       }
-      if (cloudMesh) {
-        cloudMesh.rotation.y -= 0.0016;
+      if (!prefersReducedMotion && cloudMesh) {
+        cloudMesh.rotation.y -= 0.0012;
       }
 
       // Project 3D City Coordinates onto 2D Canvas Screen Pixels (throttled to every 2nd frame)
@@ -664,33 +659,18 @@ export const InteractiveGlobe: React.FC<{
                 rotateToCity(city);
               }}
             >
-              {/* Outer Pulsating Warning Ring */}
+              {/* Clean Luminous Pinpoint Marker (Uncluttered Reference Aesthetic) */}
               <div
-                className="absolute -inset-2 rounded-full animate-ping opacity-60"
-                style={{ backgroundColor: city.color }}
-              />
-
-              {/* Glowing Badge with AQI Number (Exact match to Image 1) */}
-              <div
-                className={`relative flex items-center justify-center font-extrabold text-[11px] font-mono px-2 py-0.5 rounded-full border shadow-lg transition-transform ${
+                className={`relative w-3 h-3 rounded-full border-2 border-white transition-transform ${
                   isSelected || showPopover
-                    ? 'ring-4 ring-emerald-400 scale-125 z-30'
-                    : 'group-hover:scale-115'
+                    ? 'scale-125 ring-4 ring-[#38BDF8]/50 z-30'
+                    : 'group-hover:scale-125'
                 }`}
                 style={{
-                  backgroundColor: `${city.color}`,
-                  color: '#FFFFFF',
-                  borderColor: 'rgba(255, 255, 255, 0.6)',
-                  boxShadow: `0 0 16px ${city.color}80`,
+                  backgroundColor: isSelected ? '#0EA5E9' : '#FFFFFF',
+                  boxShadow: '0 0 10px rgba(56, 189, 248, 0.85)',
                 }}
-              >
-                {city.aqi}
-              </div>
-
-              {/* Pulsating Base Target Dot */}
-              <div
-                className="w-2 h-2 rounded-full mx-auto mt-0.5 shadow-md"
-                style={{ backgroundColor: city.color }}
+                title={`${city.name}, ${city.country}`}
               />
 
               {/* Floating City Info Popover (Light frosted card matching sky-blue design system) */}
