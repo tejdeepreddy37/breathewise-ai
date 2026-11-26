@@ -356,8 +356,8 @@ export const InteractiveGlobe: React.FC<{
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
-    camera.position.set(0, 0, 7.2);
+    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 1000);
+    camera.position.set(0, 0, 8.2);
     cameraRef.current = camera;
 
     // 2. WebGL Renderer with High-DPI & Antialiasing
@@ -370,11 +370,11 @@ export const InteractiveGlobe: React.FC<{
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
-    // 3. Globe Group containing Earth, Atmosphere, and Orbitals
+    // 3. Globe Group containing Earth, Atmosphere, and Clouds
     const globeGroup = new THREE.Group();
-    // Default rotation focused on India and Indian Ocean (lat ~18°N, lon ~78°E)
-    globeGroup.rotation.y = THREE.MathUtils.degToRad(-78);
-    globeGroup.rotation.x = THREE.MathUtils.degToRad(18);
+    // Center on South Asia / India / Indian Ocean / Australia (lon ~85°E, lat ~16°N)
+    globeGroup.rotation.y = THREE.MathUtils.degToRad(-175);
+    globeGroup.rotation.x = THREE.MathUtils.degToRad(14);
     scene.add(globeGroup);
     globeGroupRef.current = globeGroup;
 
@@ -392,8 +392,10 @@ export const InteractiveGlobe: React.FC<{
     const earthMaterial = new THREE.MeshPhongMaterial({
       map: earthTexture,
       specularMap: specularMap,
-      specular: new THREE.Color(0x60a5fa),
-      shininess: 24,
+      specular: new THREE.Color(0x93c5fd),
+      emissive: new THREE.Color(0x0369a1),
+      emissiveIntensity: 0.18,
+      shininess: 22,
     });
     const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
     globeGroup.add(earthMesh);
@@ -405,7 +407,7 @@ export const InteractiveGlobe: React.FC<{
     const cloudMaterial = new THREE.MeshStandardMaterial({
       map: cloudTexture,
       transparent: true,
-      opacity: 0.65,
+      opacity: 0.6,
       blending: THREE.AdditiveBlending,
       roughness: 0.85,
     });
@@ -413,8 +415,8 @@ export const InteractiveGlobe: React.FC<{
     globeGroup.add(cloudMesh);
     cloudMeshRef.current = cloudMesh;
 
-    // 6. Luminous Sky-Cyan Atmospheric Glow Outer Shell
-    const glowGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 1.09, 64, 64);
+    // 6. Luminous Sky-Cyan Atmospheric Rim Glow
+    const glowGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 1.07, 64, 64);
     const glowMaterial = new THREE.ShaderMaterial({
       uniforms: {
         glowColor: { value: new THREE.Color(0x7dd3fc) },
@@ -430,8 +432,8 @@ export const InteractiveGlobe: React.FC<{
         varying vec3 vNormal;
         uniform vec3 glowColor;
         void main() {
-          float intensity = pow(0.68 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.5);
-          gl_FragColor = vec4(glowColor, intensity * 0.9);
+          float intensity = pow(0.66 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.8);
+          gl_FragColor = vec4(glowColor, intensity * 0.85);
         }
       `,
       blending: THREE.AdditiveBlending,
@@ -441,45 +443,46 @@ export const InteractiveGlobe: React.FC<{
     const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
     globeGroup.add(glowMesh);
 
-    // 7. Delicate Luminous Elliptical Orbital Curves (Matching Reference)
-    const createOrbitalRing = (radiusX: number, radiusY: number, tiltX: number, tiltY: number, tiltZ: number, colorHex: number, opacity: number) => {
-      const curve = new THREE.EllipseCurve(0, 0, radiusX, radiusY, 0, 2 * Math.PI, false, 0);
-      const points = curve.getPoints(128);
-      const ringGeom = new THREE.BufferGeometry().setFromPoints(
-        points.map((p) => new THREE.Vector3(p.x, p.y, 0))
-      );
-      const ringMat = new THREE.LineBasicMaterial({
-        color: colorHex,
+    // 7. Thin, Elegant Luminous Elliptical Orbital Curves (3D Torus scaled to crisp ellipses)
+    const createOrbitalEllipse = (
+      radius: number,
+      scaleY: number,
+      rotX: number,
+      rotY: number,
+      rotZ: number,
+      opacity: number
+    ) => {
+      const geom = new THREE.TorusGeometry(radius, 0.012, 12, 160);
+      const mat = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
         transparent: true,
         opacity,
-        blending: THREE.AdditiveBlending,
       });
-      const ringLine = new THREE.Line(ringGeom, ringMat);
-      ringLine.rotation.x = tiltX;
-      ringLine.rotation.y = tiltY;
-      ringLine.rotation.z = tiltZ;
-      return ringLine;
+      const ring = new THREE.Mesh(geom, mat);
+      ring.scale.set(1, scaleY, 1);
+      ring.rotation.set(rotX, rotY, rotZ);
+      return ring;
     };
 
-    scene.add(createOrbitalRing(GLOBE_RADIUS * 1.38, GLOBE_RADIUS * 1.12, Math.PI / 2.6, Math.PI / 7, -0.35, 0xffffff, 0.6));
-    scene.add(createOrbitalRing(GLOBE_RADIUS * 1.28, GLOBE_RADIUS * 1.06, -Math.PI / 3.1, -Math.PI / 6, 0.45, 0xe0f2fe, 0.45));
+    scene.add(createOrbitalEllipse(GLOBE_RADIUS * 1.32, 0.48, 0.35, -0.25, 0.42, 0.85));
+    scene.add(createOrbitalEllipse(GLOBE_RADIUS * 1.24, 0.42, -0.45, 0.32, -0.52, 0.65));
 
-    // 8. Bright Daytime Sky Lighting System
-    const ambientLight = new THREE.AmbientLight(0xe0f2fe, 1.85);
+    // 8. Bright Daytime Sky Lighting System (Vibrant Blue Oceans, Zero Harsh Dark Side)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 2.25);
     scene.add(ambientLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xf0f9ff, 0x38bdf8, 1.1);
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x38bdf8, 1.65);
     scene.add(hemiLight);
 
     // Primary Sun directional light from upper-left
-    const sunLight = new THREE.DirectionalLight(0xffffff, 2.4);
-    sunLight.position.set(-5, 4, 6);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.9);
+    sunLight.position.set(-4, 5, 6);
     scene.add(sunLight);
 
-    // Soft cyan rim light from bottom-right
-    const rimLight = new THREE.DirectionalLight(0x38bdf8, 1.4);
-    rimLight.position.set(6, -3, -2);
-    scene.add(rimLight);
+    // Front-right sky fill light so oceans stay luminous blue across the entire sphere
+    const fillLight = new THREE.DirectionalLight(0x7dd3fc, 1.5);
+    fillLight.position.set(5, -1, 6);
+    scene.add(fillLight);
 
     // 9. Resize Observer
     const handleResize = () => {
@@ -558,7 +561,7 @@ export const InteractiveGlobe: React.FC<{
   // Center Globe on a specific city
   const rotateToCity = useCallback((city: GlobeCity) => {
     if (!globeGroupRef.current) return;
-    const targetY = THREE.MathUtils.degToRad(-city.lon);
+    const targetY = THREE.MathUtils.degToRad(-90 - city.lon);
     const targetX = THREE.MathUtils.degToRad(city.lat * 0.7);
 
     // Smooth transition
@@ -616,13 +619,16 @@ export const InteractiveGlobe: React.FC<{
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[380px] sm:h-[480px] lg:h-[560px] overflow-hidden select-none flex items-center justify-center"
+      className="relative w-full h-[340px] sm:h-[440px] lg:h-[520px] select-none flex items-center justify-center"
     >
-      {/* 1. Luminous Sky-Blue Atmospheric Halo & Orbital Ring */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] lg:w-[460px] lg:h-[460px] rounded-full bg-gradient-to-tr from-[#38BDF8]/25 via-[#22D3EE]/15 to-white/40 blur-2xl" />
-        <div className="absolute w-[290px] h-[290px] sm:w-[390px] sm:h-[390px] lg:w-[440px] lg:h-[440px] rounded-full border border-[#38BDF8]/30 shadow-[0_0_50px_rgba(56,189,248,0.22)]" />
-      </div>
+      {/* 1. Seamless Radial Sky-Blue Atmospheric Glow (Never clips at container edges) */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(circle at 50% 50%, rgba(125, 211, 252, 0.38) 0%, rgba(186, 230, 253, 0.16) 44%, rgba(255, 255, 255, 0) 70%)',
+        }}
+      />
 
       {/* 2. WebGL Canvas Mounting Point */}
       <div
@@ -659,16 +665,15 @@ export const InteractiveGlobe: React.FC<{
                 rotateToCity(city);
               }}
             >
-              {/* Clean Luminous Pinpoint Marker (Uncluttered Reference Aesthetic) */}
+              {/* Subtle Low-Profile Interactive Pinpoint Dot */}
               <div
-                className={`relative w-3 h-3 rounded-full border-2 border-white transition-transform ${
+                className={`relative w-2 h-2 rounded-full border border-white/80 transition-all ${
                   isSelected || showPopover
-                    ? 'scale-125 ring-4 ring-[#38BDF8]/50 z-30'
-                    : 'group-hover:scale-125'
+                    ? 'scale-150 bg-[#38BDF8] ring-3 ring-white/70 opacity-100 z-30'
+                    : 'bg-white/55 opacity-60 group-hover:opacity-100 group-hover:scale-150 group-hover:bg-white'
                 }`}
                 style={{
-                  backgroundColor: isSelected ? '#0EA5E9' : '#FFFFFF',
-                  boxShadow: '0 0 10px rgba(56, 189, 248, 0.85)',
+                  boxShadow: '0 0 6px rgba(255, 255, 255, 0.75)',
                 }}
                 title={`${city.name}, ${city.country}`}
               />
