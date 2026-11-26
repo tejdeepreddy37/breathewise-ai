@@ -12,13 +12,13 @@ import { CleanAirWindow } from '../types/engines';
 import { calculateCpcbAqi } from './cpcbAqi';
 
 export function calculateCleanAirWindow(hourly: HourlyDataPoint[]): CleanAirWindow {
-  // Sanitize and validate hourly array
+  // Sanitize and validate hourly array (reject non-finite hours and clamp non-finite pollutant readings)
   const validPoints = (hourly || [])
-    .filter((p) => p != null && typeof p.hour === 'number' && !isNaN(p.hour))
+    .filter((p) => p != null && typeof p.hour === 'number' && Number.isFinite(p.hour))
     .map((p) => ({
       ...p,
-      pm25: typeof p.pm25 === 'number' && !isNaN(p.pm25) ? Math.max(0, p.pm25) : 0,
-      o3: typeof p.o3 === 'number' && !isNaN(p.o3) ? Math.max(0, p.o3) : 0,
+      pm25: typeof p.pm25 === 'number' && Number.isFinite(p.pm25) ? Math.max(0, p.pm25) : 0,
+      o3: typeof p.o3 === 'number' && Number.isFinite(p.o3) ? Math.max(0, p.o3) : 0,
     }));
 
   if (validPoints.length < 2) {
@@ -47,7 +47,7 @@ export function calculateCleanAirWindow(hourly: HourlyDataPoint[]): CleanAirWind
   // Scan the 24-hour period for the lowest continuous 2 to 3-hour exposure window
   let bestStart = 13;
   let bestEnd = 15;
-  let lowestAvg = 9999;
+  let lowestAvg = Infinity;
   let bestOzoneAvg = 0;
 
   for (let s = 0; s <= validPoints.length - 2; s++) {
@@ -67,7 +67,7 @@ export function calculateCleanAirWindow(hourly: HourlyDataPoint[]): CleanAirWind
     }
   }
 
-  const avgPm25 = Math.round(lowestAvg === 9999 ? 75 : lowestAvg);
+  const avgPm25 = Math.round(lowestAvg === Infinity ? 75 : lowestAvg);
   
   // Calculate verified CPCB AQI for the window average
   const aqiResult = calculateCpcbAqi({ pm25: avgPm25, o3: bestOzoneAvg });

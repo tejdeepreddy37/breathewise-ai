@@ -1,21 +1,27 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { useApp } from '../context/AppContext';
-import { InteractiveGlobe, GLOBE_CITIES } from './InteractiveGlobe';
+import { ErrorBoundary } from './ErrorBoundary';
+import { INDIAN_CITIES_PRESETS } from '../data/cities';
 import { 
   Leaf, 
   ShieldAlert, 
   ChevronDown, 
   ArrowRight,
+  Globe2,
 } from 'lucide-react';
+
+const InteractiveGlobe = lazy(() =>
+  import('./InteractiveGlobe').then((m) => ({ default: m.InteractiveGlobe }))
+);
 
 export const LandingPage: React.FC = () => {
   const { setActiveTab, selectedCityId, selectCity, setIsTransparencyOpen, telemetry } = useApp();
 
-  const activeCity = GLOBE_CITIES.find((c) => c.id === selectedCityId);
-  const aqiVal = telemetry.current.aqi ?? activeCity?.aqi ?? 78;
-  const aqiCat = telemetry.current.aqiCategory ?? activeCity?.category ?? 'Satisfactory';
+  const activeCity = INDIAN_CITIES_PRESETS.find((c) => c.id === selectedCityId);
+  const aqiVal = telemetry.current.aqi ?? 78;
+  const aqiCat = telemetry.current.aqiCategory ?? 'Satisfactory';
   const dominant = telemetry.current.primaryPollutant || 'PM2.5';
-  const windSpd = telemetry.weather?.windSpeed ?? activeCity?.windSpeed ?? 13.2;
+  const windSpd = telemetry.weather?.windSpeed ?? 13.2;
   const riskPercent = Math.min(99, Math.max(8, Math.round((aqiVal / 500) * 100)));
   const locationLabel = telemetry.city || activeCity?.name || 'India';
 
@@ -262,15 +268,42 @@ export const LandingPage: React.FC = () => {
 
         </div>
 
-        {/* Right Column: Large Interactive 3D Earth Globe */}
+        {/* Right Column: Large Interactive 3D Earth Globe (Lazy-loaded + WebGL ErrorBoundary) */}
         <div className="w-full lg:flex-1 flex items-center justify-center relative">
-          <InteractiveGlobe
-            onExploreCity={(cityId) => handleLaunchApp(cityId)}
-            activeView="globe"
-            onToggleView={(view) => {
-              if (view === 'map') handleLaunchApp();
-            }}
-          />
+          <ErrorBoundary
+            fallback={
+              <div className="w-full max-w-md p-8 rounded-3xl bg-slate-900/80 border border-slate-700/80 text-center space-y-3">
+                <Globe2 className="w-10 h-10 text-emerald-400 mx-auto" />
+                <div className="text-sm font-bold text-white">3D Globe Unavailable on This Device</div>
+                <p className="text-xs text-slate-400">
+                  WebGL rendering is unavailable or disabled. You can still access all air intelligence modules directly.
+                </p>
+                <button
+                  onClick={() => handleLaunchApp()}
+                  className="px-4 py-2 rounded-full bg-emerald-500 text-slate-950 text-xs font-extrabold cursor-pointer"
+                >
+                  Open Air Intelligence Dashboard →
+                </button>
+              </div>
+            }
+          >
+            <Suspense
+              fallback={
+                <div className="w-[340px] h-[340px] sm:w-[460px] sm:h-[460px] rounded-full bg-slate-900/60 border border-emerald-500/20 flex flex-col items-center justify-center space-y-2 animate-pulse">
+                  <Globe2 className="w-8 h-8 text-emerald-400 animate-spin" />
+                  <span className="text-xs text-slate-400 font-medium">Loading 3D Atmospheric Globe...</span>
+                </div>
+              }
+            >
+              <InteractiveGlobe
+                onExploreCity={(cityId) => handleLaunchApp(cityId)}
+                activeView="globe"
+                onToggleView={(view) => {
+                  if (view === 'map') handleLaunchApp();
+                }}
+              />
+            </Suspense>
+          </ErrorBoundary>
         </div>
 
       </main>

@@ -490,8 +490,234 @@ console.log('\n--- 10. Testing What-If Exposure Benchmark vs Ambient Calculation
   assert(delhiN95.estimatedInhaledMassUg === 32.8, `Delhi N95 dose is 32.8 µg (got ${delhiN95.estimatedInhaledMassUg})`);
 }
 
-console.log(`\n========================================`);
-console.log(`TEST RESULTS: ${passed} Passed, ${failed} Failed`);
-console.log(`========================================\n`);
+// =========================================================================
+// 11-15. Real TypeScript Production Module Integration & Regression Suite
+// =========================================================================
+import { build } from 'esbuild';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { pathToFileURL } from 'url';
 
-if (failed > 0) process.exit(1);
+async function runRealModuleTests() {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'breathewise-test-'));
+  const entryFile = path.join(tmpDir, 'entry.ts');
+  const outFile = path.join(tmpDir, 'bundle.mjs');
+  const rootDir = process.cwd();
+
+  fs.writeFileSync(
+    entryFile,
+    [
+      `export * from ${JSON.stringify(path.join(rootDir, 'src/engines/cpcbAqi.ts'))};`,
+      `export * from ${JSON.stringify(path.join(rootDir, 'src/engines/windowSafe.ts'))};`,
+      `export * from ${JSON.stringify(path.join(rootDir, 'src/engines/inhaledDose.ts'))};`,
+      `export * from ${JSON.stringify(path.join(rootDir, 'src/engines/commuteSwap.ts'))};`,
+      `export * from ${JSON.stringify(path.join(rootDir, 'src/engines/indoorCoach.ts'))};`,
+      `export * from ${JSON.stringify(path.join(rootDir, 'src/services/openMeteo.ts'))};`,
+      `export * from ${JSON.stringify(path.join(rootDir, 'src/services/telemetryService.ts'))};`,
+      `export * from ${JSON.stringify(path.join(rootDir, 'src/services/gemini.ts'))};`,
+    ].join('\n')
+  );
+
+  await build({
+    entryPoints: [entryFile],
+    bundle: true,
+    platform: 'node',
+    format: 'esm',
+    outfile: outFile,
+    define: { 'import.meta.env': '{}' },
+    logLevel: 'silent',
+  });
+
+  const mod = await import(pathToFileURL(outFile).href);
+
+  // --- 11. Real cpcbAqi.ts Boundaries, Infinity & Multi-Pollutant Consistency ---
+  console.log('\n--- 11. Testing Real cpcbAqi.ts Boundaries & Conflicts ---');
+  assert(mod.calculateSubIndex(Infinity, mod.PM25_BREAKPOINTS) === null, 'Infinity PM2.5 returns null safely');
+  assert(mod.calculateSubIndex(-Infinity, mod.PM25_BREAKPOINTS) === null, '-Infinity PM2.5 returns null safely');
+  assert(mod.calculateCpcbAqi({ pm25: 30 }).category === 'Good', 'Boundary PM2.5=30 is Good');
+  assert(mod.calculateCpcbAqi({ pm25: 60 }).category === 'Satisfactory', 'Boundary PM2.5=60 is Satisfactory');
+  assert(mod.calculateCpcbAqi({ pm25: 90 }).category === 'Moderate', 'Boundary PM2.5=90 is Moderate');
+  assert(mod.calculateCpcbAqi({ pm25: 120 }).category === 'Poor', 'Boundary PM2.5=120 is Poor');
+  assert(mod.calculateCpcbAqi({ pm25: 250 }).category === 'Very Poor', 'Boundary PM2.5=250 is Very Poor');
+
+  const conflictAqi = mod.calculateCpcbAqi({ pm25: 20, pm10: 40, o3: 180 });
+  assert(conflictAqi.primaryPollutant === 'Ozone', `Conflicting pollutants: Ozone=180 governs over PM2.5=20 (got ${conflictAqi.primaryPollutant})`);
+  assert(conflictAqi.isCompleteCalculation === true, '3 pollutants including PM satisfies CPCB completeness');
+
+  const incompleteAqi = mod.calculateCpcbAqi({ pm25: 50, no2: 40 });
+  assert(incompleteAqi.isCompleteCalculation === false && incompleteAqi.standard === 'Indicative PM2.5-Derived', '2 pollutants marked Indicative PM2.5-Derived');
+
+  // --- 12. Real commuteSwap.ts & inhaledDose.ts Precision ---
+  console.log('\n--- 12. Testing Real commuteSwap.ts & inhaledDose.ts Precision ---');
+  const commute23 = mod.calculateCommuteTradeoffs(14, 23);
+  const metro23 = commute23.find((c) => c.mode === 'ac_metro');
+  // Unrounded: 23 * 0.32 = 7.36 µg/m³, airVol = 16*60*(14/32)/1000 = 0.42 m³, dose = 7.36 * 0.42 = 3.0912 -> 3.1 µg
+  // (Previously premature Math.round(7.36)=7 yielded 7 * 0.42 = 2.94 -> 2.9 µg)
+  assert(metro23.cabinPm25Concentration === 7, `Display cabin concentration rounds to 7 (got ${metro23.cabinPm25Concentration})`);
+  assert(metro23.inhaledDoseUg === 3.1, `Premature rounding fixed: unrounded 7.36 * 0.42 = 3.1 µg (got ${metro23.inhaledDoseUg})`);
+
+  const doseInf = mod.calculateInhaledDose(Infinity, NaN, 'outdoor_running', 'n95');
+  assert(doseInf.estimatedInhaledMassUg === 0 && doseInf.inhaledAirVolumeM3 === 0, 'Infinity/NaN inputs sanitize to 0 exposure');
+
+  // --- 13. Real openMeteo.ts Schema Validation & Parsing ---
+  console.log('\n--- 13. Testing Real openMeteo.ts Validation & Parsing ---');
+  const origFetch = globalThis.fetch;
+  try {
+    // 13a. Valid response with null PM10 & PBL + CO µg->mg conversion + IST hour parsing
+    globalThis.fetch = async (url) => {
+      if (String(url).includes('air-quality-api')) {
+        return {
+          ok: true,
+          json: async () => ({
+            current: {
+              time: '2026-11-26T14:00',
+              pm2_5: 88.4,
+              pm10: null,
+              carbon_monoxide: 2100,
+              nitrogen_dioxide: 45,
+              sulphur_dioxide: null,
+              ozone: 52,
+              us_aqi: 168,
+            },
+            hourly: {
+              time: ['2026-11-26T13:00', '2026-11-26T14:00'],
+              pm2_5: [80, 90],
+              pm10: [null, null],
+              nitrogen_dioxide: [40, 45],
+              ozone: [50, 52],
+              us_aqi: [160, 168],
+              boundary_layer_height: [null, 950],
+            },
+          }),
+        };
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          current: { temperature_2m: 24, relative_humidity_2m: 55, wind_speed_10m: 12, wind_direction_10m: 270, surface_pressure: 1012 },
+        }),
+      };
+    };
+
+    const parsedLive = await mod.fetchOpenMeteoTelemetry(28.64, 77.31, 'Delhi', 'Delhi');
+    assert(parsedLive.current.pm25 === 88, `Open-Meteo rounds valid PM2.5=88.4 -> 88 (got ${parsedLive.current.pm25})`);
+    assert(parsedLive.current.pm10 === null, 'Open-Meteo preserves null pm10 without fabricating 1.5x multiplier');
+    assert(parsedLive.current.co === 2.1, `Open-Meteo converts CO 2100 µg/m³ -> 2.1 mg/m³ (got ${parsedLive.current.co})`);
+    assert(parsedLive.hourly[0].hour === 13 && parsedLive.hourly[1].hour === 14, 'Timezone-safe ISO parsing preserves local hours 13, 14');
+    assert(parsedLive.hourly[0].boundaryLayerHeight === null && parsedLive.hourly[1].boundaryLayerHeight === 950, 'PBL preserves null when unobserved');
+
+    // 13b. Missing current.pm2_5 must throw instead of fabricating 0 Good AQI
+    globalThis.fetch = async () => ({
+      ok: true,
+      json: async () => ({ current: { pm2_5: null }, hourly: { time: ['2026-11-26T14:00'] } }),
+    });
+    let threwMissingPm = false;
+    try {
+      await mod.fetchOpenMeteoTelemetry(28.64, 77.31, 'Delhi', 'Delhi');
+    } catch {
+      threwMissingPm = true;
+    }
+    assert(threwMissingPm, 'Open-Meteo rejects missing/null current.pm2_5 instead of fabricating 0');
+
+    // 13c. Missing hourly.time throws
+    globalThis.fetch = async () => ({
+      ok: true,
+      json: async () => ({ current: { pm2_5: 50 }, hourly: { time: [] } }),
+    });
+    let threwEmptyHourly = false;
+    try {
+      await mod.fetchOpenMeteoTelemetry(28.64, 77.31, 'Delhi', 'Delhi');
+    } catch {
+      threwEmptyHourly = true;
+    }
+    assert(threwEmptyHourly, 'Open-Meteo rejects empty hourly time-series');
+
+    // --- 14. Real telemetryService.ts Cache, Stale & Provenance ---
+    console.log('\n--- 14. Testing Real telemetryService.ts Cache & Fallback ---');
+    const store = new Map();
+    globalThis.localStorage = {
+      getItem: (k) => (store.has(k) ? store.get(k) : null),
+      setItem: (k, v) => store.set(k, String(v)),
+      removeItem: (k) => store.delete(k),
+    };
+
+    // 14a. Fresh cache hit returns explicit Cached CAMS provenance without fetch
+    let fetchCalled = false;
+    globalThis.fetch = async () => {
+      fetchCalled = true;
+      throw new Error('Should not fetch on valid cache hit');
+    };
+    const fakeCached = {
+      city: 'Delhi — Anand Vihar',
+      state: 'Delhi',
+      country: 'India',
+      current: { pm25: 199, aqi: 360, aqiCategory: 'Very Poor', primaryPollutant: 'PM2.5', aqiStandard: 'Indian CPCB NAQI' },
+      weather: { temperature: 20, humidity: 60, windSpeed: 5, windDirection: 270, surfacePressure: 1014, weatherDescription: 'Test', isThermalInversionLikely: true },
+      hourly: [{ time: '2026-11-26T14:00', hour: 14, pm25: 199, cpcbAqi: 360 }],
+      metadata: { provider: 'Open-Meteo (Copernicus Atmosphere Grid)', stationName: 'Test', latitude: 28.6, longitude: 77.3, fetchTimestamp: '12:00', isLive: true, isSimulated: false, attribution: 'Test' },
+    };
+    store.set('breathewise_telemetry_delhi-anand-vihar', JSON.stringify({ timestamp: Date.now() - 120000, data: fakeCached }));
+    const cachedRes = await mod.getCityTelemetry('delhi-anand-vihar');
+    assert(!fetchCalled && cachedRes.metadata.fetchTimestamp.startsWith('Cached CAMS'), `Fresh cache returns Cached CAMS provenance without network call (got ${cachedRes.metadata.fetchTimestamp})`);
+
+    // 14b. Corrupt cache is evicted & falls back to simulated baseline on network failure
+    store.set('breathewise_telemetry_delhi-anand-vihar', '{corrupt-json');
+    const fallbackRes = await mod.getCityTelemetry('delhi-anand-vihar');
+    assert(fallbackRes.metadata.isSimulated === true && fallbackRes.metadata.isLive === false, 'Corrupt cache + network failure falls back with honest isSimulated=true, isLive=false');
+
+    // 14c. Stale cache (>15 min) is bypassed
+    store.set('breathewise_telemetry_delhi-anand-vihar', JSON.stringify({ timestamp: Date.now() - 20 * 60 * 1000, data: fakeCached }));
+    let staleTriggeredFetch = false;
+    globalThis.fetch = async () => {
+      staleTriggeredFetch = true;
+      throw new Error('Simulated offline');
+    };
+    await mod.getCityTelemetry('delhi-anand-vihar');
+    assert(staleTriggeredFetch, 'Stale cache (>15 min) bypasses cache and attempts refresh');
+
+    // --- 15. Real gemini.ts Schema Validation & Safety Guards ---
+    console.log('\n--- 15. Testing Real gemini.ts Validation & Safety Guards ---');
+    const severeWin = mod.calculateCleanAirWindow(fallbackRes.hourly);
+    const validRawPlan = {
+      summaryTitle: 'Severe Smog Alert',
+      summaryBody: 'Keep indoor spaces sealed.',
+      cleanAirWindowAdvisory: 'Avoid outdoor exertion.',
+      vulnerabilityGuidance: { profile: 'pediatric', cautionNotice: 'High risk', actionableStep: 'Stay indoors' },
+      dailyRoutine: [
+        { timeSlot: '07:00 – 10:00', activityName: 'Morning Rush', exposureRisk: 'SAFE', directive: 'Stay inside', alternativeSuggestion: 'HEPA on' },
+      ],
+      indoorProtocol: 'Open windows in the afternoon for fresh air.',
+      ecoActionOfTheDay: 'Take Metro.',
+    };
+    const sanitizedPlan = mod.validateAndSanitizeLivingPlan(validRawPlan, fallbackRes, severeWin, 'pediatric');
+    assert(sanitizedPlan.dailyRoutine[0].exposureRisk === 'HIGH', `AI safety guard overrides SAFE -> HIGH during severe smog (got ${sanitizedPlan.dailyRoutine[0].exposureRisk})`);
+    assert(sanitizedPlan.indoorProtocol.includes('Safety Override'), 'AI safety guard blocks "open windows" directive when PM2.5 > 60');
+
+    let rejectedMalformed = false;
+    try {
+      mod.validateAndSanitizeLivingPlan({ summaryTitle: '', dailyRoutine: [] }, fallbackRes, severeWin, 'pediatric');
+    } catch {
+      rejectedMalformed = true;
+    }
+    assert(rejectedMalformed, 'AI validator rejects empty summaryTitle / empty dailyRoutine');
+
+    const medRefusal = await mod.askBreatheWiseAssistant('What inhaler dosage should I take?', [], fallbackRes, severeWin, 'pediatric', '');
+    assert(medRefusal.includes('NOT a medical diagnostic'), 'AI assistant refuses medical/inhaler dosage queries');
+  } finally {
+    globalThis.fetch = origFetch;
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+}
+
+runRealModuleTests()
+  .then(() => {
+    console.log(`\n========================================`);
+    console.log(`TEST RESULTS: ${passed} Passed, ${failed} Failed`);
+    console.log(`========================================\n`);
+    if (failed > 0) process.exit(1);
+  })
+  .catch((err) => {
+    console.error('Test runner fatal error:', err);
+    process.exit(1);
+  });

@@ -12,7 +12,7 @@ export const WhatIfSimulator: React.FC = () => {
   const [maskType, setMaskType] = useState<keyof typeof MASK_EFFICIENCIES>('n95');
   const [useCityAir, setUseCityAir] = useState<boolean>(false);
 
-  const cityPm = telemetry.current.pm25 || 100;
+  const cityPm = telemetry.current.pm25 ?? 100;
   const activePm25 = useCityAir ? cityPm : 100;
 
   const currentResult = calculateInhaledDose(activePm25, durationMinutes, activity, maskType);
@@ -169,7 +169,7 @@ export const WhatIfSimulator: React.FC = () => {
               <select
                 aria-label="Mask Type"
                 value={maskType}
-                onChange={(e) => setMaskType(e.target.value as any)}
+                onChange={(e) => setMaskType(e.target.value as keyof typeof MASK_EFFICIENCIES)}
                 className="w-full bg-transparent text-[11px] font-bold text-emerald-700 focus:outline-none cursor-pointer"
               >
                 <option value="none">No Mask (0%)</option>

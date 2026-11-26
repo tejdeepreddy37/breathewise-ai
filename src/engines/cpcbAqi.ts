@@ -68,7 +68,7 @@ export const CO_BREAKPOINTS: PollutantBreakpoint[] = [
 ];
 
 export function calculateSubIndex(conc: number | null | undefined, breakpoints: PollutantBreakpoint[]): number | null {
-  if (conc == null || typeof conc !== 'number' || isNaN(conc) || conc < 0) return null;
+  if (conc == null || typeof conc !== 'number' || !Number.isFinite(conc) || conc < 0) return null;
 
   // Exact 0 handling
   if (conc === 0) return 0;

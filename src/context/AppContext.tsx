@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { EnvironmentalTelemetry } from '../types/telemetry';
 import { CleanAirWindow, VulnerabilityProfile } from '../types/engines';
 import { UserPreferences, DEFAULT_USER_PREFERENCES } from '../types/user';
@@ -164,8 +164,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  // Monotonic request counter prevents stale async telemetry/AI responses from overwriting newer city selections
+  const latestRequestIdRef = useRef<number>(0);
+
   // Load telemetry when city changes or demo mode toggles
   const loadTelemetry = useCallback(async (cityId: string) => {
+    const requestId = ++latestRequestIdRef.current;
     setIsLoadingTelemetry(true);
     setTelemetryError(null);
     try {
@@ -175,6 +179,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       } else {
         data = await getCityTelemetry(cityId);
       }
+      if (requestId !== latestRequestIdRef.current) return;
+
       setTelemetry(data);
       const window = calculateCleanAirWindow(data.hourly);
       setCleanAirWindow(window);
@@ -187,17 +193,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         userPreferences.vulnerabilityProfile,
         sessionApiKey
       );
+      if (requestId !== latestRequestIdRef.current) return;
+
       setLivingPlan(plan);
       setIsLoadingPlan(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      if (requestId !== latestRequestIdRef.current) return;
       console.warn('Failed to load telemetry:', err);
       // Fallback safely to demo profile
       const fallback = FALLBACK_TELEMETRY[cityId] || FALLBACK_TELEMETRY['delhi-anand-vihar'];
       setTelemetry(fallback);
       setCleanAirWindow(calculateCleanAirWindow(fallback.hourly));
-      setTelemetryError(err?.message || 'Could not load live telemetry');
+      setTelemetryError(err instanceof Error ? err.message : 'Could not load live telemetry');
     } finally {
-      setIsLoadingTelemetry(false);
+      if (requestId === latestRequestIdRef.current) {
+        setIsLoadingTelemetry(false);
+      }
     }
   }, [userPreferences.vulnerabilityProfile, sessionApiKey, isDemoMode]);
 

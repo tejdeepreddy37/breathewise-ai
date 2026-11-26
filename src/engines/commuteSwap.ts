@@ -85,8 +85,8 @@ export function calculateCommuteTradeoffs(
   distanceKm: number,
   ambientPm25: number
 ): CommuteComparison[] {
-  const safeDist = typeof distanceKm === 'number' && !isNaN(distanceKm) ? Math.max(1, Math.min(60, distanceKm)) : 14;
-  const safePm = typeof ambientPm25 === 'number' && !isNaN(ambientPm25) ? Math.max(0, ambientPm25) : 0;
+  const safeDist = typeof distanceKm === 'number' && Number.isFinite(distanceKm) ? Math.max(1, Math.min(60, distanceKm)) : 14;
+  const safePm = typeof ambientPm25 === 'number' && Number.isFinite(ambientPm25) ? Math.max(0, ambientPm25) : 0;
 
   // Baseline reference: open two-wheeler transit
   const openMode = MODES[0];
@@ -107,14 +107,17 @@ export function calculateCommuteTradeoffs(
       travelTimeMinutes = Math.round(travelTimeHours * 60);
     }
 
-    const cabinConc = Math.round(safePm * m.cabinExposureFactor);
+    // Preserve unrounded cabin concentration for dose & reduction math; round only for display
+    const exactCabinConc = safePm * m.cabinExposureFactor;
+    const cabinConc = Math.round(exactCabinConc);
     const airVolM3 = (m.ventilationLpm * 60 * travelTimeHours) / 1000;
-    const inhaledUg = +(cabinConc * airVolM3).toFixed(1);
+    const rawInhaledUg = exactCabinConc * airVolM3;
+    const inhaledUg = +rawInhaledUg.toFixed(1);
 
     const carbonKg = +(safeDist * m.carbonKgPerKm).toFixed(2);
 
     const reductionPercent = baselineDoseUg > 0
-      ? Math.max(0, Math.min(99, Math.round(((baselineDoseUg - inhaledUg) / baselineDoseUg) * 100)))
+      ? Math.max(0, Math.min(99, Math.round(((baselineDoseUg - rawInhaledUg) / baselineDoseUg) * 100)))
       : 0;
 
     let tag: CommuteComparison['recommendationTag'];

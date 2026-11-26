@@ -120,13 +120,136 @@ export function generateDeterministicLivingPlan(
   };
 }
 
+const VALID_EXPOSURE_RISKS = new Set(['SAFE', 'MODERATE', 'HIGH', 'CRITICAL']);
+const AI_TIMEOUT_MS = 10000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+    promise
+      .then((val) => {
+        clearTimeout(timer);
+        resolve(val);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
+/**
+ * Runtime schema and physical-safety validator for AI-generated living plans.
+ * Ensures malformed JSON, invalid enums, or unsafe ventilation directives
+ * cannot bypass verified telemetry thresholds.
+ */
+export function validateAndSanitizeLivingPlan(
+  raw: unknown,
+  telemetry: EnvironmentalTelemetry,
+  window: CleanAirWindow,
+  profile: VulnerabilityProfile
+): GroundedAiLivingPlan {
+  if (!raw || typeof raw !== 'object') {
+    throw new Error('AI living plan payload is not an object');
+  }
+
+  const obj = raw as Record<string, unknown>;
+  const summaryTitle = typeof obj.summaryTitle === 'string' ? obj.summaryTitle.trim().slice(0, 140) : '';
+  const summaryBody = typeof obj.summaryBody === 'string' ? obj.summaryBody.trim().slice(0, 450) : '';
+  const cleanAirWindowAdvisory =
+    typeof obj.cleanAirWindowAdvisory === 'string' && obj.cleanAirWindowAdvisory.trim()
+      ? obj.cleanAirWindowAdvisory.trim().slice(0, 350)
+      : `Relatively lower exposure window: ${window.displayWindow} (Avg PM2.5 ~${window.averagePm25} µg/m³).`;
+
+  if (!summaryTitle || !summaryBody) {
+    throw new Error('AI living plan missing required summaryTitle or summaryBody');
+  }
+
+  if (!Array.isArray(obj.dailyRoutine) || obj.dailyRoutine.length === 0) {
+    throw new Error('AI living plan missing valid dailyRoutine array');
+  }
+
+  const pm = telemetry.current.pm25;
+  const isSevere = pm > 120 || telemetry.current.aqi > 300;
+  const isVentilationBlocked = pm > 60 || (telemetry.current.o3 != null && telemetry.current.o3 > 100);
+
+  const sanitizedRoutine = obj.dailyRoutine.slice(0, 6).map((slot, idx) => {
+    if (!slot || typeof slot !== 'object') {
+      throw new Error(`Invalid routine slot at index ${idx}`);
+    }
+    const s = slot as Record<string, unknown>;
+    const timeSlot = typeof s.timeSlot === 'string' ? s.timeSlot.trim().slice(0, 60) : '';
+    const activityName = typeof s.activityName === 'string' ? s.activityName.trim().slice(0, 100) : '';
+    const directive = typeof s.directive === 'string' ? s.directive.trim().slice(0, 300) : '';
+    const alternativeSuggestion = typeof s.alternativeSuggestion === 'string' ? s.alternativeSuggestion.trim().slice(0, 300) : '';
+
+    if (!timeSlot || !activityName || !directive) {
+      throw new Error(`Routine slot ${idx} missing required text fields`);
+    }
+
+    let exposureRisk = typeof s.exposureRisk === 'string' && VALID_EXPOSURE_RISKS.has(s.exposureRisk)
+      ? (s.exposureRisk as GroundedAiLivingPlan['dailyRoutine'][number]['exposureRisk'])
+      : (isSevere ? 'HIGH' : 'MODERATE');
+
+    // Physical safety guard: never allow AI to label severe smog as SAFE
+    if (isSevere && exposureRisk === 'SAFE') {
+      exposureRisk = 'HIGH';
+    }
+
+    return {
+      timeSlot,
+      activityName,
+      exposureRisk,
+      directive,
+      alternativeSuggestion: alternativeSuggestion || 'Monitor local conditions and prioritize HEPA-filtered indoor air.',
+    };
+  });
+
+  const rawVG = (obj.vulnerabilityGuidance && typeof obj.vulnerabilityGuidance === 'object')
+    ? (obj.vulnerabilityGuidance as Record<string, unknown>)
+    : {};
+
+  let indoorProtocol = typeof obj.indoorProtocol === 'string' && obj.indoorProtocol.trim()
+    ? obj.indoorProtocol.trim().slice(0, 320)
+    : 'Maintain indoor air filtration and monitor outdoor particulate shifts.';
+
+  // Physical safety override: block "open windows" directives when PM2.5 > 60 or O3 > 100
+  if (isVentilationBlocked && /\bopen\b.*\bwindow/i.test(indoorProtocol)) {
+    indoorProtocol = `Safety Override: Outdoor air exceeds safe ventilation limits (PM2.5: ${pm} µg/m³). Keep all exterior windows sealed and run HEPA filtration.`;
+  }
+
+  return {
+    summaryTitle,
+    summaryBody,
+    cleanAirWindowAdvisory,
+    vulnerabilityGuidance: {
+      profile,
+      cautionNotice:
+        typeof rawVG.cautionNotice === 'string' && rawVG.cautionNotice.trim()
+          ? rawVG.cautionNotice.trim().slice(0, 260)
+          : 'Elevated particulate matter increases respiratory airway burden.',
+      actionableStep:
+        typeof rawVG.actionableStep === 'string' && rawVG.actionableStep.trim()
+          ? rawVG.actionableStep.trim().slice(0, 260)
+          : `Prioritize lower-exposure window (${window.displayWindow}) and N95 protection in traffic.`,
+    },
+    dailyRoutine: sanitizedRoutine,
+    indoorProtocol,
+    ecoActionOfTheDay:
+      typeof obj.ecoActionOfTheDay === 'string' && obj.ecoActionOfTheDay.trim()
+        ? obj.ecoActionOfTheDay.trim().slice(0, 260)
+        : 'Prefer rapid AC Metro transit over open road commuting to reduce inhaled particulate dose and CO2.',
+    scientificConfidence: 'High (Gemini 2.0 Grounded Synthesis)',
+  };
+}
+
 export async function fetchGeminiLivingPlan(
   telemetry: EnvironmentalTelemetry,
   window: CleanAirWindow,
   profile: VulnerabilityProfile,
   customApiKey?: string
 ): Promise<GroundedAiLivingPlan> {
-  const apiKey = customApiKey || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+  const apiKey = customApiKey || import.meta.env?.VITE_GEMINI_API_KEY;
 
   if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY') {
     return generateDeterministicLivingPlan(telemetry, window, profile);
@@ -205,7 +328,7 @@ Return strictly a valid JSON object matching this schema:
   "scientificConfidence": "High (Gemini 1.5 Grounded Synthesis)"
 }`;
 
-    const res = await model.generateContent(prompt);
+    const res = await withTimeout(model.generateContent(prompt), AI_TIMEOUT_MS, 'Gemini living plan');
     let text = res.response.text().trim();
 
     // Defensive stripping of markdown code blocks
@@ -214,14 +337,8 @@ Return strictly a valid JSON object matching this schema:
     if (text.endsWith('```')) text = text.slice(0, -3);
     text = text.trim();
 
-    const parsed = JSON.parse(text) as GroundedAiLivingPlan;
-
-    // Runtime defensive verification
-    if (!parsed.summaryTitle || !Array.isArray(parsed.dailyRoutine) || parsed.dailyRoutine.length === 0) {
-      throw new Error('Malformed JSON schema returned by model');
-    }
-
-    return parsed;
+    const parsed = JSON.parse(text) as unknown;
+    return validateAndSanitizeLivingPlan(parsed, telemetry, window, profile);
   } catch (err) {
     console.warn('[BreatheWise] Gemini API call failed or returned malformed output. Falling back to deterministic plan.', err);
     return generateDeterministicLivingPlan(telemetry, window, profile);
@@ -236,7 +353,7 @@ export async function askBreatheWiseAssistant(
   profile: VulnerabilityProfile,
   customApiKey?: string
 ): Promise<string> {
-  const apiKey = customApiKey || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+  const apiKey = customApiKey || import.meta.env?.VITE_GEMINI_API_KEY;
 
   if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY') {
     // Structured intent-based deterministic assistant
@@ -347,8 +464,12 @@ Keep responses concise, actionable, and grounded in the data above.`,
       })),
     });
 
-    const result = await chat.sendMessage(question);
-    return result.response.text();
+    const result = await withTimeout(chat.sendMessage(question), AI_TIMEOUT_MS, 'Gemini assistant');
+    const responseText = result.response.text()?.trim();
+    if (!responseText) {
+      throw new Error('Empty response from Gemini');
+    }
+    return responseText;
   } catch (err) {
     console.warn('[BreatheWise] Gemini chat error, using deterministic response.', err);
     return `In ${telemetry.city}, current PM2.5 is ${telemetry.current.pm25} µg/m³ (CPCB NAQI ${telemetry.current.aqi}). Today's lowest relative exposure window is ${window.displayWindow}. We recommend scheduling essential outdoor tasks during this window and keeping indoor spaces sealed during morning and evening smog peaks.`;

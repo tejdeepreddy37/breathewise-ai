@@ -39,8 +39,8 @@ export function calculateInhaledDose(
   activity: ActivityType = 'outdoor_running',
   maskType: keyof typeof MASK_EFFICIENCIES = 'none'
 ): InhaledDoseResult {
-  const safePm = typeof ambientPm25 === 'number' && !isNaN(ambientPm25) ? Math.max(0, ambientPm25) : 0;
-  const safeDuration = typeof durationMinutes === 'number' && !isNaN(durationMinutes) ? Math.max(0, Math.min(720, durationMinutes)) : 0;
+  const safePm = typeof ambientPm25 === 'number' && Number.isFinite(ambientPm25) ? Math.max(0, ambientPm25) : 0;
+  const safeDuration = typeof durationMinutes === 'number' && Number.isFinite(durationMinutes) ? Math.max(0, Math.min(720, durationMinutes)) : 0;
   const lpm = MINUTE_VENTILATION_LPM[activity] || 25;
   const hours = safeDuration / 60;
   
@@ -48,10 +48,11 @@ export function calculateInhaledDose(
   const volumeM3 = (lpm * 60 * hours) / 1000;
   const efficiency = typeof MASK_EFFICIENCIES[maskType] === 'number' ? MASK_EFFICIENCIES[maskType] : 0.0;
 
-  // Estimated inhaled particulate mass (µg) = C_ambient (µg/m³) * Volume (m³) * (1 - eta)
-  const massUg = +(safePm * volumeM3 * (1 - efficiency)).toFixed(1);
-  const massWithN95 = +(safePm * volumeM3 * (1 - 0.95)).toFixed(1);
-  const massSaved = +(massUg - massWithN95).toFixed(1);
+  // Preserve floating-point precision during intermediate calculations; round only at presentation boundary
+  const rawMassUg = safePm * volumeM3 * (1 - efficiency);
+  const rawMassWithN95 = safePm * volumeM3 * (1 - 0.95);
+  const massUg = +rawMassUg.toFixed(1);
+  const massSaved = +(rawMassUg - rawMassWithN95).toFixed(1);
 
   // Relative exposure percentage entering the respiratory tract
   const relativeExposurePercent = Math.round((1 - efficiency) * 100);

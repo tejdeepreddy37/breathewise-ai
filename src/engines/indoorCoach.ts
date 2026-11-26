@@ -29,10 +29,10 @@ export function calculateIndoorRecommendations(
   outdoorO3?: number | null,
   indoorSource: IndoorSourceType = 'none'
 ): IndoorVentilationRecommendation {
-  const safePm = typeof outdoorPm25 === 'number' && !isNaN(outdoorPm25) ? Math.max(0, outdoorPm25) : 0;
-  const safeO3 = typeof outdoorO3 === 'number' && !isNaN(outdoorO3) ? Math.max(0, outdoorO3) : null;
-  const safeArea = typeof roomAreaM2 === 'number' && !isNaN(roomAreaM2) ? Math.max(5, Math.min(200, roomAreaM2)) : 20;
-  const safeHour = typeof currentHour === 'number' && !isNaN(currentHour) ? ((currentHour % 24) + 24) % 24 : new Date().getHours();
+  const safePm = typeof outdoorPm25 === 'number' && Number.isFinite(outdoorPm25) ? Math.max(0, outdoorPm25) : 0;
+  const safeO3 = typeof outdoorO3 === 'number' && Number.isFinite(outdoorO3) ? Math.max(0, outdoorO3) : null;
+  const safeArea = typeof roomAreaM2 === 'number' && Number.isFinite(roomAreaM2) ? Math.max(5, Math.min(200, roomAreaM2)) : 20;
+  const safeHour = typeof currentHour === 'number' && Number.isFinite(currentHour) ? ((currentHour % 24) + 24) % 24 : new Date().getHours();
 
   const isWindowActive = cleanAirWindow.endHour >= cleanAirWindow.startHour
     ? safeHour >= cleanAirWindow.startHour && safeHour <= cleanAirWindow.endHour

@@ -17,27 +17,43 @@ const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes cache
 export async function getCityTelemetry(cityId: string): Promise<EnvironmentalTelemetry> {
   const cityPreset = INDIAN_CITIES_PRESETS.find((c) => c.id === cityId) || INDIAN_CITIES_PRESETS[0];
 
-  // 1. Check local browser cache
+  // 1. Check local browser cache with strict schema, city-match, and TTL validation
+  const cacheKey = `${CACHE_PREFIX}${cityId}`;
   try {
-    const cached = localStorage.getItem(`${CACHE_PREFIX}${cityId}`);
+    const cached = localStorage.getItem(cacheKey);
     if (cached) {
       const parsed = JSON.parse(cached);
-      const ageMs = Date.now() - parsed.timestamp;
-      if (ageMs < CACHE_TTL_MS) {
+      const ageMs = Date.now() - parsed?.timestamp;
+      const isValidCache =
+        parsed &&
+        typeof parsed.timestamp === 'number' &&
+        Number.isFinite(parsed.timestamp) &&
+        ageMs >= 0 &&
+        ageMs < CACHE_TTL_MS &&
+        parsed.data &&
+        parsed.data.city === cityPreset.name &&
+        typeof parsed.data.current?.pm25 === 'number' &&
+        Number.isFinite(parsed.data.current.pm25) &&
+        Array.isArray(parsed.data.hourly) &&
+        parsed.data.hourly.length > 0;
+
+      if (isValidCache) {
         const cachedData = parsed.data as EnvironmentalTelemetry;
         const minsAgo = Math.max(1, Math.round(ageMs / 60000));
-        // Return with explicit cache metadata indicator
+        // Explicitly mark cached provenance so stale cache is never confused with fresh fetch
         return {
           ...cachedData,
           metadata: {
             ...cachedData.metadata,
-            fetchTimestamp: `Cached (${minsAgo}m ago)`,
+            fetchTimestamp: `Cached CAMS (${minsAgo}m ago)`,
           },
         };
+      } else {
+        localStorage.removeItem(cacheKey);
       }
     }
   } catch (e) {
-    // LocalStorage inaccessible or parse error
+    // LocalStorage inaccessible or corrupt JSON
   }
 
   // 2. Attempt live Open-Meteo CAMS atmospheric fetch
