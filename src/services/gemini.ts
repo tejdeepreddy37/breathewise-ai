@@ -113,7 +113,7 @@ export function generateDeterministicLivingPlan(
       : pm <= 60
       ? `Brief natural ventilation safe during ${window.displayWindow}. Keep windows sealed during morning and evening rush hours.`
       : 'Maintain closed window envelope and utilize indoor filtration to prevent particulate accumulation.',
-    ecoActionOfTheDay: 'Choosing AC Metro over an open auto-rickshaw for a 14 km commute prevents ~1.8 kg of vehicular CO2 emissions and avoids up to 72% of inhaled particulate exposure.',
+    ecoActionOfTheDay: 'Choosing AC Metro over an open auto-rickshaw for a 14 km commute prevents ~0.88 kg of vehicular CO2 emissions (or ~2.07 kg vs a private AC cab) and avoids up to 72% of inhaled particulate exposure.',
     scientificConfidence: telemetry.metadata.isSimulated
       ? 'High (Simulated Regional Model Baseline)'
       : 'High (Copernicus CAMS 0.25° Model Grid & CPCB NAQI Standards)',
@@ -135,7 +135,7 @@ export async function fetchGeminiLivingPlan(
   try {
     const ai = new GoogleGenerativeAI(apiKey);
     const model = ai.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 0.15,
@@ -282,7 +282,7 @@ export async function askBreatheWiseAssistant(
 
     // Intent 3: Commute / Metro / Auto / Transit
     if (qLower.includes('commute') || qLower.includes('metro') || qLower.includes('auto') || qLower.includes('traffic') || qLower.includes('bus') || qLower.includes('drive')) {
-      return `Commute Exposure Analysis for ${telemetry.city}:\nIn dense traffic corridors, open two-wheelers and auto-rickshaws expose commuters to direct tailpipe exhaust (~30% higher than ambient background). Switching to the AC Metro reduces your commute particulate exposure by up to 72% while eliminating ~1.8 kg of personal vehicular CO2 emissions for a 14 km trip.`;
+      return `Commute Exposure Analysis for ${telemetry.city}:\nIn dense traffic corridors, open two-wheelers and auto-rickshaws expose commuters to direct tailpipe exhaust (~30% higher than ambient background). Switching to the AC Metro reduces your commute particulate exposure by up to 72% while saving ~0.88 kg of CO2 vs an auto-rickshaw (or ~2.07 kg vs a private AC cab) on a 14 km trip.`;
     }
 
     // Intent 4: Pediatric / Children / Family
@@ -325,7 +325,7 @@ export async function askBreatheWiseAssistant(
   try {
     const ai = new GoogleGenerativeAI(apiKey);
     const model = ai.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       systemInstruction: `You are BreatheWise AI, an expert Environmental Intelligence and Living Assistant.
 Current live context for ${telemetry.city}, India:
 - PM2.5: ${telemetry.current.pm25} µg/m³, CPCB NAQI: ${telemetry.current.aqi} (${telemetry.current.aqiCategory})

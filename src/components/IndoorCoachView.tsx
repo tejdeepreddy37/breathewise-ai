@@ -110,6 +110,38 @@ export const IndoorCoachView: React.FC = () => {
 
       </div>
 
+      {/* Compact Interactive Indoor Parameters (Room Size & Indoor Source Context) */}
+      <div className="hidden sm:flex items-center justify-between gap-2 pt-2 border-t border-stone-100 text-[10px]">
+        <div className="flex items-center space-x-1.5">
+          <span className="text-slate-400 font-semibold uppercase tracking-wider">Room:</span>
+          {[12, 20, 35].map((area) => (
+            <button
+              key={area}
+              onClick={() => setRoomAreaM2(area)}
+              className={`px-2 py-0.5 rounded-md font-bold transition-colors cursor-pointer ${
+                roomAreaM2 === area ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'text-slate-500 hover:bg-stone-100'
+              }`}
+            >
+              {area}m²
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center space-x-1.5">
+          <span className="text-slate-400 font-semibold uppercase tracking-wider">Source:</span>
+          <select
+            aria-label="Indoor Pollution Source"
+            value={indoorSource}
+            onChange={(e) => setIndoorSource(e.target.value as IndoorSourceType)}
+            className="bg-stone-50 border border-stone-200/80 rounded-lg px-2 py-0.5 pr-5 font-bold text-slatecharcoal-900 text-[10px] cursor-pointer focus:outline-none"
+          >
+            <option value="none">None (Sealed)</option>
+            <option value="cooking_frying">Cooking / Frying</option>
+            <option value="incense_smoke">Incense / Coil</option>
+            <option value="high_co2_stuffy">Stuffy / High CO₂</option>
+          </select>
+        </div>
+      </div>
+
     </div>
   );
 };

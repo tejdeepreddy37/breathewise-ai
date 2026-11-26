@@ -20,10 +20,19 @@ export const WhatIfSimulator: React.FC = () => {
 
   const reductionPercent = Math.round(MASK_EFFICIENCIES[maskType] * 100);
 
+  const activityLabels: Record<ActivityType, string> = {
+    resting_sleep: 'Resting',
+    desk_office: 'Desk',
+    light_walking: 'Walking',
+    cycling_commute: 'Cycling',
+    outdoor_running: 'Running',
+    heavy_cardio: 'HIIT',
+  };
+
   return (
     <div className="rounded-3xl bg-white border border-stone-200/80 p-4 sm:p-6 shadow-xs flex flex-col justify-between h-full">
       
-      {/* Mobile Card Header & Thumbnail (Exact match to Image 2 Mobile: "What-If Exposure", "Running • 45 min • N95", runner on right) */}
+      {/* Mobile Card Header & Thumbnail */}
       <div className="sm:hidden flex items-center justify-between pb-2 border-b border-stone-100">
         <div className="flex items-center space-x-2.5">
           <div className="w-7 h-7 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100 shrink-0">
@@ -34,7 +43,7 @@ export const WhatIfSimulator: React.FC = () => {
               What-If Exposure
             </h3>
             <p className="text-[10px] text-slate-500 font-medium">
-              Running • 45 min • N95
+              {activityLabels[activity]} • {durationMinutes} min • {maskType === 'none' ? 'No Mask' : maskType.toUpperCase()}
             </p>
           </div>
         </div>
@@ -43,7 +52,7 @@ export const WhatIfSimulator: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Dose Output Comparison Row (Matches Image 2 Mobile) */}
+      {/* Mobile Dose Output Comparison Row */}
       <div className="sm:hidden py-2 flex items-center justify-around gap-2 text-center">
         <div>
           <div className="text-sm font-black text-rose-600 font-mono">
@@ -59,7 +68,7 @@ export const WhatIfSimulator: React.FC = () => {
             {currentResult.estimatedInhaledMassUg} µg
           </div>
           <div className="text-[9px] font-bold text-emerald-700">
-            With N95
+            {maskType === 'none' ? 'Unmasked' : `With ${maskType.toUpperCase()}`}
           </div>
         </div>
       </div>

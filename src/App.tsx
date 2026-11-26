@@ -12,28 +12,9 @@ import { AiAssistantFeed } from './components/AiAssistantFeed';
 import { TransparencyDrawer } from './components/TransparencyDrawer';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { LandingPage } from './components/LandingPage';
-import { 
-  Home, 
-  Navigation, 
-  Fan, 
-  Sliders, 
-  MessageSquare, 
-  Sparkles,
-  ShieldCheck,
-  CheckCircle,
-  Clock
-} from 'lucide-react';
 
 export const App: React.FC = () => {
-  const { activeTab, setActiveTab } = useApp();
-
-  const desktopTabs = [
-    { id: 'overview', label: 'Air Intelligence & Living Plan', icon: <Home className="w-4 h-4" /> },
-    { id: 'commute', label: 'Commute Eco-Swap', icon: <Navigation className="w-4 h-4" /> },
-    { id: 'indoor', label: 'Indoor Ventilation Coach', icon: <Fan className="w-4 h-4" /> },
-    { id: 'simulator', label: 'What-If Exposure Sandbox', icon: <Sliders className="w-4 h-4" /> },
-    { id: 'assistant', label: 'AI Living Assistant', icon: <MessageSquare className="w-4 h-4" /> },
-  ];
+  const { activeTab } = useApp();
 
   if (activeTab === 'landing') {
     return (

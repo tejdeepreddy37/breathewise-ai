@@ -1,16 +1,30 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ShieldCheck, Database, FileText, X, Atom, CheckCircle2 } from 'lucide-react';
 
 export const TransparencyDrawer: React.FC = () => {
   const { telemetry, isTransparencyOpen, setIsTransparencyOpen } = useApp();
 
+  useEffect(() => {
+    if (!isTransparencyOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsTransparencyOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isTransparencyOpen, setIsTransparencyOpen]);
+
   if (!isTransparencyOpen) return null;
 
   const meta = telemetry.metadata;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slatecharcoal-900/60 backdrop-blur-xs transition-opacity animate-in fade-in">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Scientific Methodology and Telemetry Provenance"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slatecharcoal-900/60 backdrop-blur-xs transition-opacity animate-in fade-in"
+    >
       <div className="bg-white w-full max-w-2xl rounded-3xl shadow-elevated border border-cream-200/90 overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Header */}

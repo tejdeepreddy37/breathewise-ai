@@ -1,33 +1,26 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useApp } from '../context/AppContext';
 import { InteractiveGlobe, GLOBE_CITIES } from './InteractiveGlobe';
 import { 
-  Wind, 
   Leaf, 
   ShieldAlert, 
-  Share2, 
   ChevronDown, 
   ArrowRight,
-  Globe2,
-  Sliders,
-  CheckCircle2,
-  Calendar,
-  Layers
 } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
   const { setActiveTab, selectedCityId, selectCity, setIsTransparencyOpen, telemetry } = useApp();
-  const [selectedCountry, setSelectedCountry] = useState<string>('India 🇮🇳');
 
-  // Exact Reference 1 snapshot (Bengaluru / Southeast Asia benchmark: 78 Satisfactory)
-  const currentCityData = GLOBE_CITIES.find((c) => c.id === 'bengaluru-indiranagar') || GLOBE_CITIES[1];
-  const aqiVal = 78;
-  const aqiCat = 'Satisfactory';
-  const dominant = 'PM2.5';
-  const windSpd = 13.2;
+  const activeCity = GLOBE_CITIES.find((c) => c.id === selectedCityId);
+  const aqiVal = telemetry.current.aqi ?? activeCity?.aqi ?? 78;
+  const aqiCat = telemetry.current.aqiCategory ?? activeCity?.category ?? 'Satisfactory';
+  const dominant = telemetry.current.primaryPollutant || 'PM2.5';
+  const windSpd = telemetry.weather?.windSpeed ?? activeCity?.windSpeed ?? 13.2;
+  const riskPercent = Math.min(99, Math.max(8, Math.round((aqiVal / 500) * 100)));
+  const locationLabel = telemetry.city || activeCity?.name || 'India';
 
-  // Format timestamp matching Image 1: "25 Jul 2025 • 10:11 AM (IST)"
-  const formattedDate = `25 Jul 2025 • 10:11 AM (IST)`;
+  const now = new Date();
+  const formattedDate = `${now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} • ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
   const handleLaunchApp = (cityId?: string) => {
     if (cityId) selectCity(cityId);
@@ -137,8 +130,8 @@ export const LandingPage: React.FC = () => {
             <span className="w-1 h-4 bg-emerald-500 rounded-full shrink-0" />
             <span className="font-medium font-mono text-slate-300">{formattedDate}</span>
             <span className="text-slate-600">|</span>
-            <div className="relative inline-flex items-center space-x-1 font-semibold text-white bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-700/60 cursor-pointer">
-              <span>Location: {selectedCountry}</span>
+            <div className="relative inline-flex items-center space-x-1 font-semibold text-white bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-700/60 cursor-pointer" onClick={() => handleLaunchApp()}>
+              <span>Location: {locationLabel}</span>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
             </div>
           </div>
@@ -170,7 +163,7 @@ export const LandingPage: React.FC = () => {
               <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/40">
                 <Leaf className="w-3.5 h-3.5" />
               </div>
-              <span>Live Air Snapshot</span>
+              <span>{telemetry.metadata.isLive ? 'CAMS Regional Air Snapshot' : 'Regional Baseline Snapshot'}</span>
             </div>
 
             {/* Middle Row: Massive AQI Number & Status Badge */}
@@ -224,7 +217,7 @@ export const LandingPage: React.FC = () => {
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Risk</span>
                 <span className="text-3xl font-black text-amber-400 tracking-tight font-mono">
-                  35%
+                  {riskPercent}%
                 </span>
               </div>
 

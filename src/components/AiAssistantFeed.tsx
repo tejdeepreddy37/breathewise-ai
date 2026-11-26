@@ -30,6 +30,20 @@ export const AiAssistantFeed: React.FC = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length === 1 && prev[0].id === 'welcome') {
+        return [
+          {
+            ...prev[0],
+            content: `Hello! I am your BreatheWise Environmental Living Assistant. In ${telemetry.city}, current PM2.5 is ${telemetry.current.pm25} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}). Today's lowest relative exposure window is ${cleanAirWindow.displayWindow}. How can I assist you in planning your day safely?`,
+          },
+        ];
+      }
+      return prev;
+    });
+  }, [telemetry.city, telemetry.current.pm25, telemetry.current.aqi, telemetry.current.aqiCategory, cleanAirWindow.displayWindow]);
+
+  useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
@@ -123,6 +137,7 @@ export const AiAssistantFeed: React.FC = () => {
             </span>
             <button
               onClick={() => setShowKeyModal(false)}
+              aria-label="Close API Key settings"
               className="text-forest-700 hover:text-forest-900 font-bold p-1 cursor-pointer"
             >
               ✕
@@ -252,6 +267,7 @@ export const AiAssistantFeed: React.FC = () => {
           <button
             type="submit"
             disabled={!input.trim() || isSubmitting}
+            aria-label="Send message"
             className="bg-forest-600 hover:bg-forest-700 disabled:opacity-40 text-white p-3 rounded-2xl shadow-soft transition-all shrink-0 cursor-pointer"
           >
             <Send className="w-4 h-4" />
