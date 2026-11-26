@@ -47,6 +47,7 @@ export function calculateCleanAirWindow(hourly: HourlyDataPoint[]): CleanAirWind
   // Scan the 24-hour period for the lowest continuous 2 to 3-hour exposure window
   let bestStart = 13;
   let bestEnd = 15;
+  let lowestCompositeRisk = Infinity;
   let lowestAvg = Infinity;
   let bestOzoneAvg = 0;
 
@@ -56,12 +57,25 @@ export function calculateCleanAirWindow(hourly: HourlyDataPoint[]): CleanAirWind
       if (windowPoints.length >= 2) {
         const sumPm = windowPoints.reduce((acc, p) => acc + p.pm25, 0);
         const avgPm = sumPm / windowPoints.length;
-        if (avgPm < lowestAvg || (avgPm === lowestAvg && (e - s) > (bestEnd - bestStart))) {
+        const sumO3 = windowPoints.reduce((acc, p) => acc + (p.o3 || 0), 0);
+        const avgO3 = Math.round(sumO3 / windowPoints.length);
+
+        // Evaluate composite CPCB air quality index across PM2.5 and photochemical Ozone
+        const windowAqiResult = calculateCpcbAqi({ pm25: Math.round(avgPm), o3: avgO3 });
+        const compositeRisk = windowAqiResult.aqi;
+
+        // Prioritize windows with lower composite AQI; break ties by lower PM2.5, then longer duration
+        const isBetter =
+          compositeRisk < lowestCompositeRisk ||
+          (compositeRisk === lowestCompositeRisk && avgPm < lowestAvg) ||
+          (compositeRisk === lowestCompositeRisk && avgPm === lowestAvg && (e - s) > (bestEnd - bestStart));
+
+        if (isBetter) {
+          lowestCompositeRisk = compositeRisk;
           lowestAvg = avgPm;
           bestStart = windowPoints[0].hour;
           bestEnd = windowPoints[windowPoints.length - 1].hour;
-          const sumO3 = windowPoints.reduce((acc, p) => acc + (p.o3 || 0), 0);
-          bestOzoneAvg = Math.round(sumO3 / windowPoints.length);
+          bestOzoneAvg = avgO3;
         }
       }
     }

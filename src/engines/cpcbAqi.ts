@@ -67,6 +67,15 @@ export const CO_BREAKPOINTS: PollutantBreakpoint[] = [
   { cLow: 34.0, cHigh: 50.0, iLow: 400, iHigh: 500 },
 ];
 
+export const SO2_BREAKPOINTS: PollutantBreakpoint[] = [
+  { cLow: 0, cHigh: 40, iLow: 0, iHigh: 50 },
+  { cLow: 40, cHigh: 80, iLow: 50, iHigh: 100 },
+  { cLow: 80, cHigh: 380, iLow: 100, iHigh: 200 },
+  { cLow: 380, cHigh: 800, iLow: 200, iHigh: 300 },
+  { cLow: 800, cHigh: 1600, iLow: 300, iHigh: 400 },
+  { cLow: 1600, cHigh: 2000, iLow: 400, iHigh: 500 },
+];
+
 export function calculateSubIndex(conc: number | null | undefined, breakpoints: PollutantBreakpoint[]): number | null {
   if (conc == null || typeof conc !== 'number' || !Number.isFinite(conc) || conc < 0) return null;
 
@@ -99,11 +108,13 @@ export interface CpcbAqiResult {
   category: CpcbAqiCategory;
   primaryPollutant: string;
   isCompleteCalculation: boolean;
+  isValid: boolean;
   standard: 'Indian CPCB NAQI' | 'Indicative PM2.5-Derived';
   subIndices: {
     pm25?: number | null;
     pm10?: number | null;
     no2?: number | null;
+    so2?: number | null;
     o3?: number | null;
     co?: number | null;
   };
@@ -113,12 +124,14 @@ export function calculateCpcbAqi(pollutants: {
   pm25?: number | null;
   pm10?: number | null;
   no2?: number | null;
+  so2?: number | null;
   o3?: number | null;
   co?: number | null; // in mg/m³
 }): CpcbAqiResult {
   const pm25Idx = pollutants.pm25 != null ? calculateSubIndex(pollutants.pm25, PM25_BREAKPOINTS) : null;
   const pm10Idx = pollutants.pm10 != null ? calculateSubIndex(pollutants.pm10, PM10_BREAKPOINTS) : null;
   const no2Idx = pollutants.no2 != null ? calculateSubIndex(pollutants.no2, NO2_BREAKPOINTS) : null;
+  const so2Idx = pollutants.so2 != null ? calculateSubIndex(pollutants.so2, SO2_BREAKPOINTS) : null;
   const o3Idx = pollutants.o3 != null ? calculateSubIndex(pollutants.o3, O3_BREAKPOINTS) : null;
   const coIdx = pollutants.co != null ? calculateSubIndex(pollutants.co, CO_BREAKPOINTS) : null;
 
@@ -126,6 +139,7 @@ export function calculateCpcbAqi(pollutants: {
   if (pm25Idx != null) validEntries.push({ name: 'PM2.5', idx: pm25Idx });
   if (pm10Idx != null) validEntries.push({ name: 'PM10', idx: pm10Idx });
   if (no2Idx != null) validEntries.push({ name: 'NO2', idx: no2Idx });
+  if (so2Idx != null) validEntries.push({ name: 'SO2', idx: so2Idx });
   if (o3Idx != null) validEntries.push({ name: 'Ozone', idx: o3Idx });
   if (coIdx != null) validEntries.push({ name: 'CO', idx: coIdx });
 
@@ -133,22 +147,24 @@ export function calculateCpcbAqi(pollutants: {
     return {
       aqi: 0,
       category: 'Good',
-      primaryPollutant: 'N/A',
+      primaryPollutant: 'Insufficient Data',
       isCompleteCalculation: false,
+      isValid: false,
       standard: 'Indicative PM2.5-Derived',
       subIndices: {},
     };
   }
 
-  // Find maximum subindex (governing pollutant)
-  let maxIdx = 0;
-  let primaryName = 'PM2.5';
+  // Find maximum subindex (governing pollutant) with stable initialization
+  let maxIdx = -1;
+  let primaryName = validEntries[0].name;
   for (const entry of validEntries) {
     if (entry.idx > maxIdx) {
       maxIdx = entry.idx;
       primaryName = entry.name;
     }
   }
+  if (maxIdx < 0) maxIdx = 0;
 
   // Official CPCB criterion: at least 3 pollutants with at least one PM
   const hasPm = pm25Idx != null || pm10Idx != null;
@@ -167,11 +183,13 @@ export function calculateCpcbAqi(pollutants: {
     category,
     primaryPollutant: primaryName,
     isCompleteCalculation: isComplete,
+    isValid: true,
     standard: isComplete ? 'Indian CPCB NAQI' : 'Indicative PM2.5-Derived',
     subIndices: {
       pm25: pm25Idx,
       pm10: pm10Idx,
       no2: no2Idx,
+      so2: so2Idx,
       o3: o3Idx,
       co: coIdx,
     },

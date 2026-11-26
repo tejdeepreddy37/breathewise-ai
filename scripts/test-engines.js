@@ -541,6 +541,26 @@ async function runRealModuleTests() {
   assert(mod.calculateCpcbAqi({ pm25: 120 }).category === 'Poor', 'Boundary PM2.5=120 is Poor');
   assert(mod.calculateCpcbAqi({ pm25: 250 }).category === 'Very Poor', 'Boundary PM2.5=250 is Very Poor');
 
+  // SO2 Breakpoint verification across standard schedules
+  assert(mod.calculateSubIndex(20, mod.SO2_BREAKPOINTS) === 25, 'SO2=20 µg/m³ yields sub-index 25 (Good)');
+  assert(mod.calculateSubIndex(60, mod.SO2_BREAKPOINTS) === 75, 'SO2=60 µg/m³ yields sub-index 75 (Satisfactory)');
+  assert(mod.calculateSubIndex(230, mod.SO2_BREAKPOINTS) === 150, 'SO2=230 µg/m³ yields sub-index 150 (Moderate)');
+  assert(mod.calculateSubIndex(590, mod.SO2_BREAKPOINTS) === 250, 'SO2=590 µg/m³ yields sub-index 250 (Poor)');
+  assert(mod.calculateSubIndex(1200, mod.SO2_BREAKPOINTS) === 350, 'SO2=1200 µg/m³ yields sub-index 350 (Very Poor)');
+  assert(mod.calculateSubIndex(1800, mod.SO2_BREAKPOINTS) === 450, 'SO2=1800 µg/m³ yields sub-index 450 (Severe)');
+
+  const so2Conflict = mod.calculateCpcbAqi({ pm25: 15, so2: 500 });
+  assert(so2Conflict.primaryPollutant === 'SO2', `High industrial SO2 governs over low PM2.5 (got ${so2Conflict.primaryPollutant})`);
+
+  // Single pollutant zero-index tie-break stability
+  const o3Zero = mod.calculateCpcbAqi({ o3: 0 });
+  assert(o3Zero.primaryPollutant === 'Ozone', `Single non-PM zero sub-index preserves provided pollutant as primary (got ${o3Zero.primaryPollutant})`);
+  const pm10Zero = mod.calculateCpcbAqi({ pm10: 0 });
+  assert(pm10Zero.primaryPollutant === 'PM10', `Single PM10 zero sub-index preserves PM10 (got ${pm10Zero.primaryPollutant})`);
+
+  const emptyAqi = mod.calculateCpcbAqi({});
+  assert(emptyAqi.isValid === false && emptyAqi.primaryPollutant === 'Insufficient Data', 'Empty pollutants return isValid=false and Insufficient Data');
+
   const conflictAqi = mod.calculateCpcbAqi({ pm25: 20, pm10: 40, o3: 180 });
   assert(conflictAqi.primaryPollutant === 'Ozone', `Conflicting pollutants: Ozone=180 governs over PM2.5=20 (got ${conflictAqi.primaryPollutant})`);
   assert(conflictAqi.isCompleteCalculation === true, '3 pollutants including PM satisfies CPCB completeness');
@@ -553,9 +573,19 @@ async function runRealModuleTests() {
   const commute23 = mod.calculateCommuteTradeoffs(14, 23);
   const metro23 = commute23.find((c) => c.mode === 'ac_metro');
   // Unrounded: 23 * 0.32 = 7.36 µg/m³, airVol = 16*60*(14/32)/1000 = 0.42 m³, dose = 7.36 * 0.42 = 3.0912 -> 3.1 µg
-  // (Previously premature Math.round(7.36)=7 yielded 7 * 0.42 = 2.94 -> 2.9 µg)
   assert(metro23.cabinPm25Concentration === 7, `Display cabin concentration rounds to 7 (got ${metro23.cabinPm25Concentration})`);
   assert(metro23.inhaledDoseUg === 3.1, `Premature rounding fixed: unrounded 7.36 * 0.42 = 3.1 µg (got ${metro23.inhaledDoseUg})`);
+
+  const doseN95 = mod.calculateInhaledDose(100, 45, 'outdoor_running', 'n95');
+  assert(doseN95.unmaskedDoseUg === 247.5, `Direct unmasked baseline matches without double-call: 247.5 µg (got ${doseN95.unmaskedDoseUg})`);
+  assert(doseN95.doseAvoidedUg === 235.1, `Dose avoided by N95 is 235.1 µg (got ${doseN95.doseAvoidedUg})`);
+
+  const doseN99 = mod.calculateInhaledDose(100, 45, 'outdoor_running', 'n99');
+  assert(doseN99.estimatedInhaledMassUg === 2.5, `N99 reduces 247.5 µg to 2.5 µg (got ${doseN99.estimatedInhaledMassUg})`);
+  assert(doseN99.doseAvoidedUg === 245.0, `Dose avoided by N99 is 245.0 µg (got ${doseN99.doseAvoidedUg})`);
+
+  const doseNone = mod.calculateInhaledDose(100, 45, 'outdoor_running', 'none');
+  assert(doseNone.doseAvoidedUg === 0, 'Unmasked dose avoided is exactly 0 µg');
 
   const doseInf = mod.calculateInhaledDose(Infinity, NaN, 'outdoor_running', 'n95');
   assert(doseInf.estimatedInhaledMassUg === 0 && doseInf.inhaledAirVolumeM3 === 0, 'Infinity/NaN inputs sanitize to 0 exposure');
@@ -704,6 +734,47 @@ async function runRealModuleTests() {
 
     const medRefusal = await mod.askBreatheWiseAssistant('What inhaler dosage should I take?', [], fallbackRes, severeWin, 'pediatric', '');
     assert(medRefusal.includes('NOT a medical diagnostic'), 'AI assistant refuses medical/inhaler dosage queries');
+
+    // --- 16. Real WindowSafe Ozone Avoidance & Indoor Coach Clamping ---
+    console.log('\n--- 16. Testing WindowSafe Ozone Avoidance & Indoor Coach Clamping ---');
+    const ozoneHourly = [
+      { hour: 10, pm25: 45, o3: 20 },
+      { hour: 11, pm25: 45, o3: 20 },
+      { hour: 12, pm25: 45, o3: 20 },
+      { hour: 14, pm25: 35, o3: 195 },
+      { hour: 15, pm25: 35, o3: 195 },
+      { hour: 16, pm25: 35, o3: 195 },
+    ];
+    const oWin = mod.calculateCleanAirWindow(ozoneHourly);
+    assert(oWin.startHour === 10 && oWin.endHour === 12, `WindowSafe avoids toxic photochemical ozone spike at 14:00 (got ${oWin.displayWindow})`);
+
+    const cleanMockWindow = { startHour: 13, endHour: 15, displayWindow: '1:00 PM – 3:00 PM', durationHours: 2, averagePm25: 8, averageAqi: 13, reductionVsPeakPercent: 0, windowStatus: 'FAVORABLE', statusLabel: 'Clean', convectiveReasoning: '', isAvailableToday: true };
+    const recClean = mod.calculateIndoorRecommendations(8, cleanMockWindow, 14, 20, null, 'none');
+    assert(recClean.estimatedIndoorBaselinePm25 === 4, `Clean baseline indoor PM2.5 is 4 µg/m³ (got ${recClean.estimatedIndoorBaselinePm25})`);
+    assert(recClean.purifierRecommendation.estimatedPostCleanPm25 <= recClean.estimatedIndoorBaselinePm25, `Purifier clean-down never exceeds starting baseline (got postClean=${recClean.purifierRecommendation.estimatedPostCleanPm25} vs base=${recClean.estimatedIndoorBaselinePm25})`);
+
+    const istHour = mod.getIndianStandardTimeHour();
+    assert(Number.isInteger(istHour) && istHour >= 0 && istHour <= 23, `Timezone helper returns valid IST hour: ${istHour}`);
+
+    // --- 17. Real Gemini JSON Extraction & Expanded Intelligence Intents ---
+    console.log('\n--- 17. Testing Gemini JSON Extraction & Expanded Assistant Intents ---');
+    const fencedJson = 'Here is the plan:\n```json\n{"summaryTitle":"Clean Air","summaryBody":"Favorable conditions"}\n```\nHope this helps!';
+    assert(mod.extractJsonPayload(fencedJson) === '{"summaryTitle":"Clean Air","summaryBody":"Favorable conditions"}', 'extractJsonPayload isolates JSON inside markdown fence with preambles');
+
+    const rawProseJson = 'Analysis complete: {"summaryTitle":"Smog Alert","summaryBody":"Keep sealed."} Have a safe day.';
+    assert(mod.extractJsonPayload(rawProseJson) === '{"summaryTitle":"Smog Alert","summaryBody":"Keep sealed."}', 'extractJsonPayload isolates raw JSON surrounded by commentary');
+
+    const primaryAns = await mod.askBreatheWiseAssistant('Which pollutant is the main problem right now?', [], fallbackRes, severeWin, 'normal_adult', '');
+    assert(primaryAns.includes('Primary Pollutant Analysis') && primaryAns.includes('PM2.5'), 'Assistant provides grounded primary pollutant chemical risk analysis');
+
+    const timingAns = await mod.askBreatheWiseAssistant('What is the best time to go outside today?', [], fallbackRes, severeWin, 'normal_adult', '');
+    assert(timingAns.includes('Daily Outdoor Exposure Planning') && timingAns.includes('Optimal Window'), 'Assistant provides convective diurnal window outdoor timing guidance');
+
+    const purifierAns = await mod.askBreatheWiseAssistant('What kind of air purifier should I buy? Are ionizers safe?', [], fallbackRes, severeWin, 'normal_adult', '');
+    assert(purifierAns.includes('True HEPA') && purifierAns.includes('Avoid Ionizers'), 'Assistant warns against dangerous ozone-generating ionizers');
+
+    const actionAns = await mod.askBreatheWiseAssistant('What should I do right now to protect myself?', [], fallbackRes, severeWin, 'normal_adult', '');
+    assert(actionAns.includes('Immediate Air Protection Action Checklist') && actionAns.includes('ENVELOPE'), 'Assistant delivers structured multi-layer action checklist');
   } finally {
     globalThis.fetch = origFetch;
     fs.rmSync(tmpDir, { recursive: true, force: true });

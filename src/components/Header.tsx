@@ -45,7 +45,7 @@ export const Header: React.FC = () => {
   ];
 
   const meta = telemetry.metadata;
-  const isLive = meta.isLive && !meta.fetchTimestamp.startsWith('Cached');
+  const isLive = !isDemoMode && meta.isLive;
 
   const navItems = [
     { id: 'overview', label: 'Air Intelligence', icon: <Wind className="w-3.5 h-3.5" /> },

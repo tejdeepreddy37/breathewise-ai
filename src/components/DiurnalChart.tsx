@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { getIndianStandardTimeHour } from '../engines/indoorCoach';
 import {
   AreaChart,
   Area,
@@ -16,7 +17,7 @@ export const DiurnalChart: React.FC = () => {
   const { telemetry, cleanAirWindow } = useApp();
   const data = telemetry.hourly;
 
-  const currentHour = new Date().getHours();
+  const currentHour = getIndianStandardTimeHour();
   const [selectedSegment, setSelectedSegment] = useState<'morning' | 'window' | 'evening' | 'night'>('window');
 
   // Active highlight boundaries

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { calculateIndoorRecommendations } from '../engines/indoorCoach';
+import { calculateIndoorRecommendations, getIndianStandardTimeHour } from '../engines/indoorCoach';
 import { IndoorSourceType } from '../types/engines';
 import { Home, Lock, Wind, Fan, CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -11,7 +11,7 @@ export const IndoorCoachView: React.FC = () => {
 
   const ambientPm25 = telemetry.current.pm25;
   const ambientO3 = telemetry.current.o3;
-  const currentHour = new Date().getHours();
+  const currentHour = getIndianStandardTimeHour();
   const rec = calculateIndoorRecommendations(ambientPm25, cleanAirWindow, currentHour, roomAreaM2, ambientO3, indoorSource);
 
   const isSealed = rec.windowAction === 'SEAL_COMPLETELY';

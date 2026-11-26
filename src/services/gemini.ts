@@ -325,24 +325,35 @@ Return strictly a valid JSON object matching this schema:
   ],
   "indoorProtocol": string (indoor filtration and envelope directive),
   "ecoActionOfTheDay": string (sustainable transit trade-off),
-  "scientificConfidence": "High (Gemini 1.5 Grounded Synthesis)"
+  "scientificConfidence": "High (Gemini 2.0 Grounded Synthesis)"
 }`;
 
     const res = await withTimeout(model.generateContent(prompt), AI_TIMEOUT_MS, 'Gemini living plan');
-    let text = res.response.text().trim();
+    const text = res.response.text()?.trim() || '';
+    const jsonStr = extractJsonPayload(text);
 
-    // Defensive stripping of markdown code blocks
-    if (text.startsWith('```json')) text = text.slice(7);
-    if (text.startsWith('```')) text = text.slice(3);
-    if (text.endsWith('```')) text = text.slice(0, -3);
-    text = text.trim();
-
-    const parsed = JSON.parse(text) as unknown;
+    const parsed = JSON.parse(jsonStr) as unknown;
     return validateAndSanitizeLivingPlan(parsed, telemetry, window, profile);
   } catch (err) {
     console.warn('[BreatheWise] Gemini API call failed or returned malformed output. Falling back to deterministic plan.', err);
     return generateDeterministicLivingPlan(telemetry, window, profile);
   }
+}
+
+export function extractJsonPayload(text: string): string {
+  const trimmed = text.trim();
+  // Strip markdown code fences if present anywhere in the output
+  const jsonMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  if (jsonMatch) {
+    return jsonMatch[1].trim();
+  }
+  // If raw JSON with potential leading or trailing prose
+  const start = trimmed.indexOf('{');
+  const end = trimmed.lastIndexOf('}');
+  if (start !== -1 && end !== -1 && end > start) {
+    return trimmed.slice(start, end + 1);
+  }
+  return trimmed;
 }
 
 export async function askBreatheWiseAssistant(
@@ -389,8 +400,8 @@ export async function askBreatheWiseAssistant(
       return `Outdoor Exercise Guidance for ${telemetry.city}:\nCurrent PM2.5 is ${pm} µg/m³. If running or exercising outdoors today, time your session strictly within the diurnal minimum window (${window.displayWindow}) when atmospheric dispersion is greatest. Sensitive individuals and runners should wear a certified N95 respirator to minimize airway irritation.`;
     }
 
-    // Intent 2: Windows / Indoor Ventilation / Air Purifier
-    if (qLower.includes('window') || qLower.includes('ventilat') || qLower.includes('flush') || qLower.includes('purifier') || qLower.includes('air out')) {
+    // Intent 2: Windows / Indoor Ventilation
+    if (qLower.includes('window') || qLower.includes('ventilat') || qLower.includes('flush') || qLower.includes('air out')) {
       if (pm > 60) {
         return `Indoor Air Safety Notice for ${telemetry.city}:\nCurrent outdoor PM2.5 is ${pm} µg/m³. Natural ventilation is strictly NOT recommended today. Opening windows will flood your home with outdoor particulates, degrading indoor air quality. Keep all exterior windows sealed, set air conditioners to internal recirculation, and run your HEPA air purifier.`;
       }
@@ -433,6 +444,30 @@ export async function askBreatheWiseAssistant(
     // Intent 9: CPCB NAQI vs US EPA AQI Standards
     if (qLower.includes('cpcb') || qLower.includes('epa') || qLower.includes('difference between') || qLower.includes('standard') || qLower.includes('scale')) {
       return `Understanding CPCB NAQI vs. US EPA AQI:\n• Indian CPCB NAQI: Calibrated by the Central Pollution Control Board (2014) for Indian ambient realities. Its PM2.5 scale is: 0–30 (Good), 31–60 (Satisfactory), 61–90 (Moderate), 91–120 (Poor), 121–250 (Very Poor), and 250+ (Severe). Current CPCB NAQI for ${telemetry.city} is ${telemetry.current.aqi} (${telemetry.current.aqiCategory}).\n• US EPA AQI: Employs stricter public health brackets: 0–12 µg/m³ (Good), 12.1–35.4 (Moderate), 35.5–55.4 (Unhealthy for Sensitive), 55.5–150.4 (Unhealthy), 150.5–250.4 (Very Unhealthy), and 250.5+ (Hazardous).\n\nBreatheWise displays both in the Transparency Drawer so users and judges can compare verified global standards side-by-side.`;
+    }
+
+    // Intent 10: Dominant Pollutant & Chemical Risk Driver
+    if (qLower.includes('primary') || qLower.includes('dominant') || qLower.includes('driving') || qLower.includes('which pollutant') || qLower.includes('main problem')) {
+      const primary = telemetry.current.primaryPollutant || 'PM2.5';
+      const pm10Part = telemetry.current.pm10 != null ? ` PM10 is ${telemetry.current.pm10} µg/m³.` : '';
+      const no2Part = telemetry.current.no2 != null ? ` NO2 is ${telemetry.current.no2} µg/m³.` : '';
+      const o3Part = telemetry.current.o3 != null ? ` Ozone is ${telemetry.current.o3} µg/m³.` : '';
+      return `Primary Pollutant Analysis for ${telemetry.city}:\nThe governing pollutant driving your CPCB NAQI of ${telemetry.current.aqi} (${telemetry.current.aqiCategory}) is ${primary} (PM2.5 concentration: ${pm} µg/m³).${pm10Part}${no2Part}${o3Part}\n\nFine particulate matter (<2.5 µm) originates primarily from vehicular combustion, biomass/stubble smoke, and industrial emissions. Because PM2.5 particles are small enough to penetrate deep into pulmonary alveoli and enter the bloodstream, personal barrier protection (N95) and indoor HEPA air cleaning are your most effective interventions today.`;
+    }
+
+    // Intent 11: Timing & Outdoor Activity Window Planning
+    if (qLower.includes('when to') || qLower.includes('best time') || qLower.includes('what time') || qLower.includes('shift') || qLower.includes('outdoor timing')) {
+      return `Daily Outdoor Exposure Planning for ${telemetry.city}:\n• Optimal Window: Today's lowest relative exposure window is ${window.displayWindow} (Average PM2.5: ~${window.averagePm25} µg/m³, providing a ${window.reductionVsPeakPercent}% drop vs peak hours).\n• Convective Mechanism: Daytime solar insolation expands the planetary boundary layer, diluting ground-level exhaust.\n• Actionable Guidance: Shift all essential outdoor errands, groceries, or transit to ${window.displayWindow}. Avoid outdoor exposure between 7:00–10:00 AM and 5:30–8:30 PM when surface nocturnal inversion traps tailpipe plumes at breathing level.`;
+    }
+
+    // Intent 12: HEPA vs Ionizers & Air Purifier Selection
+    if (qLower.includes('purifier') || qLower.includes('hepa') || qLower.includes('ionizer') || qLower.includes('cadr') || qLower.includes('ozone generator')) {
+      return `Air Purifier Science & Technology Guide:\n• True HEPA (H13 / H14): Mechanical fiberglass filtration that captures at least 99.97% of 0.3 µm particles. Safe, zero emissions, and the gold standard for particulate removal.\n• Activated Carbon Stage: Necessary to adsorb toxic gases, VOCs, and cooking odors that pass through HEPA.\n• CRITICAL WARNING — Avoid Ionizers & Ozone Generators: Electronic ionizers and electrostatic cleaners produce secondary Ozone (O3) and reactive free radicals as byproducts. Ozone is a severe pulmonary irritant that exacerbates asthma and damages airway epithelial tissue.\n• Sizing Rule: Ensure your purifier CADR (Clean Air Delivery Rate) provides at least 4 to 5 Air Changes per Hour (ACH) for your room volume (m³).`;
+    }
+
+    // Intent 13: Immediate Action Checklist / What to Avoid
+    if (qLower.includes('what should i do') || qLower.includes('what to avoid') || qLower.includes('right now') || qLower.includes('checklist') || qLower.includes('action')) {
+      return `Immediate Air Protection Action Checklist for ${telemetry.city} (PM2.5: ${pm} µg/m³):\n1. ENVELOPE: ${pm > 60 ? 'Keep all exterior windows, doors, and balcony vents strictly sealed.' : 'Brief 15-min natural ventilation safe during ' + window.displayWindow + '.'}\n2. INDOOR: Run your HEPA air purifier on Medium/Turbo mode in the primary living or sleeping area.\n3. TRANSIT: Avoid open two-wheeler or auto-rickshaw transit in traffic. Choose AC Metro or enclosed vehicles with internal AC recirculation.\n4. BARRIER: Wear a certified N95 respirator if stepping outside during peak traffic.\n5. AVOID: Do not burn incense, candles, or mosquito coils; avoid indoor deep-frying without kitchen exhaust running on maximum.`;
     }
 
     // Default: General Overview

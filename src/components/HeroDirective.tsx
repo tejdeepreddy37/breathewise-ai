@@ -18,6 +18,10 @@ export const HeroDirective: React.FC = () => {
   const isSatisfactory = aqiCat === 'Satisfactory' || (aqi >= 51 && aqi <= 100);
   const isGood = aqiCat === 'Good' || aqi <= 50;
 
+  // Physical ventilation safety threshold: PM2.5 > 60 µg/m³ or Ozone > 100 µg/m³
+  const isOzoneUnsafe = typeof telemetry.current.o3 === 'number' && telemetry.current.o3 > 100;
+  const shouldSealWindows = pm > 60 || isOzoneUnsafe;
+
   // Semantic color mapping
   const statusColor = isSevere ? '#DC2626' : isPoor ? '#EA580C' : isModerate ? '#D97706' : isSatisfactory ? '#16A34A' : '#10B981';
   const statusBg = isSevere ? 'bg-rose-500' : isPoor ? 'bg-orange-500' : isModerate ? 'bg-amber-500' : isSatisfactory ? 'bg-emerald-600' : 'bg-emerald-500';
@@ -157,16 +161,16 @@ export const HeroDirective: React.FC = () => {
           {/* Card 2: Window Ventilation */}
           <div className="flex flex-col lg:flex-row items-center lg:space-x-2.5 p-2 sm:p-2.5 rounded-xl bg-white border border-stone-200/80 shadow-2xs hover:shadow-xs transition-all text-center lg:text-left min-h-[58px] justify-center">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 mb-1 lg:mb-0 ${
-              pm > 60 ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+              shouldSealWindows ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'
             }`}>
-              {pm > 60 ? <DoorClosed className="w-3.5 h-3.5" /> : <DoorOpen className="w-3.5 h-3.5" />}
+              {shouldSealWindows ? <DoorClosed className="w-3.5 h-3.5" /> : <DoorOpen className="w-3.5 h-3.5" />}
             </div>
             <div>
               <div className="hidden lg:block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
                 Window Ventilation
               </div>
-              <div className={`text-[11px] sm:text-xs font-extrabold ${pm > 60 ? 'text-rose-600' : 'text-emerald-700'}`}>
-                {pm > 60 ? 'Keep Sealed' : 'Safe to Flush'}
+              <div className={`text-[11px] sm:text-xs font-extrabold ${shouldSealWindows ? 'text-rose-600' : 'text-emerald-700'}`}>
+                {shouldSealWindows ? 'Keep Sealed' : 'Safe to Flush'}
               </div>
             </div>
           </div>

@@ -49,9 +49,12 @@ export function calculateInhaledDose(
   const efficiency = typeof MASK_EFFICIENCIES[maskType] === 'number' ? MASK_EFFICIENCIES[maskType] : 0.0;
 
   // Preserve floating-point precision during intermediate calculations; round only at presentation boundary
-  const rawMassUg = safePm * volumeM3 * (1 - efficiency);
-  const rawMassWithN95 = safePm * volumeM3 * (1 - 0.95);
+  const rawMassUnmasked = safePm * volumeM3;
+  const rawMassUg = rawMassUnmasked * (1 - efficiency);
+  const rawMassWithN95 = rawMassUnmasked * (1 - 0.95);
   const massUg = +rawMassUg.toFixed(1);
+  const unmaskedDoseUg = +rawMassUnmasked.toFixed(1);
+  const doseAvoidedUg = Math.max(0, +(rawMassUnmasked - rawMassUg).toFixed(1));
   const massSaved = +(rawMassUg - rawMassWithN95).toFixed(1);
 
   // Relative exposure percentage entering the respiratory tract
@@ -74,6 +77,8 @@ export function calculateInhaledDose(
     maskType,
     maskFiltrationEfficiency: efficiency,
     estimatedInhaledMassUg: massUg,
+    unmaskedDoseUg,
+    doseAvoidedUg,
     doseSavedUgWithN95: Math.max(0, massSaved),
     relativeExposurePercent,
     riskLevel,

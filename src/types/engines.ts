@@ -25,8 +25,10 @@ export interface InhaledDoseResult {
   inhaledAirVolumeM3: number; // m³
   maskType: 'none' | 'cloth' | 'surgical' | 'n95' | 'n99';
   maskFiltrationEfficiency: number; // 0.0 - 0.99
-  estimatedInhaledMassUg: number; // microgram PM2.5 inhaled
-  doseSavedUgWithN95: number;
+  estimatedInhaledMassUg: number; // microgram PM2.5 inhaled with selected mask
+  unmaskedDoseUg: number; // microgram PM2.5 inhaled with zero barrier protection
+  doseAvoidedUg: number; // microgram PM2.5 avoided by current mask
+  doseSavedUgWithN95: number; // incremental microgram PM2.5 saved if upgraded to N95
   relativeExposurePercent: number; // percentage of ambient particulate entering airways
   riskLevel: 'LOW' | 'MODERATE' | 'ELEVATED' | 'CRITICAL';
   whoExceedanceRatio: number; // Ambient PM2.5 compared to WHO 24h guideline (15 µg/m³)

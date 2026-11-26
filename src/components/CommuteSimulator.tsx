@@ -7,8 +7,9 @@ export const CommuteSimulator: React.FC = () => {
   const { telemetry, userPreferences } = useApp();
   const [distanceKm, setDistanceKm] = useState<number>(userPreferences.typicalCommuteDistanceKm || 14);
 
-  const isDelhi = telemetry.city.includes('Delhi');
-  const ambientPm25 = (distanceKm === 14 && isDelhi) ? 265 : (telemetry.current.pm25 || 265);
+  const ambientPm25 = typeof telemetry.current.pm25 === 'number' && Number.isFinite(telemetry.current.pm25)
+    ? telemetry.current.pm25
+    : 100;
   const comparisons = calculateCommuteTradeoffs(distanceKm, ambientPm25);
 
   // Filter 4 primary modes featured in Image 2
@@ -121,7 +122,7 @@ export const CommuteSimulator: React.FC = () => {
               </div>
 
               {/* Inhaled PM2.5 & CO2 Metrics (Matches Image 2) */}
-              <div className="mt-3 pt-2 border-t border-stone-200/60 flex items-baseline justify-between text-[11px] font-mono">
+              <div className="mt-3 pt-2 border-t border-stone-200/60 flex items-baseline justify-between gap-1.5 text-[11px] font-mono">
                 <div>
                   <span className="font-black text-slatecharcoal-900">
                     {c.inhaledDoseUg} µg

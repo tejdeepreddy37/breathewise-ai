@@ -6,59 +6,68 @@ export const MetricsStrip: React.FC = () => {
   const { telemetry } = useApp();
   const { current, weather } = telemetry;
 
-  const pm25Val = current.pm25 != null ? current.pm25 : '--';
-  const pm10Val = current.pm10 != null ? current.pm10 : '--';
-  const no2Val = current.no2 != null ? current.no2 : '--';
-  const coVal = current.co != null ? current.co : '--';
-  const o3Val = current.o3 != null ? current.o3 : '--';
-  const humidityVal = weather?.humidity != null ? weather.humidity : '--';
-  const windVal = weather?.windSpeed != null ? `${weather.windSpeed}` : '--';
+  const hasPm25 = typeof current.pm25 === 'number' && Number.isFinite(current.pm25);
+  const hasPm10 = typeof current.pm10 === 'number' && Number.isFinite(current.pm10);
+  const hasNo2 = typeof current.no2 === 'number' && Number.isFinite(current.no2);
+  const hasSo2 = typeof current.so2 === 'number' && Number.isFinite(current.so2);
+  const hasCo = typeof current.co === 'number' && Number.isFinite(current.co);
+  const hasO3 = typeof current.o3 === 'number' && Number.isFinite(current.o3);
+  const hasHumidity = typeof weather?.humidity === 'number' && Number.isFinite(weather.humidity);
+  const hasWind = typeof weather?.windSpeed === 'number' && Number.isFinite(weather.windSpeed);
 
   const metrics = [
     {
       id: 'pm25',
       label: 'PM2.5',
-      value: pm25Val,
-      unit: 'µg/m³',
+      value: hasPm25 ? current.pm25 : '--',
+      unit: hasPm25 ? 'µg/m³' : '',
       icon: <Activity className="w-3.5 h-3.5 text-rose-500" />,
       color: 'text-rose-600',
     },
     {
       id: 'pm10',
       label: 'PM10',
-      value: pm10Val != null ? pm10Val : '--',
-      unit: pm10Val != null ? 'µg/m³' : '',
+      value: hasPm10 ? current.pm10 : '--',
+      unit: hasPm10 ? 'µg/m³' : '',
       icon: <CloudFog className="w-3.5 h-3.5 text-rose-500" />,
       color: 'text-rose-600',
     },
     {
       id: 'no2',
       label: 'NO2',
-      value: no2Val != null ? no2Val : '--',
-      unit: no2Val != null ? 'µg/m³' : '',
+      value: hasNo2 ? current.no2 : '--',
+      unit: hasNo2 ? 'µg/m³' : '',
       icon: <Flame className="w-3.5 h-3.5 text-teal-600" />,
       color: 'text-teal-700',
     },
     {
+      id: 'so2',
+      label: 'SO2',
+      value: hasSo2 ? current.so2 : '--',
+      unit: hasSo2 ? 'µg/m³' : '',
+      icon: <Flame className="w-3.5 h-3.5 text-amber-500" />,
+      color: 'text-amber-600',
+    },
+    {
       id: 'co',
       label: 'CO',
-      value: coVal != null ? coVal : '--',
-      unit: coVal != null ? 'mg/m³' : '',
+      value: hasCo ? current.co : '--',
+      unit: hasCo ? 'mg/m³' : '',
       icon: <Gauge className="w-3.5 h-3.5 text-amber-500" />,
       color: 'text-amber-600',
     },
     {
       id: 'o3',
       label: 'O3',
-      value: o3Val != null ? o3Val : '--',
-      unit: o3Val != null ? 'µg/m³' : '',
+      value: hasO3 ? current.o3 : '--',
+      unit: hasO3 ? 'µg/m³' : '',
       icon: <Sun className="w-3.5 h-3.5 text-emerald-500" />,
       color: 'text-emerald-600',
     },
     {
       id: 'humidity',
       label: 'Humidity',
-      value: `${humidityVal}%`,
+      value: hasHumidity ? `${weather.humidity}%` : '--',
       unit: '',
       icon: <Droplets className="w-3.5 h-3.5 text-blue-500" />,
       color: 'text-slatecharcoal-900',
@@ -66,8 +75,8 @@ export const MetricsStrip: React.FC = () => {
     {
       id: 'wind',
       label: 'Wind',
-      value: `${windVal}`,
-      unit: 'km/h',
+      value: hasWind ? `${weather.windSpeed}` : '--',
+      unit: hasWind ? 'km/h' : '',
       icon: <Wind className="w-3.5 h-3.5 text-teal-500" />,
       color: 'text-slatecharcoal-900',
     },
@@ -88,7 +97,7 @@ export const MetricsStrip: React.FC = () => {
         </div>
 
         {/* Right Horizontal Metrics List (Exact match to Image 2) */}
-        <div className="flex-1 grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-2.5">
           {metrics.map((m) => (
             <div key={m.id} className="flex items-center space-x-2 shrink-0">
               <div className="p-1.5 rounded-lg bg-stone-50 border border-stone-200/60">

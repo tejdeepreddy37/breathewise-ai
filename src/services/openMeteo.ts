@@ -20,7 +20,7 @@ export async function fetchOpenMeteoTelemetry(
   cityName: string,
   stateName: string
 ): Promise<EnvironmentalTelemetry> {
-  const aqUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,us_aqi&hourly=pm10,pm2_5,nitrogen_dioxide,ozone,us_aqi,boundary_layer_height&timezone=auto&forecast_days=1`;
+  const aqUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,us_aqi&hourly=pm10,pm2_5,nitrogen_dioxide,sulphur_dioxide,ozone,us_aqi,boundary_layer_height&timezone=auto&forecast_days=1`;
   const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,surface_pressure,wind_speed_10m,wind_direction_10m,weather_code&timezone=auto`;
 
   const controller = new AbortController();
@@ -64,6 +64,7 @@ export async function fetchOpenMeteoTelemetry(
       pm25,
       pm10,
       no2,
+      so2,
       o3,
       co: coMg,
     });
@@ -100,6 +101,7 @@ export async function fetchOpenMeteoTelemetry(
     const hourlyPm25: unknown[] = Array.isArray(aqData.hourly?.pm2_5) ? aqData.hourly.pm2_5 : [];
     const hourlyPm10: unknown[] = Array.isArray(aqData.hourly?.pm10) ? aqData.hourly.pm10 : [];
     const hourlyNo2: unknown[] = Array.isArray(aqData.hourly?.nitrogen_dioxide) ? aqData.hourly.nitrogen_dioxide : [];
+    const hourlySo2: unknown[] = Array.isArray(aqData.hourly?.sulphur_dioxide) ? aqData.hourly.sulphur_dioxide : [];
     const hourlyO3: unknown[] = Array.isArray(aqData.hourly?.ozone) ? aqData.hourly.ozone : [];
     const hourlyAqi: unknown[] = Array.isArray(aqData.hourly?.us_aqi) ? aqData.hourly.us_aqi : [];
     const hourlyPbl: unknown[] = Array.isArray(aqData.hourly?.boundary_layer_height) ? aqData.hourly.boundary_layer_height : [];
@@ -122,6 +124,7 @@ export async function fetchOpenMeteoTelemetry(
       const rawHPm25 = hourlyPm25[i];
       const rawHPm10 = hourlyPm10[i];
       const rawHNo2 = hourlyNo2[i];
+      const rawHSo2 = hourlySo2[i];
       const rawHO3 = hourlyO3[i];
       const rawHAqi = hourlyAqi[i];
       const rawHPbl = hourlyPbl[i];
@@ -129,6 +132,7 @@ export async function fetchOpenMeteoTelemetry(
       const hPm25 = typeof rawHPm25 === 'number' && Number.isFinite(rawHPm25) && rawHPm25 >= 0 ? Math.round(rawHPm25) : pm25;
       const hPm10 = typeof rawHPm10 === 'number' && Number.isFinite(rawHPm10) && rawHPm10 >= 0 ? Math.round(rawHPm10) : null;
       const hNo2 = typeof rawHNo2 === 'number' && Number.isFinite(rawHNo2) && rawHNo2 >= 0 ? Math.round(rawHNo2) : null;
+      const hSo2 = typeof rawHSo2 === 'number' && Number.isFinite(rawHSo2) && rawHSo2 >= 0 ? Math.round(rawHSo2) : null;
       const hO3 = typeof rawHO3 === 'number' && Number.isFinite(rawHO3) && rawHO3 >= 0 ? Math.round(rawHO3) : null;
 
       // Verified Indian CPCB calculation for this hour
@@ -136,6 +140,7 @@ export async function fetchOpenMeteoTelemetry(
         pm25: hPm25,
         pm10: hPm10,
         no2: hNo2,
+        so2: hSo2,
         o3: hO3,
       });
 
@@ -148,6 +153,7 @@ export async function fetchOpenMeteoTelemetry(
         pm25: hPm25,
         pm10: hPm10,
         no2: hNo2,
+        so2: hSo2,
         o3: hO3,
         cpcbAqi: hourlyAqiResult.aqi,
         usAqi: typeof rawHAqi === 'number' && Number.isFinite(rawHAqi) ? Math.round(rawHAqi) : rawUsAqi,

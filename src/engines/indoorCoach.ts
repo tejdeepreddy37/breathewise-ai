@@ -21,10 +21,25 @@ export const VENTILATION_THRESHOLDS = {
   CLOSED_ENVELOPE_INFILTRATION_ALPHA: 0.45, // concrete building infiltration factor
 };
 
+export function getIndianStandardTimeHour(): number {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Kolkata',
+      hour: 'numeric',
+      hour12: false,
+    });
+    const istHour = parseInt(formatter.format(new Date()), 10);
+    if (Number.isFinite(istHour) && istHour >= 0 && istHour <= 23) {
+      return istHour;
+    }
+  } catch {}
+  return new Date().getHours();
+}
+
 export function calculateIndoorRecommendations(
   outdoorPm25: number,
   cleanAirWindow: CleanAirWindow,
-  currentHour = new Date().getHours(),
+  currentHour = getIndianStandardTimeHour(),
   roomAreaM2 = 20,
   outdoorO3?: number | null,
   indoorSource: IndoorSourceType = 'none'
@@ -32,7 +47,7 @@ export function calculateIndoorRecommendations(
   const safePm = typeof outdoorPm25 === 'number' && Number.isFinite(outdoorPm25) ? Math.max(0, outdoorPm25) : 0;
   const safeO3 = typeof outdoorO3 === 'number' && Number.isFinite(outdoorO3) ? Math.max(0, outdoorO3) : null;
   const safeArea = typeof roomAreaM2 === 'number' && Number.isFinite(roomAreaM2) ? Math.max(5, Math.min(200, roomAreaM2)) : 20;
-  const safeHour = typeof currentHour === 'number' && Number.isFinite(currentHour) ? ((currentHour % 24) + 24) % 24 : new Date().getHours();
+  const safeHour = typeof currentHour === 'number' && Number.isFinite(currentHour) ? ((currentHour % 24) + 24) % 24 : getIndianStandardTimeHour();
 
   const isWindowActive = cleanAirWindow.endHour >= cleanAirWindow.startHour
     ? safeHour >= cleanAirWindow.startHour && safeHour <= cleanAirWindow.endHour
@@ -102,7 +117,7 @@ export function calculateIndoorRecommendations(
   
   // Time to approx 75% clean-down: t = ln(4) / ACH * 60 min ~ 1.386 / ACH * 60
   const targetRuntimeMinutes = Math.min(120, Math.max(15, Math.round((1.386 / airChangesPerHour) * 60)));
-  const estimatedPostCleanPm25 = Math.max(5, Math.round(baselineIndoor * 0.20));
+  const estimatedPostCleanPm25 = Math.min(baselineIndoor, Math.max(2, Math.round(baselineIndoor * 0.20)));
 
   let recommendedSpeed: 'OFF' | 'LOW' | 'MEDIUM' | 'TURBO' = 'MEDIUM';
   if (safePm > 200 || indoorSource === 'cooking_frying' || indoorSource === 'incense_smoke') {

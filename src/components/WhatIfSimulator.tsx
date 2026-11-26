@@ -16,7 +16,6 @@ export const WhatIfSimulator: React.FC = () => {
   const activePm25 = useCityAir ? cityPm : 100;
 
   const currentResult = calculateInhaledDose(activePm25, durationMinutes, activity, maskType);
-  const unmaskedResult = calculateInhaledDose(activePm25, durationMinutes, activity, 'none');
 
   const reductionPercent = Math.round(MASK_EFFICIENCIES[maskType] * 100);
 
@@ -56,7 +55,7 @@ export const WhatIfSimulator: React.FC = () => {
       <div className="sm:hidden py-2 flex items-center justify-around gap-2 text-center">
         <div>
           <div className="text-sm font-black text-rose-600 font-mono">
-            {unmaskedResult.estimatedInhaledMassUg} µg
+            {currentResult.unmaskedDoseUg} µg
           </div>
           <div className="text-[9px] font-bold text-slate-400">
             Without Mask
@@ -188,7 +187,7 @@ export const WhatIfSimulator: React.FC = () => {
             {/* Unmasked Dose */}
             <div className="text-center">
               <div className="text-lg sm:text-xl font-black text-rose-600 font-mono">
-                {unmaskedResult.estimatedInhaledMassUg} µg
+                {currentResult.unmaskedDoseUg} µg
               </div>
               <div className="text-[10px] font-bold text-slate-400">
                 Without Mask
