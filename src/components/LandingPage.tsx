@@ -16,34 +16,34 @@ export const LandingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#E9F4FC] flex items-center justify-center p-3 sm:p-6 md:p-8 font-sans selection:bg-[#BAE6FD] selection:text-[#0B223E]">
-      {/* Compact Horizontally Oriented Showcase Container (Exact 760:330 Reference Proportions on Desktop) */}
-      <div className="relative w-full max-w-[960px] md:aspect-[760/330] rounded-[24px] overflow-hidden bg-gradient-to-br from-[#EDF6FD] via-[#D6ECFC] to-[#84CAF9] shadow-[0_24px_60px_rgba(14,165,233,0.18)] border border-white/80 flex flex-col justify-between">
-        {/* Background Sky & Soft Cloud Horizon */}
+    <div className="min-h-screen bg-[#E9F4FC] flex items-center justify-center p-3 sm:p-5 md:p-6 font-sans selection:bg-[#BAE6FD] selection:text-[#0B223E]">
+      {/* Compact Horizontally Oriented Showcase Container (Target 760:330 Reference Proportions) */}
+      <div className="relative w-full max-w-[1060px] md:aspect-[760/330] rounded-[24px] overflow-hidden bg-gradient-to-r from-[#F2F9FF] via-[#D6EEFD] to-[#74C5FA] shadow-[0_24px_60px_rgba(14,165,233,0.18)] border border-white/85 flex flex-col justify-between">
+        {/* Bright Sky Atmosphere & Soft Cloud Horizon */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-          {/* Center-left white sunlit atmospheric glow */}
+          {/* Center-left sunlit white atmospheric glow */}
           <div
             className="absolute inset-0"
             style={{
               background:
-                'radial-gradient(circle at 26% 38%, rgba(255,255,255,0.95) 0%, rgba(240,249,255,0.7) 38%, rgba(132,202,249,0) 74%)',
+                'radial-gradient(circle at 24% 40%, rgba(255,255,255,0.96) 0%, rgba(240,249,255,0.65) 36%, rgba(116,197,250,0) 70%)',
             }}
           />
 
-          {/* Soft Horizon Clouds */}
+          {/* Fluffy White Bottom Horizon Clouds (Masked so upper sky stays crisp azure blue) */}
           <img
             src={`${import.meta.env.BASE_URL}images/sky-clouds-backdrop.png`}
             alt=""
-            className="w-full h-full object-cover object-bottom opacity-85"
+            className="w-full h-full object-cover object-bottom opacity-95 [mask-image:linear-gradient(to_top,black_28%,transparent_66%)]"
           />
 
-          {/* Side & bottom fluffy cloud highlights matching IMAGE 2 */}
-          <div className="hidden md:block absolute -bottom-16 -right-10 w-[340px] h-[220px] rounded-full bg-white/75 blur-2xl" />
-          <div className="hidden md:block absolute -bottom-14 -left-8 w-[300px] h-[160px] rounded-full bg-white/65 blur-2xl" />
+          {/* Soft cloud banks concentrated along bottom sides */}
+          <div className="hidden md:block absolute -bottom-16 -right-12 w-[360px] h-[220px] rounded-full bg-white/80 blur-2xl" />
+          <div className="hidden md:block absolute -bottom-14 -left-10 w-[320px] h-[165px] rounded-full bg-white/70 blur-2xl" />
         </div>
 
         {/* Minimal Top-Left Brand Header */}
-        <header className="relative z-30 px-6 sm:px-9 pt-5 sm:pt-7 shrink-0">
+        <header className="relative z-30 px-6 sm:px-10 pt-5 sm:pt-7 shrink-0">
           <button
             type="button"
             onClick={() => handleEnterApp()}
@@ -55,25 +55,25 @@ export const LandingPage: React.FC = () => {
                 <path d="M9.5 14.5 11.2 16l3.3-3.5" />
               </svg>
             </div>
-            <span className="font-extrabold text-lg sm:text-[19px] text-[#0C2340] tracking-tight">
+            <span className="font-extrabold text-lg sm:text-[20px] text-[#0C2340] tracking-tight">
               BreatheWise <span className="text-[#10B981] font-bold">AI</span>
             </span>
           </button>
         </header>
 
         {/* Main Split Composition */}
-        <main className="relative z-20 flex-1 px-6 sm:px-9 pb-6 pt-2 md:py-0 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-2">
+        <main className="relative z-20 flex-1 px-6 sm:px-10 pb-6 pt-2 md:py-0 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-2">
           {/* Left Content Column */}
-          <div className="w-full md:w-[48%] shrink-0 flex flex-col justify-center space-y-3 sm:space-y-3.5 z-30 text-left md:pb-4">
-            <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.25em] text-[#1E3A5F]">
+          <div className="w-full md:w-[46%] shrink-0 flex flex-col justify-center space-y-3 sm:space-y-4 z-30 text-left md:pb-5">
+            <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.26em] text-[#1E3A5F]">
               GLOBAL AIR INTELLIGENCE
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-black text-[#0B223E] tracking-tight leading-[1.06] whitespace-nowrap">
+            <h1 className="text-3xl sm:text-4xl lg:text-[46px] font-black text-[#0B223E] tracking-tight leading-[1.06] whitespace-nowrap">
               BreatheWise <span className="text-[#0EA5E9] italic font-extrabold">AI</span>
             </h1>
 
-            <p className="text-sm sm:text-[15px] text-[#1E3A5F] leading-[1.45] font-medium max-w-[305px]">
+            <p className="text-sm sm:text-[16px] text-[#1E3A5F] leading-[1.45] font-medium max-w-[330px]">
               Real-time air quality, exposure insights, and personalized protection for healthier urban living.
             </p>
 
@@ -81,7 +81,7 @@ export const LandingPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleEnterApp()}
-                className="inline-flex items-center space-x-2 px-6 py-2.5 sm:py-3 rounded-full text-xs sm:text-[13px] font-bold bg-gradient-to-r from-[#2DD4BF] via-[#06B6D4] to-[#0EA5E9] hover:from-[#14B8A6] hover:to-[#0284C7] text-white transition-all duration-200 shadow-[0_8px_22px_rgba(14,165,233,0.34)] hover:shadow-[0_12px_28px_rgba(14,165,233,0.42)] hover:-translate-y-0.5 cursor-pointer"
+                className="inline-flex items-center space-x-2 px-6 py-2.5 sm:py-3 rounded-full text-xs sm:text-[14px] font-bold bg-gradient-to-r from-[#2DD4BF] via-[#06B6D4] to-[#0EA5E9] hover:from-[#14B8A6] hover:to-[#0284C7] text-white transition-all duration-200 shadow-[0_8px_22px_rgba(14,165,233,0.34)] hover:shadow-[0_12px_28px_rgba(14,165,233,0.42)] hover:-translate-y-0.5 cursor-pointer"
               >
                 <span>Enter Air Intelligence</span>
                 <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -90,10 +90,10 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Right Earth Visual Column */}
-          <div className="w-full md:w-[54%] md:h-[345px] lg:h-[365px] md:-mt-4 flex items-center justify-center relative">
+          <div className="w-full md:w-[54%] md:h-[360px] lg:h-[400px] md:-mt-4 flex items-center justify-center relative">
             {/* Subtle 4-Point Atmospheric Star Glint (Upper-Left of Earth) */}
             <svg
-              className="hidden sm:block absolute top-8 left-4 md:left-6 w-5 h-5 text-white/95 pointer-events-none z-20 drop-shadow-[0_0_8px_rgba(255,255,255,0.95)]"
+              className="hidden sm:block absolute top-10 left-4 md:left-6 w-5 h-5 text-white/95 pointer-events-none z-20 drop-shadow-[0_0_8px_rgba(255,255,255,0.95)]"
               viewBox="0 0 24 24"
               fill="currentColor"
             >

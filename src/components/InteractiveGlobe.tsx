@@ -357,7 +357,7 @@ export const InteractiveGlobe: React.FC<{
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 1000);
-    camera.position.set(0, 0, 7.95);
+    camera.position.set(0, 0, 8.35);
     cameraRef.current = camera;
 
     // 2. WebGL Renderer with High-DPI & Antialiasing
@@ -372,13 +372,13 @@ export const InteractiveGlobe: React.FC<{
 
     // 3. Globe Group containing Earth, Atmosphere, and Clouds
     const globeGroup = new THREE.Group();
-    // Center on India / South Asia / Southeast Asia / Australia (lon ~95°E, lat ~14°N) matching Reference Image 2
-    globeGroup.rotation.y = THREE.MathUtils.degToRad(-185);
-    globeGroup.rotation.x = THREE.MathUtils.degToRad(14);
+    // Center on India / Himalayas / Southeast Asia / Australia (lon ~82°E, lat ~16°N) matching Target Image 2
+    globeGroup.rotation.y = THREE.MathUtils.degToRad(-170);
+    globeGroup.rotation.x = THREE.MathUtils.degToRad(16);
     scene.add(globeGroup);
     globeGroupRef.current = globeGroup;
 
-    // 4. Photorealistic Daylight Earth Sphere (Vibrant Blue Oceans + Sunlit Continents)
+    // 4. Photorealistic Daylight Earth Sphere (Deep Cobalt Oceans + Crisp Green Land)
     const textureLoader = new THREE.TextureLoader();
     const earthGeometry = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64);
     const baseUrl = import.meta.env.BASE_URL || '/';
@@ -391,10 +391,10 @@ export const InteractiveGlobe: React.FC<{
     const earthMaterial = new THREE.MeshPhongMaterial({
       map: earthTexture,
       specularMap: specularMap,
-      specular: new THREE.Color(0x60a5fa),
-      emissive: new THREE.Color(0x0369a1),
+      specular: new THREE.Color(0x93c5fd),
+      emissive: new THREE.Color(0x004499),
       emissiveIntensity: 0.08,
-      shininess: 24,
+      shininess: 28,
     });
     const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
     globeGroup.add(earthMesh);
@@ -406,9 +406,9 @@ export const InteractiveGlobe: React.FC<{
     const cloudMaterial = new THREE.MeshStandardMaterial({
       map: cloudTexture,
       transparent: true,
-      opacity: 0.42,
+      opacity: 0.56,
       blending: THREE.AdditiveBlending,
-      roughness: 0.9,
+      roughness: 0.85,
     });
     const cloudMesh = new THREE.Mesh(cloudGeometry, cloudMaterial);
     globeGroup.add(cloudMesh);
@@ -442,32 +442,8 @@ export const InteractiveGlobe: React.FC<{
     const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
     globeGroup.add(glowMesh);
 
-    // 7. Thin, Elegant Luminous Elliptical Orbital Curves (3D Torus scaled to crisp ellipses)
-    const createOrbitalEllipse = (
-      radius: number,
-      scaleY: number,
-      rotX: number,
-      rotY: number,
-      rotZ: number,
-      opacity: number
-    ) => {
-      const geom = new THREE.TorusGeometry(radius, 0.012, 12, 160);
-      const mat = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity,
-      });
-      const ring = new THREE.Mesh(geom, mat);
-      ring.scale.set(1, scaleY, 1);
-      ring.rotation.set(rotX, rotY, rotZ);
-      return ring;
-    };
-
-    scene.add(createOrbitalEllipse(GLOBE_RADIUS * 1.32, 0.48, 0.35, -0.25, 0.42, 0.85));
-    scene.add(createOrbitalEllipse(GLOBE_RADIUS * 1.24, 0.42, -0.45, 0.32, -0.52, 0.65));
-
-    // 8. Balanced Natural Daytime Sky Lighting (Rich Blue Oceans + Crisp Continent Detail)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.15);
+    // 7. Ambient Daylight Sky Lighting System
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.05);
     scene.add(ambientLight);
 
     const hemiLight = new THREE.HemisphereLight(0xffffff, 0x38bdf8, 0.85);
@@ -629,15 +605,15 @@ export const InteractiveGlobe: React.FC<{
         }}
       />
 
-      {/* Crisp Thin Elliptical White Orbital Curves Framing the Earth (Reference Image 2) */}
+      {/* Crisp Thin Elliptical White/Cyan Orbital Curves Framing the Earth (Unclipped, Target Image 2) */}
       <svg
-        className="absolute inset-0 w-full h-full pointer-events-none z-15"
-        viewBox="0 0 460 360"
+        className="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible"
+        viewBox="-40 -30 540 420"
         fill="none"
       >
         <defs>
           <filter id="orbitGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="1.5" result="blur" />
+            <feGaussianBlur stdDeviation="1.4" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -647,20 +623,20 @@ export const InteractiveGlobe: React.FC<{
         <ellipse
           cx="230"
           cy="180"
-          rx="192"
-          ry="118"
+          rx="186"
+          ry="112"
           transform="rotate(-24 230 180)"
-          stroke="rgba(255, 255, 255, 0.85)"
-          strokeWidth="1.2"
+          stroke="rgba(255, 255, 255, 0.88)"
+          strokeWidth="1.25"
           filter="url(#orbitGlow)"
         />
         <ellipse
           cx="230"
           cy="180"
-          rx="184"
-          ry="104"
-          transform="rotate(22 230 180)"
-          stroke="rgba(224, 242, 254, 0.72)"
+          rx="176"
+          ry="98"
+          transform="rotate(20 230 180)"
+          stroke="rgba(224, 242, 254, 0.78)"
           strokeWidth="1.05"
           filter="url(#orbitGlow)"
         />
@@ -701,12 +677,12 @@ export const InteractiveGlobe: React.FC<{
                 rotateToCity(city);
               }}
             >
-              {/* Minimal Unobtrusive Interactive Dot */}
+              {/* Minimal Subtle Interactive Dot (Visible gently on hover/select) */}
               <div
                 className={`relative w-1.5 h-1.5 rounded-full transition-all ${
                   isSelected || showPopover
-                    ? 'scale-150 bg-white ring-2 ring-[#38BDF8] opacity-100 z-30'
-                    : 'bg-white/40 opacity-45 group-hover:opacity-100 group-hover:scale-150 group-hover:bg-white'
+                    ? 'scale-150 bg-white ring-2 ring-[#38BDF8] opacity-90 z-30'
+                    : 'bg-white/40 opacity-20 group-hover:opacity-100 group-hover:scale-150 group-hover:bg-white'
                 }`}
                 style={{
                   boxShadow: '0 0 4px rgba(255, 255, 255, 0.65)',
