@@ -69,28 +69,18 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Clean Navigation Links with Clear Primary Hierarchy */}
-          <nav className="hidden lg:flex items-center space-x-1.5 p-1 rounded-full bg-slate-900/60 border border-slate-800/80 backdrop-blur-md">
-            <button
-              onClick={() => handleLaunchApp()}
-              className="px-4 py-1.5 rounded-full text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all cursor-pointer"
-            >
-              Air Intelligence
-            </button>
-            <button
-              onClick={() => setIsTransparencyOpen(true)}
-              className="px-4 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all cursor-pointer"
-            >
-              Science & Methodology
-            </button>
-          </nav>
-
-          {/* Right Action CTA */}
           <div className="flex items-center space-x-3">
             <button
-              onClick={() => handleLaunchApp()}
-              className="flex items-center space-x-1.5 px-5 py-2.5 rounded-full text-xs font-extrabold bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 transition-all shadow-lg shadow-emerald-500/25 hover:scale-[1.02] cursor-pointer"
+              onClick={() => setIsTransparencyOpen(true)}
+              className="text-xs font-semibold text-slate-300 hover:text-white px-3 py-1.5 rounded-full hover:bg-slate-800/60 transition-colors cursor-pointer"
             >
-              <span>Launch Dashboard</span>
+              Methodology
+            </button>
+            <button
+              onClick={() => handleLaunchApp()}
+              className="flex items-center space-x-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs font-extrabold bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 transition-all shadow-lg shadow-emerald-500/25 hover:scale-[1.02] cursor-pointer"
+            >
+              <span>Open Air Intelligence</span>
               <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
             </button>
           </div>

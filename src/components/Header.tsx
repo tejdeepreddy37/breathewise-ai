@@ -1,5 +1,5 @@
 import React from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp, NavigationTab } from '../context/AppContext';
 import { INDIAN_CITIES_PRESETS } from '../data/cities';
 import { VulnerabilityProfile } from '../types/engines';
 import { 
@@ -47,12 +47,12 @@ export const Header: React.FC = () => {
   const meta = telemetry.metadata;
   const isLive = !isDemoMode && meta.isLive;
 
-  const navItems = [
-    { id: 'overview', label: 'Air Intelligence', icon: <Wind className="w-3.5 h-3.5" /> },
+  const navItems: Array<{ id: NavigationTab; label: string; icon: React.ReactNode }> = [
+    { id: 'overview', label: 'Overview', icon: <Wind className="w-3.5 h-3.5" /> },
     { id: 'commute', label: 'Commute', icon: <Car className="w-3.5 h-3.5" /> },
     { id: 'indoor', label: 'Indoor', icon: <Home className="w-3.5 h-3.5" /> },
-    { id: 'simulator', label: 'What-If', icon: <Sliders className="w-3.5 h-3.5" /> },
-    { id: 'assistant', label: 'AI Assistant', icon: <Sparkles className="w-3.5 h-3.5" /> },
+    { id: 'exposure', label: 'Exposure', icon: <Sliders className="w-3.5 h-3.5" /> },
+    { id: 'advisor', label: 'AI Advisor', icon: <Sparkles className="w-3.5 h-3.5" /> },
   ];
 
   return (
@@ -88,11 +88,11 @@ export const Header: React.FC = () => {
           {/* Center Navigation Pills (Exact match to Image 2) */}
           <nav className="hidden lg:flex items-center space-x-1 xl:space-x-1.5 p-1 rounded-full bg-stone-200/50 border border-stone-200/80">
             {navItems.map((item) => {
-              const isActive = activeTab === item.id;
+              const isActive = activeTab === item.id || (item.id === 'exposure' && activeTab === 'simulator') || (item.id === 'advisor' && activeTab === 'assistant');
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id as any)}
+                  onClick={() => setActiveTab(item.id)}
                   className={`flex items-center space-x-1.5 py-1.5 px-2.5 xl:px-3.5 rounded-full text-[11px] xl:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                     isActive
                       ? 'bg-[#164E43] text-white shadow-sm ring-1 ring-[#164E43]'
@@ -144,7 +144,7 @@ export const Header: React.FC = () => {
                 value={selectedCityId}
                 onChange={(e) => selectCity(e.target.value)}
                 style={{ appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none' }}
-                className="appearance-none bg-white hover:bg-stone-50 text-slatecharcoal-900 text-xs font-bold py-1.5 pl-8 pr-7 rounded-full border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition-all shadow-2xs truncate max-w-[130px] sm:max-w-none"
+                className="appearance-none bg-white hover:bg-stone-50 text-slatecharcoal-900 text-xs font-bold py-1.5 pl-8 pr-7 rounded-full border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition-all shadow-2xs truncate max-w-[145px] sm:max-w-none"
               >
                 {INDIAN_CITIES_PRESETS.map((city) => (
                   <option key={city.id} value={city.id}>

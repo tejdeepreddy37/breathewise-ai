@@ -25,7 +25,7 @@ export const SubpageContextBar: React.FC<SubpageContextBarProps> = ({ title, sub
 
   return (
     <div className="bg-white rounded-2xl border border-stone-200/80 p-3.5 sm:p-4 shadow-2xs space-y-2">
-      {/* Top Row: Page Title + Back to Dashboard */}
+      {/* Top Row: Page Title + Science Provenance */}
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-base sm:text-lg font-bold text-slatecharcoal-900 tracking-tight">
@@ -36,15 +36,11 @@ export const SubpageContextBar: React.FC<SubpageContextBarProps> = ({ title, sub
           </p>
         </div>
 
-        <button
-          onClick={() => setActiveTab('overview')}
-          className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-stone-100 hover:bg-stone-200/80 text-slate-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs shrink-0"
-          title="Return to primary Air Intelligence dashboard"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Air Intelligence</span>
-          <span className="sm:hidden">Overview</span>
-        </button>
+        {/* CPCB Dominant Indicator */}
+        <div className="hidden sm:flex items-center space-x-1.5 px-3 py-1 rounded-full bg-stone-50 border border-stone-200 text-xs font-medium text-slate-600 shrink-0">
+          <Wind className="w-3.5 h-3.5 text-emerald-700" />
+          <span>Dominant: <strong className="text-slate-900 font-bold">{dominant}</strong></span>
+        </div>
       </div>
 
       {/* Bottom Contextual Ribbon: Real-Time Environmental Anchors */}
@@ -65,7 +61,7 @@ export const SubpageContextBar: React.FC<SubpageContextBarProps> = ({ title, sub
 
           {/* PM2.5 & Dominant */}
           <span className="text-[11px] text-slate-500 font-medium">
-            PM2.5: <strong className="text-slate-800 font-mono">{pm25} µg/m³</strong> (Dominant: {dominant})
+            PM2.5: <strong className="text-slate-800 font-mono">{pm25} µg/m³</strong> (Driver: {dominant})
           </span>
 
           {/* Weather Pill */}

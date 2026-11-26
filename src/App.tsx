@@ -89,7 +89,7 @@ export const App: React.FC = () => {
         )}
 
         {/* Dedicated What-If Sandbox Workspace */}
-        {activeTab === 'simulator' && (
+        {(activeTab === 'simulator' || activeTab === 'exposure') && (
           <div className="space-y-4 animate-in fade-in duration-200">
             <SubpageContextBar
               title="What-If Respiratory Exposure Sandbox"
@@ -100,7 +100,7 @@ export const App: React.FC = () => {
         )}
 
         {/* Dedicated AI Assistant Workspace */}
-        {activeTab === 'assistant' && (
+        {(activeTab === 'assistant' || activeTab === 'advisor') && (
           <div className="space-y-4 animate-in fade-in duration-200">
             <SubpageContextBar
               title="BreatheWise AI Living Assistant"

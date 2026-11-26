@@ -216,19 +216,26 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ({ 
 
             {/* Duration Slider/Dropdown */}
             <div className="bg-stone-50 p-2 rounded-xl border border-stone-200/70">
-              <span className="block text-[9px] font-semibold text-slate-400 uppercase">Duration</span>
-              <select
-                aria-label="Exposure Duration"
-                value={durationMinutes}
-                onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                className="w-full bg-transparent text-[11px] font-bold text-slatecharcoal-900 focus:outline-none cursor-pointer"
-              >
-                <option value="15">15 min</option>
-                <option value="30">30 min</option>
-                <option value="45">45 min</option>
-                <option value="60">60 min</option>
-                <option value="90">90 min</option>
-              </select>
+              <div className="flex items-center justify-between mb-1">
+                <span className="block text-[9px] font-semibold text-slate-400 uppercase">Duration</span>
+                <span className="text-[10px] font-bold text-slate-700">{durationMinutes} min</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                {[15, 30, 45, 60, 90].map((mins) => (
+                  <button
+                    key={mins}
+                    type="button"
+                    onClick={() => setDurationMinutes(mins)}
+                    className={`flex-1 py-1 text-[10px] font-bold rounded-lg transition-all cursor-pointer ${
+                      durationMinutes === mins
+                        ? 'bg-[#164E43] text-white shadow-2xs'
+                        : 'bg-white text-slate-600 hover:bg-stone-200/60 border border-stone-200/60'
+                    }`}
+                  >
+                    {mins}m
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Mask Selector */}

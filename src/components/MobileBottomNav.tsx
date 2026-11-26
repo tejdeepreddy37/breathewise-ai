@@ -6,18 +6,18 @@ export const MobileBottomNav: React.FC = () => {
   const { activeTab, setActiveTab } = useApp();
 
   const tabs: Array<{ id: NavigationTab; label: string; icon: React.ReactNode }> = [
-    { id: 'overview', label: 'Home', icon: <Leaf className="w-4 h-4" /> },
+    { id: 'overview', label: 'Overview', icon: <Leaf className="w-4 h-4" /> },
     { id: 'commute', label: 'Commute', icon: <Train className="w-4 h-4" /> },
     { id: 'indoor', label: 'Indoor', icon: <Home className="w-4 h-4" /> },
-    { id: 'simulator', label: 'What-If', icon: <Sliders className="w-4 h-4" /> },
-    { id: 'assistant', label: 'AI', icon: <Sparkles className="w-4 h-4" /> },
+    { id: 'exposure', label: 'Exposure', icon: <Sliders className="w-4 h-4" /> },
+    { id: 'advisor', label: 'AI Advisor', icon: <Sparkles className="w-4 h-4" /> },
   ];
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-stone-200/90 md:hidden pb-safe shadow-elevated">
       <div className="flex items-center justify-around h-16 px-2">
         {tabs.map((t) => {
-          const isActive = activeTab === t.id;
+          const isActive = activeTab === t.id || (t.id === 'exposure' && activeTab === 'simulator') || (t.id === 'advisor' && activeTab === 'assistant');
           return (
             <button
               key={t.id}

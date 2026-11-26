@@ -8,7 +8,7 @@ import { calculateCleanAirWindow } from '../engines/windowSafe';
 import { fetchGeminiLivingPlan, generateDeterministicLivingPlan } from '../services/gemini';
 import { FALLBACK_TELEMETRY } from '../data/staticFallback';
 
-export type NavigationTab = 'landing' | 'overview' | 'diurnal' | 'commute' | 'indoor' | 'simulator' | 'assistant';
+export type NavigationTab = 'landing' | 'overview' | 'diurnal' | 'commute' | 'indoor' | 'simulator' | 'assistant' | 'exposure' | 'advisor';
 
 interface AppContextType {
   selectedCityId: string;

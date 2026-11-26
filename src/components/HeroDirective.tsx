@@ -132,8 +132,8 @@ export const HeroDirective: React.FC = () => {
               <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black text-white ${statusBg} shadow-2xs`}>
                 {aqiCat}
               </span>
-              <span className="text-[10px] text-slate-500 font-medium mt-0.5">
-                Dominant: {primaryPollutant}
+              <span className="text-[10px] text-slate-500 font-medium mt-0.5" title="CPCB NAQI is determined by the maximum sub-index across monitored pollutants">
+                Driven by <strong className="text-slate-700 font-bold">{primaryPollutant}</strong>
               </span>
             </div>
 

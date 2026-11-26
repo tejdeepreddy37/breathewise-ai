@@ -100,11 +100,18 @@ export const DiurnalChart: React.FC = () => {
             ? 'bg-amber-50 border-amber-300 text-amber-800'
             : 'bg-emerald-50 border-emerald-200 text-emerald-800';
           const iconColor = isHazardous ? 'text-rose-600' : isElevated ? 'text-amber-600' : 'text-emerald-600';
-          const labelPrefix = isHazardous
-            ? 'Diurnal Minimum (Severe Smog)'
-            : isElevated
-            ? 'Lower Exposure Window'
-            : 'Optimal Window';
+          
+          const isPast = currentHour > cleanAirWindow.endHour;
+          const isCurrent = currentHour >= cleanAirWindow.startHour && currentHour <= cleanAirWindow.endHour;
+          
+          let labelPrefix = 'Optimal Window';
+          if (isHazardous) {
+            labelPrefix = isPast ? 'Diurnal Minimum (Passed)' : 'Diurnal Minimum (Severe Smog)';
+          } else if (isElevated) {
+            labelPrefix = isPast ? 'Lower Exposure Dip (Passed)' : 'Lower Exposure Window';
+          } else {
+            labelPrefix = isCurrent ? 'Optimal Window (Active Now)' : isPast ? 'Diurnal Valley (Passed)' : 'Upcoming Optimal Window';
+          }
 
           return (
             <div className={`absolute top-1 left-1/2 -translate-x-1/2 z-10 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border text-[10px] sm:text-[11px] font-bold shadow-xs flex items-center space-x-1 whitespace-nowrap ${badgeBg}`}>

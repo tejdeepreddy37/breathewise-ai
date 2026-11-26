@@ -68,7 +68,9 @@ export const AiAssistantWorkspace: React.FC = () => {
   }, [telemetry.city, telemetry.current.pm25, telemetry.current.aqi, telemetry.current.aqiCategory, cleanAirWindow.displayWindow]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > 1) {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
   const handleSend = async (questionText?: string) => {

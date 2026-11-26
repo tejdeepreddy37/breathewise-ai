@@ -98,28 +98,44 @@ export const MetricsStrip: React.FC = () => {
 
         {/* Right Horizontal Metrics List (Exact match to Image 2) */}
         <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-2.5">
-          {metrics.map((m) => (
-            <div key={m.id} className="flex items-center space-x-2 shrink-0">
-              <div className="p-1.5 rounded-lg bg-stone-50 border border-stone-200/60">
-                {m.icon}
-              </div>
-              <div className="text-left">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  {m.label}
+          {metrics.map((m) => {
+            const primaryNorm = (current.primaryPollutant || 'PM2.5').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const isDriver = m.id.replace(/[^a-z0-9]/g, '') === primaryNorm;
+
+            return (
+              <div 
+                key={m.id} 
+                className={`flex items-center space-x-2 shrink-0 p-1 rounded-xl transition-all ${
+                  isDriver ? 'bg-stone-50 ring-1 ring-emerald-500/30' : ''
+                }`}
+                title={isDriver ? `${m.label} is currently the dominant pollutant driving the CPCB NAQI` : undefined}
+              >
+                <div className="p-1.5 rounded-lg bg-white border border-stone-200/60 shadow-2xs">
+                  {m.icon}
                 </div>
-                <div className="flex items-baseline space-x-0.5">
-                  <span className={`text-xs sm:text-sm font-black font-mono ${m.color}`}>
-                    {m.value}
-                  </span>
-                  {m.unit && (
-                    <span className="text-[10px] text-slate-400 font-medium ml-0.5">
-                      {m.unit}
+                <div className="text-left">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                    <span>{m.label}</span>
+                    {isDriver && (
+                      <span className="ml-1 text-[7px] bg-emerald-600 text-white px-1 py-0.2 rounded font-black tracking-tight">
+                        DRIVER
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-baseline space-x-0.5">
+                    <span className={`text-xs sm:text-sm font-black font-mono ${m.color}`}>
+                      {m.value}
                     </span>
-                  )}
+                    {m.unit && (
+                      <span className="text-[10px] text-slate-400 font-medium ml-0.5">
+                        {m.unit}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
       </div>

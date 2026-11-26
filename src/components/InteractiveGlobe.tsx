@@ -723,19 +723,31 @@ export const InteractiveGlobe: React.FC<{
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-300 pb-1.5 border-b border-slate-800">
                     <span className="flex items-center space-x-1">
                       <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: city.color }} />
-                      <span className="font-bold text-white truncate max-w-[190px]">{city.name}, {city.country} • Air Quality</span>
+                      <span className="font-bold text-white truncate max-w-[150px]">{city.name}, {city.country}</span>
                     </span>
-                    {city.country === 'India' ? (
+                    <div className="flex items-center space-x-1.5">
+                      {city.country === 'India' ? (
+                        <button
+                          onClick={() => onExploreCity && onExploreCity(city.id)}
+                          className="text-[10px] bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-bold px-1.5 py-0.5 rounded cursor-pointer transition-colors"
+                          title="Open City Dashboard"
+                        >
+                          View →
+                        </button>
+                      ) : (
+                        <span className="text-[9px] text-slate-400 font-mono px-1 py-0.5 rounded bg-slate-800 border border-slate-700">Global</span>
+                      )}
                       <button
-                        onClick={() => onExploreCity && onExploreCity(city.id)}
-                        className="text-[11px] text-slate-400 hover:text-white font-bold ml-1 cursor-pointer"
-                        title="Switch active city dashboard"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActivePinId('');
+                        }}
+                        className="text-slate-400 hover:text-white text-xs px-1 rounded transition-colors cursor-pointer"
+                        title="Close popup"
                       >
-                        ›
+                        ✕
                       </button>
-                    ) : (
-                      <span className="text-[9px] text-slate-400 font-mono ml-1 px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">Reference</span>
-                    )}
+                    </div>
                   </div>
 
                   <div className="flex items-center space-x-2 my-2">
@@ -759,27 +771,20 @@ export const InteractiveGlobe: React.FC<{
         })}
       </div>
 
-      {/* 4. Bottom Controls: Interactive Guidance & Zoom */}
-      <div className="absolute bottom-6 inset-x-0 flex items-center justify-center space-x-2.5 z-30 pointer-events-auto px-3">
-        <div className="flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-slate-900/85 border border-slate-700/80 backdrop-blur-xl text-xs font-semibold text-slate-300 shadow-xl">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[11px] text-slate-300 font-medium hidden sm:inline">Interactive 3D Earth • Drag to rotate</span>
-          <span className="text-[11px] text-slate-300 font-medium sm:hidden">3D Earth</span>
-        </div>
-
-        {/* Zoom Controls */}
-        <div className="flex items-center space-x-1 px-3 py-1.5 rounded-full bg-slate-900/85 border border-slate-700/80 backdrop-blur-xl text-xs font-semibold text-slate-300 shadow-xl">
-          <span className="text-[10px] uppercase font-bold text-slate-400 mr-1">Zoom</span>
+      {/* 4. Bottom Controls: Compact Unobtrusive Zoom & Status */}
+      <div className="absolute bottom-5 right-5 z-30 pointer-events-auto">
+        <div className="flex items-center space-x-1 p-1 rounded-full bg-slate-900/90 border border-slate-700/80 backdrop-blur-xl text-xs font-semibold text-slate-300 shadow-xl">
           <button
             onClick={() => handleZoom(-0.8)}
-            className="w-6 h-6 rounded-full hover:bg-slate-800 flex items-center justify-center text-white font-bold cursor-pointer transition-colors"
+            className="w-7 h-7 rounded-full hover:bg-slate-800 flex items-center justify-center text-white text-base font-bold cursor-pointer transition-colors"
             title="Zoom In"
           >
             +
           </button>
+          <div className="w-px h-3.5 bg-slate-700" />
           <button
             onClick={() => handleZoom(0.8)}
-            className="w-6 h-6 rounded-full hover:bg-slate-800 flex items-center justify-center text-white font-bold cursor-pointer transition-colors"
+            className="w-7 h-7 rounded-full hover:bg-slate-800 flex items-center justify-center text-white text-base font-bold cursor-pointer transition-colors"
             title="Zoom Out"
           >
             −
