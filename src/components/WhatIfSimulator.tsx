@@ -12,7 +12,9 @@ export const WhatIfSimulator: React.FC = () => {
   const [maskType, setMaskType] = useState<keyof typeof MASK_EFFICIENCIES>('n95');
   const [useCityAir, setUseCityAir] = useState<boolean>(false);
 
-  const cityPm = telemetry.current.pm25 ?? 100;
+  const cityPm = typeof telemetry.current.pm25 === 'number' && Number.isFinite(telemetry.current.pm25)
+    ? Math.max(0, telemetry.current.pm25)
+    : 100;
   const activePm25 = useCityAir ? cityPm : 100;
 
   const currentResult = calculateInhaledDose(activePm25, durationMinutes, activity, maskType);
@@ -205,7 +207,7 @@ export const WhatIfSimulator: React.FC = () => {
                 {currentResult.estimatedInhaledMassUg} µg
               </div>
               <div className="text-[10px] font-bold text-emerald-700">
-                With {maskType.toUpperCase()} {reductionPercent > 0 ? `(↓ ${reductionPercent}%)` : ''}
+                {maskType === 'none' ? 'Without Mask' : `With ${maskType.toUpperCase()} (↓ ${reductionPercent}%)`}
               </div>
             </div>
 
