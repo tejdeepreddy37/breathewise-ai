@@ -517,6 +517,7 @@ async function runRealModuleTests() {
       `export * from ${JSON.stringify(path.join(rootDir, 'src/services/telemetryService.ts'))};`,
       `export * from ${JSON.stringify(path.join(rootDir, 'src/services/gemini.ts'))};`,
       `export * from ${JSON.stringify(path.join(rootDir, 'src/data/cities.ts'))};`,
+      `export * from ${JSON.stringify(path.join(rootDir, 'src/data/indiaLocations.ts'))};`,
       `export * from ${JSON.stringify(path.join(rootDir, 'src/data/staticFallback.ts'))};`,
     ].join('\n')
   );
@@ -864,6 +865,25 @@ async function runRealModuleTests() {
         assert(fb.city !== 'Delhi' || preset.id.startsWith('delhi-'), `Non-Delhi preset ${preset.id} does not silently resolve to Delhi Anand Vihar`);
       }
     }
+
+    // --- 21. Testing India-Wide Location System (All 36 States/UTs) & AI Context ---
+    console.log('\n--- 21. Testing India-Wide Location System & AI Context ---');
+    assert(Array.isArray(mod.INDIA_STATES_AND_UTS) && mod.INDIA_STATES_AND_UTS.length === 36, `All 36 Indian States & UTs present (got ${mod.INDIA_STATES_AND_UTS.length})`);
+    for (const st of mod.INDIA_STATES_AND_UTS) {
+      const locs = mod.searchLocalIndiaLocations('', st);
+      assert(locs.length >= 1, `State/UT ${st} has at least 1 location (got ${locs.length})`);
+    }
+    const jaipurSearch = mod.searchLocalIndiaLocations('Jaipur');
+    assert(jaipurSearch.length >= 1 && jaipurSearch[0].state === 'Rajasthan', 'Search finds Jaipur in Rajasthan');
+
+    const testTelemetry = mod.FALLBACK_TELEMETRY['bengaluru-indiranagar'];
+    const testWindow = mod.calculateCleanAirWindow(testTelemetry.hourly);
+
+    const aqiExplain = await mod.askBreatheWiseAssistant('Why is AQI high when PM2.5 is low?', [], testTelemetry, testWindow, 'normal_adult', '');
+    assert(aqiExplain.includes('MAXIMUM sub-index') && aqiExplain.includes('Dominant Pollutant Driver'), 'AI explains CPCB NAQI max sub-index driver accurately');
+
+    const provExplain = await mod.askBreatheWiseAssistant('Is this based on live data?', [], testTelemetry, testWindow, 'normal_adult', '');
+    assert(provExplain.includes('Calibrated Regional Baseline') && !provExplain.includes('Live Copernicus CAMS (Live'), 'AI accurately discloses calibrated baseline provenance without pretending it is live');
   } finally {
     globalThis.fetch = origFetch;
     fs.rmSync(tmpDir, { recursive: true, force: true });

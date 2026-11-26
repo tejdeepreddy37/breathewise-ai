@@ -616,24 +616,18 @@ export const InteractiveGlobe: React.FC<{
     } catch {}
   };
 
-  // Zoom controls with safe boundaries preventing viewport clipping
-  const handleZoom = (delta: number) => {
-    if (!cameraRef.current) return;
-    const newZ = Math.max(6.2, Math.min(11.0, cameraRef.current.position.z + delta));
-    cameraRef.current.position.z = newZ;
-    setZoomLevel(+(8.6 / newZ).toFixed(2));
-  };
-
   const activeCity = GLOBE_CITIES.find((c) => c.id === selectedCityId) || GLOBE_CITIES[1]; // Bengaluru or selected
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[460px] sm:h-[530px] lg:h-[590px] overflow-hidden select-none"
+      className="relative w-full h-[380px] sm:h-[480px] lg:h-[560px] overflow-hidden select-none flex items-center justify-center"
     >
-      {/* 1. Atmospheric Sunrise Flare Backdrop (Confined to globe container to prevent card spillover) */}
-      <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gradient-to-tr from-amber-400/20 via-orange-500/15 to-transparent rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/3 left-1/3 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-white/25 rounded-full blur-2xl pointer-events-none" />
+      {/* 1. Luminous Sky-Blue Atmospheric Halo & Orbital Ring */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] lg:w-[460px] lg:h-[460px] rounded-full bg-gradient-to-tr from-[#38BDF8]/25 via-[#22D3EE]/15 to-white/40 blur-2xl" />
+        <div className="absolute w-[290px] h-[290px] sm:w-[390px] sm:h-[390px] lg:w-[440px] lg:h-[440px] rounded-full border border-[#38BDF8]/30 shadow-[0_0_50px_rgba(56,189,248,0.22)]" />
+      </div>
 
       {/* 2. WebGL Canvas Mounting Point */}
       <div
@@ -699,50 +693,41 @@ export const InteractiveGlobe: React.FC<{
                 style={{ backgroundColor: city.color }}
               />
 
-              {/* Floating City Info Popover (Anchored safely inside globe container without card overlap or screen clipping) */}
+              {/* Floating City Info Popover (Light frosted card matching sky-blue design system) */}
               {showPopover && (
                 <div
-                  className={`absolute bottom-16 ${
-                    isNearLeftEdge ? 'left-3 sm:left-10' : 'right-3 sm:right-8'
-                  } max-w-[calc(100%-24px)] w-60 sm:w-64 p-3 rounded-2xl bg-slate-900/95 border border-slate-700/80 backdrop-blur-xl shadow-2xl text-left pointer-events-auto animate-in fade-in zoom-in-95 duration-200 z-40`}
-                  style={{ boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)' }}
+                  className={`absolute bottom-10 ${
+                    isNearLeftEdge ? 'left-0 sm:left-4' : 'right-0 sm:right-4'
+                  } w-60 sm:w-64 p-3 rounded-2xl bg-white/95 border border-[#CBE0F2] backdrop-blur-xl shadow-elevated text-left pointer-events-auto animate-in fade-in zoom-in-95 duration-200 z-40`}
                 >
-                  {/* Diagonal SVG leader pointer line from card to pin matching Image 1 */}
-                  {isNearLeftEdge ? (
-                    <svg className="absolute -bottom-6 -left-1 w-7 h-7 pointer-events-none" viewBox="0 0 28 28">
-                      <path d="M24 2 L6 20" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-                      <circle cx="6" cy="20" r="2.5" fill="white" />
-                    </svg>
-                  ) : (
-                    <svg className="absolute -bottom-6 -right-1 w-7 h-7 pointer-events-none" viewBox="0 0 28 28">
-                      <path d="M4 2 L22 20" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-                      <circle cx="22" cy="20" r="2.5" fill="white" />
-                    </svg>
-                  )}
-
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-300 pb-1.5 border-b border-slate-800">
-                    <span className="flex items-center space-x-1">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: city.color }} />
-                      <span className="font-bold text-white truncate max-w-[150px]">{city.name}, {city.country}</span>
+                  <div className="flex items-center justify-between text-xs font-semibold text-[#5A7896] pb-1.5 border-b border-[#E6F0FA]">
+                    <span className="flex items-center space-x-1.5 min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: city.color }} />
+                      <span className="font-bold text-[#0F2C4C] truncate">{city.name}, {city.country}</span>
                     </span>
-                    <div className="flex items-center space-x-1.5">
+                    <div className="flex items-center space-x-1.5 shrink-0">
                       {city.country === 'India' ? (
                         <button
-                          onClick={() => onExploreCity && onExploreCity(city.id)}
-                          className="text-[10px] bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-bold px-1.5 py-0.5 rounded cursor-pointer transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onExploreCity && onExploreCity(city.id);
+                          }}
+                          className="text-[10px] bg-[#E0F2FE] hover:bg-[#BAE6FD] text-[#0369A1] font-bold px-2 py-0.5 rounded-full cursor-pointer transition-colors"
                           title="Open City Dashboard"
                         >
-                          View →
+                          Open →
                         </button>
                       ) : (
-                        <span className="text-[9px] text-slate-400 font-mono px-1 py-0.5 rounded bg-slate-800 border border-slate-700">Global</span>
+                        <span className="text-[9px] text-[#5A7896] font-mono px-1.5 py-0.5 rounded-full bg-[#F0F7FD] border border-[#CBE0F2]">
+                          Reference
+                        </span>
                       )}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setActivePinId('');
                         }}
-                        className="text-slate-400 hover:text-white text-xs px-1 rounded transition-colors cursor-pointer"
+                        className="text-[#5A7896] hover:text-[#0F2C4C] text-xs px-1 rounded transition-colors cursor-pointer"
                         title="Close popup"
                       >
                         ✕
@@ -754,42 +739,21 @@ export const InteractiveGlobe: React.FC<{
                     <span className="text-xs font-black px-2 py-0.5 rounded-md text-white font-mono" style={{ backgroundColor: city.color }}>
                       {city.aqi} AQI
                     </span>
-                    <span className="text-xs font-bold text-slate-200 truncate">
+                    <span className="text-xs font-bold text-[#1E4976] truncate">
                       {city.category}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-300 pt-1.5 border-t border-slate-800 font-mono">
-                    <span>☀️ {city.temp} °C</span>
-                    <span>💧 {city.humidity}%</span>
-                    <span>💨 {city.windSpeed} km/h</span>
+                  <div className="flex items-center justify-between text-[11px] text-[#476788] pt-1.5 border-t border-[#E6F0FA] font-mono">
+                    <span>{city.temp}°C</span>
+                    <span>{city.humidity}% RH</span>
+                    <span>{city.windSpeed} km/h</span>
                   </div>
                 </div>
               )}
             </div>
           );
         })}
-      </div>
-
-      {/* 4. Bottom Controls: Compact Unobtrusive Zoom & Status */}
-      <div className="absolute bottom-5 right-5 z-30 pointer-events-auto">
-        <div className="flex items-center space-x-1 p-1 rounded-full bg-slate-900/90 border border-slate-700/80 backdrop-blur-xl text-xs font-semibold text-slate-300 shadow-xl">
-          <button
-            onClick={() => handleZoom(-0.8)}
-            className="w-7 h-7 rounded-full hover:bg-slate-800 flex items-center justify-center text-white text-base font-bold cursor-pointer transition-colors"
-            title="Zoom In"
-          >
-            +
-          </button>
-          <div className="w-px h-3.5 bg-slate-700" />
-          <button
-            onClick={() => handleZoom(0.8)}
-            className="w-7 h-7 rounded-full hover:bg-slate-800 flex items-center justify-center text-white text-base font-bold cursor-pointer transition-colors"
-            title="Zoom Out"
-          >
-            −
-          </button>
-        </div>
       </div>
     </div>
   );

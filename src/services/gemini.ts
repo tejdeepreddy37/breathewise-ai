@@ -391,8 +391,23 @@ export async function askBreatheWiseAssistant(
 
   const apiKey = customApiKey || import.meta.env?.VITE_GEMINI_API_KEY;
 
-  if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY') {
-    // Structured intent-based deterministic assistant
+  const provenanceLabel = telemetry.metadata.isLive
+    ? `Live Copernicus CAMS (${telemetry.metadata.fetchTimestamp})`
+    : telemetry.metadata.fetchTimestamp?.includes('Cached')
+    ? `Cached Copernicus CAMS (${telemetry.metadata.fetchTimestamp})`
+    : `Calibrated Regional Baseline (${telemetry.metadata.fetchTimestamp})`;
+
+  const deterministicResponse = (): string => {
+    // Intent 0A: Data Provenance / Live Data Inquiry
+    if (qLower.includes('live data') || qLower.includes('real-time') || qLower.includes('realtime') || qLower.includes('source') || qLower.includes('fresh')) {
+      return `Data Provenance & Freshness for ${telemetry.city} (${telemetry.metadata.latitude.toFixed(2)}°N, ${telemetry.metadata.longitude.toFixed(2)}°E):\n• Status: ${provenanceLabel}\n• Provider: ${telemetry.metadata.provider}\n• Standard: ${telemetry.current.aqiStandard}\n\n${telemetry.metadata.isLive ? 'Current readings reflect live gridded Copernicus Atmosphere Monitoring Service (CAMS 0.25°) telemetry and meteorological observations.' : 'Note: Live network telemetry is not active for this snapshot; values reflect cached or calibrated regional baseline data rather than a fresh real-time observation.'}`;
+    }
+
+    // Intent 0B: Why is AQI high when PM2.5 is low?
+    if ((qLower.includes('why') && qLower.includes('aqi')) || qLower.includes('pm2.5 is low') || qLower.includes('pm25 is low')) {
+      const primary = telemetry.current.primaryPollutant || 'PM2.5';
+      return `Why CPCB NAQI Can Be High Even When PM2.5 Is Moderate/Low:\nUnder India's Central Pollution Control Board (CPCB) NAQI standard, the overall AQI is the MAXIMUM sub-index across all monitored pollutants (PM2.5, PM10, NO2, SO2, CO, O3) — not an average.\n\nIn ${telemetry.city} right now:\n• Overall CPCB NAQI: ${telemetry.current.aqi} (${telemetry.current.aqiCategory})\n• Dominant Pollutant Driver: ${primary}\n• Current Readings: PM2.5 = ${pm} µg/m³${telemetry.current.pm10 != null ? `, PM10 = ${telemetry.current.pm10} µg/m³` : ''}${telemetry.current.no2 != null ? `, NO2 = ${telemetry.current.no2} µg/m³` : ''}${telemetry.current.o3 != null ? `, O3 = ${telemetry.current.o3} µg/m³` : ''}\n\nTherefore, if coarse dust (PM10), traffic NO2, or ground-level Ozone spikes while fine PM2.5 stays low, the overall NAQI reflects that dominant pollutant.`;
+    }
 
     // Intent 1: Outdoor Exercise / Running / Cardio
     if (qLower.includes('run') || qLower.includes('jog') || qLower.includes('exercise') || qLower.includes('workout') || (qLower.includes('bike') && qLower.includes('exercise'))) {
@@ -473,7 +488,11 @@ export async function askBreatheWiseAssistant(
     }
 
     // Default: General Overview
-    return `In ${telemetry.city}, current PM2.5 is ${telemetry.current.pm25} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}). Today's lowest relative exposure window is ${window.displayWindow} (${window.statusLabel}). For your selected ${profile} profile, prioritize barrier protection (N95) during rush hours and keep indoor spaces sealed when outdoor air is elevated.`;
+    return `In ${telemetry.city} (${provenanceLabel}), current PM2.5 is ${telemetry.current.pm25} µg/m³ and CPCB NAQI is ${telemetry.current.aqi} (${telemetry.current.aqiCategory}, driven by ${telemetry.current.primaryPollutant}). Today's lowest relative exposure window is ${window.displayWindow} (${window.statusLabel}). For your ${profile.replace('_', ' ')} profile, prioritize barrier protection (N95) during rush hours and keep indoor spaces sealed when outdoor PM2.5 exceeds 60 µg/m³.`;
+  };
+
+  if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY') {
+    return deterministicResponse();
   }
 
   try {
@@ -481,17 +500,21 @@ export async function askBreatheWiseAssistant(
     const model = ai.getGenerativeModel({
       model: 'gemini-2.0-flash',
       systemInstruction: `You are BreatheWise AI, an expert Environmental Intelligence and Living Assistant.
-Current live context for ${telemetry.city}, India:
-- PM2.5: ${telemetry.current.pm25} µg/m³, CPCB NAQI: ${telemetry.current.aqi} (${telemetry.current.aqiCategory})
-- Temperature: ${telemetry.weather.temperature}°C, Wind: ${telemetry.weather.windSpeed} km/h
+Current verified environmental context for ${telemetry.city}, ${telemetry.state}, India (${telemetry.metadata.latitude.toFixed(4)}°N, ${telemetry.metadata.longitude.toFixed(4)}°E):
+- Data Provenance: ${provenanceLabel} (Provider: ${telemetry.metadata.provider})
+- CPCB NAQI: ${telemetry.current.aqi} (${telemetry.current.aqiCategory}), Dominant Pollutant: ${telemetry.current.primaryPollutant}
+- Pollutants: PM2.5=${telemetry.current.pm25} µg/m³, PM10=${telemetry.current.pm10 ?? 'unobserved'} µg/m³, NO2=${telemetry.current.no2 ?? 'unobserved'} µg/m³, SO2=${telemetry.current.so2 ?? 'unobserved'} µg/m³, CO=${telemetry.current.co ?? 'unobserved'} mg/m³, O3=${telemetry.current.o3 ?? 'unobserved'} µg/m³
+- Weather: Temp=${telemetry.weather.temperature}°C, Humidity=${telemetry.weather.humidity}%, Wind=${telemetry.weather.windSpeed} km/h
 - Lowest Exposure Window: ${window.displayWindow} (${window.statusLabel})
-- Active Profile: ${profile}
+- Active Vulnerability Profile: ${profile}
 - Ozone Warning: ${window.ozoneRiskWarning || 'None'}
+
 STRICT RULES:
-1. If PM2.5 > 60 µg/m³, NEVER tell the user to open windows or ventilate.
+1. If PM2.5 > 60 µg/m³ or O3 > 100 µg/m³, NEVER tell the user to open windows or ventilate.
 2. If PM2.5 > 120 µg/m³, advise against outdoor aerobic workouts.
-3. Never invent numbers. Never diagnose diseases or prescribe medications.
-Keep responses concise, actionable, and grounded in the data above.`,
+3. Distinguish measured/modeled values honestly and state data provenance if asked. Never invent numbers or claim cached/baseline data is live.
+4. Never diagnose diseases or prescribe medications.
+Keep responses direct, actionable, and grounded in the exact numbers above.`,
     });
 
     const chat = model.startChat({
@@ -509,6 +532,6 @@ Keep responses concise, actionable, and grounded in the data above.`,
     return responseText;
   } catch (err) {
     console.warn('[BreatheWise] Gemini chat error, using deterministic response.', err);
-    return `In ${telemetry.city}, current PM2.5 is ${telemetry.current.pm25} µg/m³ (CPCB NAQI ${telemetry.current.aqi}). Today's lowest relative exposure window is ${window.displayWindow}. We recommend scheduling essential outdoor tasks during this window and keeping indoor spaces sealed during morning and evening smog peaks.`;
+    return deterministicResponse();
   }
 }

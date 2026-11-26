@@ -2,46 +2,43 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { askBreatheWiseAssistant } from '../services/gemini';
 import { ChatMessage } from '../types/ai';
-import { 
-  Send, 
-  Sparkles, 
-  User, 
-  Bot, 
-  Key, 
-  ShieldCheck, 
-  Trash2, 
-  Sun, 
-  Coffee, 
-  Sunset, 
-  Moon, 
-  AlertCircle, 
-  Check, 
-  Leaf,
-  MessageSquare
+import {
+  ArrowRight,
+  User,
+  Bot,
+  Key,
+  ShieldCheck,
+  Trash2,
+  Sun,
+  Coffee,
+  Sunset,
+  Moon,
+  MessageSquare,
 } from 'lucide-react';
 
 export const AiAssistantWorkspace: React.FC = () => {
-  const { 
-    telemetry, 
-    cleanAirWindow, 
-    userPreferences, 
-    livingPlan, 
-    isLoadingPlan, 
-    sessionApiKey, 
-    setSessionApiKey 
+  const {
+    telemetry,
+    cleanAirWindow,
+    userPreferences,
+    livingPlan,
+    sessionApiKey,
+    setSessionApiKey,
   } = useApp();
+
+  const cityShort = telemetry.city.includes('—') ? telemetry.city.split('—')[0].trim() : telemetry.city;
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
       role: 'assistant',
-      content: `Hello! I am your BreatheWise Environmental Living Assistant. In ${telemetry.city}, current PM2.5 is ${telemetry.current.pm25} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}). Today's lowest relative exposure window is ${cleanAirWindow.displayWindow}. How can I assist you in planning your day safely?`,
+      content: `How can I help you with your air quality and daily routine today? In ${cityShort}, current PM2.5 is ${telemetry.current.pm25} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}, driven by ${telemetry.current.primaryPollutant}).`,
       timestamp: 'Just now',
       suggestedFollowUps: [
-        'Is it safe to go running outdoors today?',
-        'When should I open my apartment windows?',
-        'Compare metro vs. two-wheeler for my commute',
-        'How should I protect my family from today\'s air?',
+        'Is it safe to exercise now?',
+        'When should I open my windows?',
+        'What mask should I use today?',
+        'Plan my day for cleaner air',
       ],
     },
   ]);
@@ -59,13 +56,13 @@ export const AiAssistantWorkspace: React.FC = () => {
         return [
           {
             ...prev[0],
-            content: `Hello! I am your BreatheWise Environmental Living Assistant. In ${telemetry.city}, current PM2.5 is ${telemetry.current.pm25} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}). Today's lowest relative exposure window is ${cleanAirWindow.displayWindow}. How can I assist you in planning your day safely?`,
+            content: `How can I help you with your air quality and daily routine today? In ${cityShort}, current PM2.5 is ${telemetry.current.pm25} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}, driven by ${telemetry.current.primaryPollutant}).`,
           },
         ];
       }
       return prev;
     });
-  }, [telemetry.city, telemetry.current.pm25, telemetry.current.aqi, telemetry.current.aqiCategory, cleanAirWindow.displayWindow]);
+  }, [cityShort, telemetry.current.pm25, telemetry.current.aqi, telemetry.current.aqiCategory, telemetry.current.primaryPollutant]);
 
   useEffect(() => {
     if (messages.length > 1) {
@@ -106,179 +103,148 @@ export const AiAssistantWorkspace: React.FC = () => {
       };
 
       setMessages((prev) => [...prev, botMsg]);
-    } catch {
-      const errReply: ChatMessage = {
-        id: `err-${Date.now()}`,
-        role: 'assistant',
-        content: `I apologize, but I encountered an error synthesizing guidance. Today's lowest relative exposure window is ${cleanAirWindow.displayWindow}. Keep windows sealed during morning stagnation.`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-      setMessages((prev) => [...prev, errReply]);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getRiskBadge = (risk: string) => {
+  const getSlotCardStyle = (risk: string) => {
     switch (risk) {
       case 'SAFE':
-        return (
-          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
-            <span>SAFE</span>
-          </span>
-        );
+        return {
+          card: 'bg-[#ECFDF5] border-[#A7F3D0]',
+          badge: 'bg-[#D1FAE5] text-[#065F46] border-[#6EE7B7]',
+          label: 'SAFE',
+        };
       case 'MODERATE':
-        return (
-          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
-            <span>MODERATE</span>
-          </span>
-        );
+        return {
+          card: 'bg-[#FEF9E7] border-[#FDE68A]',
+          badge: 'bg-[#FEF3C7] text-[#92400E] border-[#FCD34D]',
+          label: 'MODERATE',
+        };
       case 'HIGH':
-        return (
-          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-orange-50 text-orange-800 border border-orange-200 shadow-2xs">
-            <span>ELEVATED</span>
-          </span>
-        );
+        return {
+          card: 'bg-[#FFF7ED] border-[#FED7AA]',
+          badge: 'bg-[#FFEDD5] text-[#9A3412] border-[#FDBA74]',
+          label: 'ELEVATED',
+        };
       case 'CRITICAL':
-        return (
-          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-50 text-rose-800 border border-rose-200 shadow-2xs">
-            <span>HAZARDOUS</span>
-          </span>
-        );
       default:
-        return null;
+        return {
+          card: 'bg-[#FFF5F5] border-rose-200',
+          badge: 'bg-rose-100 text-rose-800 border-rose-300',
+          label: 'HAZARDOUS',
+        };
     }
   };
 
   const getSlotIcon = (index: number) => {
     switch (index) {
       case 0:
-        return <Sun className="w-3.5 h-3.5" />;
+        return <Sun className="w-4 h-4 text-amber-500" />;
       case 1:
-        return <Coffee className="w-3.5 h-3.5" />;
+        return <Coffee className="w-4 h-4 text-[#059669]" />;
       case 2:
-        return <Sunset className="w-3.5 h-3.5" />;
+        return <Sunset className="w-4 h-4 text-orange-500" />;
       case 3:
       default:
-        return <Moon className="w-3.5 h-3.5" />;
+        return <Moon className="w-4 h-4 text-[#0284C7]" />;
     }
   };
 
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
-      
-      {/* 1. Top Adaptive Routine Ribbon: 4 Clean Time Slots */}
+      {/* 1. Adaptive Daily Living Routine Timeline Strip (Matches Reference Panel 6) */}
       {livingPlan && (
-        <div className="bg-white rounded-3xl border border-stone-200/80 p-4 sm:p-5 shadow-2xs space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-stone-100">
-            <div className="flex items-center space-x-2">
-              <div className="w-7 h-7 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-100 shrink-0">
-                <Sparkles className="w-3.5 h-3.5" />
-              </div>
-              <div>
-                <h3 className="text-xs sm:text-sm font-bold text-slatecharcoal-900 tracking-tight">
-                  Adaptive Daily Living Routine
-                </h3>
-                <p className="text-[10px] sm:text-[11px] text-slate-500">
-                  Calibrated for <strong className="text-emerald-800">{telemetry.city}</strong> diurnal conditions
-                </p>
-              </div>
-            </div>
-
-            <div className="text-[10px] text-slate-500 font-mono bg-stone-100/70 px-2.5 py-1 rounded-full border border-stone-200/60 self-start sm:self-auto">
-              Confidence: {livingPlan.scientificConfidence}
-            </div>
+        <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-[#CBE0F2] p-4 sm:p-5 shadow-soft space-y-3.5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm sm:text-base font-extrabold text-[#0C2D57] tracking-tight">
+              Adaptive Daily Living Routine ({cityShort})
+            </h3>
+            <span className="text-[10px] font-bold text-[#476788] bg-[#F0F7FD] px-2.5 py-1 rounded-full border border-[#CBE0F2]">
+              {livingPlan.scientificConfidence}
+            </span>
           </div>
 
-          {/* 4 Responsive Routine Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-            {livingPlan.dailyRoutine.map((slot, idx) => (
-              <div
-                key={idx}
-                className="p-3 rounded-2xl border border-stone-200/80 bg-stone-50/50 hover:bg-white hover:border-emerald-300 transition-all flex flex-col justify-between space-y-2 group shadow-2xs"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-1.5 text-slate-700 font-bold text-xs">
-                    <span className="w-6 h-6 rounded-lg bg-white border border-stone-200 flex items-center justify-center text-emerald-700 shadow-2xs">
-                      {getSlotIcon(idx)}
-                    </span>
-                    <span className="font-mono text-[11px]">{slot.timeSlot}</span>
-                  </div>
-                  {getRiskBadge(slot.exposureRisk)}
-                </div>
-
-                <div>
-                  <div className="text-xs font-bold text-slatecharcoal-900 leading-tight">
-                    {slot.activityName}
-                  </div>
-                  <p className="text-[11px] text-slate-600 leading-relaxed mt-1 line-clamp-2">
-                    {slot.directive}
-                  </p>
-                </div>
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {livingPlan.dailyRoutine.map((slot, idx) => {
+              const style = getSlotCardStyle(slot.exposureRisk);
+              return (
                 <button
+                  key={idx}
+                  type="button"
                   onClick={() => handleSend(`How should I adjust my routine for the ${slot.timeSlot} (${slot.activityName}) window?`)}
-                  className="w-full text-center text-[10px] font-bold text-emerald-800 bg-white hover:bg-emerald-50 py-1.5 px-2 rounded-xl border border-stone-200/80 transition-colors shadow-2xs cursor-pointer"
+                  className={`p-4 rounded-2xl border text-center flex flex-col items-center justify-between space-y-2 transition-all hover:scale-[1.01] cursor-pointer shadow-2xs ${style.card}`}
+                  title={slot.directive}
                 >
-                  Ask AI About This Window →
+                  <div className="w-8 h-8 rounded-full bg-white/90 border border-black/5 flex items-center justify-center shadow-2xs">
+                    {getSlotIcon(idx)}
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="text-xs font-black font-mono text-[#0C2D57]">{slot.timeSlot}</div>
+                    <div className="text-[11px] font-bold text-[#365779] line-clamp-1">{slot.activityName}</div>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${style.badge}`}>
+                    {style.label}
+                  </span>
                 </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* 2. Primary Conversational Workspace */}
-      <div className="bg-white rounded-3xl border border-stone-200/80 shadow-2xs flex flex-col min-h-[480px] max-h-[640px] overflow-hidden">
-        
-        {/* Chat Workspace Header */}
-        <div className="p-4 sm:p-4.5 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
+      {/* 2. Conversational AI Workspace (Matches Reference Panel 6 Bottom) */}
+      <div className="bg-white/95 backdrop-blur-md rounded-3xl border border-[#CBE0F2] shadow-soft flex flex-col min-h-[380px] max-h-[560px] overflow-hidden">
+        {/* Top Bar */}
+        <div className="px-4 sm:px-5 py-3 border-b border-[#E2EFFA] flex items-center justify-between bg-[#F4F9FE]">
           <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-700 text-white flex items-center justify-center shadow-2xs">
+            <div className="w-8 h-8 rounded-xl bg-[#0284C7] text-white flex items-center justify-center shadow-2xs">
               <MessageSquare className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-xs sm:text-sm font-bold text-slatecharcoal-900">
-                BreatheWise AI Living Assistant
+              <h3 className="text-xs sm:text-sm font-extrabold text-[#0C2D57]">
+                BreatheWise AI Advisor
               </h3>
-              <p className="text-[10px] sm:text-[11px] text-slate-500">
-                {sessionApiKey ? 'Gemini 2.0 Flash Active' : 'Deterministic Protocol + Synthesis'} • {telemetry.city}
+              <p className="text-[10px] sm:text-[11px] text-[#476788]">
+                {sessionApiKey ? 'Gemini 2.0 Flash Active' : 'Grounded Deterministic Advisor'} • {cityShort}
               </p>
             </div>
           </div>
 
-          {/* Key Config Button */}
           <button
+            type="button"
             onClick={() => setShowKeyModal(!showKeyModal)}
-            className={`text-xs flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border transition-all cursor-pointer font-medium ${
+            className={`text-xs flex items-center space-x-1.5 px-3 py-1.5 rounded-full border transition-all cursor-pointer font-semibold ${
               sessionApiKey
-                ? 'bg-emerald-50 border-emerald-300 text-emerald-800 shadow-2xs'
-                : 'border-stone-200 hover:bg-stone-100 text-slate-600 bg-white shadow-2xs'
+                ? 'bg-[#E6F4FA] border-[#0284C7] text-[#0369A1]'
+                : 'bg-white border-[#CBE0F2] hover:bg-[#F0F7FD] text-[#365779]'
             }`}
-            title="Configure optional temporary Google Gemini API Key"
+            title="Configure optional session-only Google Gemini API Key"
           >
-            <Key className="w-3.5 h-3.5 text-emerald-700" />
-            <span className="hidden sm:inline">{sessionApiKey ? 'Gemini Key Active' : 'Gemini Key (Optional)'}</span>
+            <Key className="w-3.5 h-3.5 text-[#0891B2]" />
+            <span className="hidden sm:inline">{sessionApiKey ? 'Gemini Key Active' : 'Gemini Key'}</span>
           </button>
         </div>
 
-        {/* API Key Modal Drawer */}
+        {/* Optional Session API Key Drawer */}
         {showKeyModal && (
-          <div className="p-3.5 bg-emerald-50/70 border-b border-emerald-200/80 text-xs space-y-2 animate-in fade-in">
+          <div className="p-3.5 bg-[#F0F7FD] border-b border-[#CBE0F2] text-xs space-y-2 animate-in fade-in">
             <div className="flex justify-between items-center">
-              <span className="font-bold text-emerald-950 flex items-center space-x-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-700" />
+              <span className="font-bold text-[#0C2D57] flex items-center space-x-1.5">
+                <ShieldCheck className="w-4 h-4 text-[#0284C7]" />
                 <span>Session-Only Gemini API Key</span>
               </span>
               <button
+                type="button"
                 onClick={() => setShowKeyModal(false)}
-                className="text-slate-500 hover:text-slate-800 font-bold p-1 cursor-pointer"
+                className="text-[#5A7896] hover:text-[#0C2D57] font-bold p-1 cursor-pointer"
               >
                 ✕
               </button>
             </div>
-            <p className="text-emerald-900 text-[11px] leading-relaxed">
-              BreatheWise operates with full deterministic models out of the box. Key is stored strictly in temporary session memory and wiped on tab close.
+            <p className="text-[#365779] text-[11px]">
+              Stored only in temporary session memory and wiped on tab close. Without a key, BreatheWise uses its deterministic scientific advisor.
             </p>
             <div className="flex space-x-2">
               <input
@@ -286,19 +252,21 @@ export const AiAssistantWorkspace: React.FC = () => {
                 placeholder="AIzaSy..."
                 value={tempApiKey}
                 onChange={(e) => setTempApiKey(e.target.value)}
-                className="flex-1 px-3 py-1.5 text-xs bg-white border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono shadow-2xs"
+                className="flex-1 px-3 py-1.5 text-xs bg-white border border-[#CBE0F2] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0284C7]/30 font-mono"
               />
               <button
+                type="button"
                 onClick={() => {
                   setSessionApiKey(tempApiKey.trim());
                   setShowKeyModal(false);
                 }}
-                className="px-4 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-xs shadow-2xs transition-colors cursor-pointer"
+                className="px-4 py-1.5 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl font-bold text-xs cursor-pointer"
               >
                 Save
               </button>
               {sessionApiKey && (
                 <button
+                  type="button"
                   onClick={() => {
                     setSessionApiKey('');
                     setTempApiKey('');
@@ -314,7 +282,7 @@ export const AiAssistantWorkspace: React.FC = () => {
           </div>
         )}
 
-        {/* Messages Scroll Area */}
+        {/* Messages Area */}
         <div className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-3.5 text-xs">
           {messages.map((m) => (
             <div
@@ -322,50 +290,42 @@ export const AiAssistantWorkspace: React.FC = () => {
               className={`flex items-start space-x-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {m.role === 'assistant' && (
-                <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                <div className="w-7 h-7 rounded-full bg-[#E0F2FE] text-[#0284C7] border border-[#BAE6FD] flex items-center justify-center shrink-0 mt-0.5">
                   <Bot className="w-4 h-4" />
                 </div>
               )}
 
               <div
-                className={`p-3.5 sm:p-4 rounded-2xl max-w-[88%] sm:max-w-[78%] leading-relaxed ${
+                className={`p-3.5 sm:p-4 rounded-2xl max-w-[88%] sm:max-w-[80%] leading-relaxed ${
                   m.role === 'user'
-                    ? 'bg-emerald-800 text-white rounded-tr-none shadow-2xs'
-                    : 'bg-stone-50/90 text-slatecharcoal-900 rounded-tl-none border border-stone-200/80 shadow-2xs'
+                    ? 'bg-[#0284C7] text-white rounded-tr-none shadow-xs'
+                    : 'bg-[#F4F9FE] text-[#0F2C4C] rounded-tl-none border border-[#D6E7F5]'
                 }`}
               >
                 <div className="whitespace-pre-wrap">{m.content}</div>
 
                 {m.suggestedFollowUps && m.suggestedFollowUps.length > 0 && (
-                  <div className="mt-3 pt-2.5 border-t border-stone-200/70 space-y-1.5">
-                    <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                      Suggested Inquiries:
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {m.suggestedFollowUps.map((prompt, pIdx) => (
-                        <button
-                          key={pIdx}
-                          onClick={() => handleSend(prompt)}
-                          className="text-left text-[10px] sm:text-[11px] bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 px-2.5 py-1 rounded-lg border border-stone-200 shadow-2xs transition-all cursor-pointer font-medium"
-                        >
-                          {prompt}
-                        </button>
-                      ))}
-                    </div>
+                  <div className="mt-3 pt-2.5 border-t border-[#D6E7F5] flex flex-wrap gap-1.5">
+                    {m.suggestedFollowUps.map((prompt, pIdx) => (
+                      <button
+                        key={pIdx}
+                        type="button"
+                        onClick={() => handleSend(prompt)}
+                        className="text-left text-[11px] bg-white hover:bg-[#E0F2FE] text-[#0369A1] px-3 py-1.5 rounded-full border border-[#BAE6FD] shadow-2xs transition-all cursor-pointer font-semibold"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
                   </div>
                 )}
 
-                <div
-                  className={`text-[9px] mt-1 text-right ${
-                    m.role === 'user' ? 'text-emerald-200' : 'text-slate-400'
-                  }`}
-                >
+                <div className={`text-[9px] mt-1.5 text-right ${m.role === 'user' ? 'text-sky-100' : 'text-[#5A7896]'}`}>
                   {m.timestamp}
                 </div>
               </div>
 
               {m.role === 'user' && (
-                <div className="w-7 h-7 rounded-full bg-slatecharcoal-800 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                <div className="w-7 h-7 rounded-full bg-[#0C2D57] text-white flex items-center justify-center shrink-0 mt-0.5">
                   <User className="w-4 h-4" />
                 </div>
               )}
@@ -373,9 +333,9 @@ export const AiAssistantWorkspace: React.FC = () => {
           ))}
 
           {isSubmitting && (
-            <div className="flex items-center space-x-2 text-slate-500 text-xs italic p-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping mr-1" />
-              Evaluating atmospheric telemetry and physiological guidelines...
+            <div className="flex items-center space-x-2 text-[#476788] text-xs italic p-2">
+              <span className="w-2 h-2 rounded-full bg-[#0284C7] animate-ping mr-1" />
+              Evaluating atmospheric telemetry and safety thresholds...
             </div>
           )}
 
@@ -383,7 +343,7 @@ export const AiAssistantWorkspace: React.FC = () => {
         </div>
 
         {/* Input Bar */}
-        <div className="p-3 sm:p-4 border-t border-stone-100 bg-white">
+        <div className="p-3 sm:p-4 border-t border-[#E2EFFA] bg-white">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -395,51 +355,20 @@ export const AiAssistantWorkspace: React.FC = () => {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about workout timing, mask selection, ventilation windows..."
-              className="flex-1 bg-stone-50 border border-stone-200 rounded-2xl px-4 py-2.5 text-xs text-slatecharcoal-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+              placeholder="Ask about exercise timing, windows, masks, or live data provenance..."
+              className="flex-1 bg-[#F4F9FE] border border-[#CBE0F2] rounded-full px-4 py-2.5 text-xs text-[#0F2C4C] placeholder:text-[#7B97B2] focus:outline-none focus:ring-2 focus:ring-[#0284C7]/25 focus:border-[#0284C7] transition-all"
             />
             <button
               type="submit"
               disabled={!input.trim() || isSubmitting}
               aria-label="Send message"
-              className="bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 text-white p-2.5 sm:p-3 rounded-2xl shadow-2xs transition-all shrink-0 cursor-pointer"
+              className="w-10 h-10 rounded-full bg-[#0284C7] hover:bg-[#0369A1] disabled:opacity-40 text-white flex items-center justify-center shadow-sm transition-all shrink-0 cursor-pointer"
             >
-              <Send className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4" />
             </button>
           </form>
         </div>
-
       </div>
-
-      {/* 3. Supporting Strategies: Indoor Protocol & Civic Eco-Swap */}
-      {livingPlan && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-          <div className="bg-white p-4 rounded-2xl border border-stone-200/80 text-xs space-y-1.5 shadow-2xs">
-            <div className="font-semibold text-slatecharcoal-900 flex items-center space-x-2">
-              <div className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-800 flex items-center justify-center">
-                <Check className="w-3 h-3" />
-              </div>
-              <span className="font-bold">Indoor Envelope Protocol</span>
-            </div>
-            <p className="text-slate-600 leading-relaxed text-[11px] pl-7">
-              {livingPlan.indoorProtocol}
-            </p>
-          </div>
-
-          <div className="bg-white p-4 rounded-2xl border border-stone-200/80 text-xs space-y-1.5 shadow-2xs">
-            <div className="font-semibold text-slatecharcoal-900 flex items-center space-x-2">
-              <div className="w-5 h-5 rounded-md bg-teal-100 text-teal-800 flex items-center justify-center">
-                <Leaf className="w-3 h-3" />
-              </div>
-              <span className="font-bold">Civic Eco-Swap Action</span>
-            </div>
-            <p className="text-slate-600 leading-relaxed text-[11px] pl-7">
-              {livingPlan.ecoActionOfTheDay}
-            </p>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 };

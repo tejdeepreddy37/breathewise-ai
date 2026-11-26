@@ -12,9 +12,10 @@ import { SubpageContextBar } from './components/SubpageContextBar';
 import { TransparencyDrawer } from './components/TransparencyDrawer';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { LandingPage } from './components/LandingPage';
+import { AlertTriangle, RefreshCw, Car, Home, Sliders, Sparkles } from 'lucide-react';
 
 export const App: React.FC = () => {
-  const { activeTab } = useApp();
+  const { activeTab, telemetryError, refreshData, isLoadingTelemetry } = useApp();
 
   if (activeTab === 'landing') {
     return (
@@ -26,39 +27,55 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFBF8] flex flex-col font-sans text-slatecharcoal-900 pb-20 md:pb-12 selection:bg-emerald-100 selection:text-emerald-800 relative overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-[#DCEEFB] via-[#EAF4FC] to-[#F3F8FD] flex flex-col font-sans text-[#0F2C4C] pb-20 md:pb-12 selection:bg-[#BAE6FD] selection:text-[#0C2D57] relative overflow-x-hidden">
+      {/* Subtle Atmospheric Sky Backdrop */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-45">
+        <img
+          src={`${import.meta.env.BASE_URL}images/sky-clouds-backdrop.png`}
+          alt=""
+          className="w-full h-full object-cover object-bottom"
+        />
+      </div>
+
       <Header />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-3 sm:py-4 space-y-3.5 sm:space-y-4 overflow-x-hidden">
-        
-        {/* View Switcher based on activeTab */}
-        {activeTab === 'overview' && (
-          <div className="space-y-3.5 sm:space-y-4 animate-in fade-in duration-200">
-            {/* Signature Clean-Air Directive Hero */}
-            <HeroDirective />
+      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-3.5 sm:py-5 space-y-4 overflow-x-hidden">
+        {/* Honest Telemetry Unavailable Banner */}
+        {telemetryError && (
+          <div className="rounded-2xl bg-amber-50/95 border border-amber-300 px-4 py-3 flex items-center justify-between gap-3 text-xs text-amber-900 shadow-xs">
+            <div className="flex items-center space-x-2.5">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>{telemetryError}</span>
+            </div>
+            <button
+              type="button"
+              onClick={refreshData}
+              disabled={isLoadingTelemetry}
+              className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold transition-colors cursor-pointer shrink-0"
+            >
+              <RefreshCw className={`w-3 h-3 ${isLoadingTelemetry ? 'animate-spin' : ''}`} />
+              <span>Retry</span>
+            </button>
+          </div>
+        )}
 
-            {/* Scientific Telemetry Strip */}
+        {/* 1. Overview Workspace */}
+        {activeTab === 'overview' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <HeroDirective />
             <MetricsStrip />
 
-            {/* 2x2 Primary Overview Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4 items-stretch">
-              {/* Item 1: WindowSafe Diurnal Forecast */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
               <div className="w-full order-1 flex flex-col">
                 <DiurnalChart />
               </div>
-
-              {/* Item 2: What-If Exposure Sandbox */}
               <div className="w-full order-2 flex flex-col">
                 <WhatIfSimulator />
               </div>
-
-              {/* Item 3: Commute Exposure & Eco-Swap */}
               <div className="w-full order-4 lg:order-3 flex flex-col">
                 <CommuteSimulator />
               </div>
-
-              {/* Item 4: Indoor Envelope & Air Coach */}
               <div className="w-full order-3 lg:order-4 flex flex-col">
                 <IndoorCoachView />
               </div>
@@ -66,71 +83,57 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* Dedicated Commute Workspace */}
+        {/* 2. Dedicated Commute Workspace */}
         {activeTab === 'commute' && (
           <div className="space-y-4 animate-in fade-in duration-200">
             <SubpageContextBar
               title="Commute Exposure & Eco-Swap Optimizer"
-              subtitle="Analyze urban travel modes to minimize inhaled fine particulate dose and reduce transit carbon footprint"
+              subtitle="Analyze urban travel modes to minimize inhaled particulate dose and reduce transit carbon footprint."
+              icon={<Car className="w-4 h-4 text-[#0284C7]" />}
             />
             <CommuteSimulator isDedicatedWorkspace={true} />
           </div>
         )}
 
-        {/* Dedicated Indoor Air Coach Workspace */}
+        {/* 3. Dedicated Indoor Workspace */}
         {activeTab === 'indoor' && (
           <div className="space-y-4 animate-in fade-in duration-200">
             <SubpageContextBar
               title="Indoor Air Envelope & Ventilation Coach"
-              subtitle="Dynamic mass-balance modeling, infiltration control, and air purifier performance optimization"
+              subtitle="Dynamic mass-balance modeling, infiltration control, and air purifier performance optimization."
+              icon={<Home className="w-4 h-4 text-[#0284C7]" />}
             />
             <IndoorCoachView isDedicatedWorkspace={true} />
           </div>
         )}
 
-        {/* Dedicated What-If Sandbox Workspace */}
+        {/* 4. Dedicated Exposure Workspace */}
         {(activeTab === 'simulator' || activeTab === 'exposure') && (
           <div className="space-y-4 animate-in fade-in duration-200">
             <SubpageContextBar
               title="What-If Respiratory Exposure Sandbox"
-              subtitle="Calculate particulate intake and simulate protective intervention reductions using physical ventilation rates"
+              subtitle="Calculate particulate intake and simulate protective intervention reductions using physical ventilation rates."
+              icon={<Sliders className="w-4 h-4 text-[#0284C7]" />}
             />
             <WhatIfSimulator isDedicatedWorkspace={true} />
           </div>
         )}
 
-        {/* Dedicated AI Assistant Workspace */}
+        {/* 5. Dedicated AI Advisor Workspace */}
         {(activeTab === 'assistant' || activeTab === 'advisor') && (
           <div className="space-y-4 animate-in fade-in duration-200">
             <SubpageContextBar
               title="BreatheWise AI Living Assistant"
-              subtitle="Adaptive 24-hour daily routine timeline and environmental living guidance powered by convective dispersion models"
+              subtitle="Adaptive 24-hour daily routine timeline and personalized air-health guidance."
+              icon={<Sparkles className="w-4 h-4 text-[#0284C7]" />}
             />
             <AiAssistantWorkspace />
           </div>
         )}
-
       </main>
 
-      {/* Scientific Transparency Modal */}
       <TransparencyDrawer />
-
-      {/* Mobile Sticky Bottom Navigation */}
       <MobileBottomNav />
-
-      {/* Footer */}
-      <footer className="border-t border-cream-200/80 py-8 pb-24 sm:pb-8 text-center text-xs text-slate-500 mt-auto bg-cream-50">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center space-x-2">
-            <span className="font-bold text-slatecharcoal-900">BreatheWise AI</span>
-            <span>•</span>
-            <span className="text-slate-600 font-medium">PromptWars Virtual Challenge 06: Urban Air Quality Assistant</span>
-          </div>
-          <div className="text-[11px] text-slate-400">
-            Copernicus CAMS Ensemble, Open-Meteo, CPCB Standards & Google Gemini
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

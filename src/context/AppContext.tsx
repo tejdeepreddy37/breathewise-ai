@@ -3,15 +3,17 @@ import { EnvironmentalTelemetry } from '../types/telemetry';
 import { CleanAirWindow, VulnerabilityProfile } from '../types/engines';
 import { UserPreferences, DEFAULT_USER_PREFERENCES } from '../types/user';
 import { GroundedAiLivingPlan } from '../types/ai';
-import { getCityTelemetry } from '../services/telemetryService';
+import { getCityTelemetry, resolveLocationById } from '../services/telemetryService';
 import { calculateCleanAirWindow } from '../engines/windowSafe';
 import { fetchGeminiLivingPlan, generateDeterministicLivingPlan } from '../services/gemini';
 import { FALLBACK_TELEMETRY } from '../data/staticFallback';
+import { INDIA_LOCATIONS, IndiaLocation } from '../data/indiaLocations';
 
 export type NavigationTab = 'landing' | 'overview' | 'diurnal' | 'commute' | 'indoor' | 'simulator' | 'assistant' | 'exposure' | 'advisor';
 
 interface AppContextType {
   selectedCityId: string;
+  selectedLocation: IndiaLocation;
   telemetry: EnvironmentalTelemetry;
   isLoadingTelemetry: boolean;
   telemetryError: string | null;
@@ -26,6 +28,8 @@ interface AppContextType {
   isDemoMode: boolean;
   toggleDemoMode: () => void;
   selectCity: (cityId: string) => void;
+  selectLocation: (location: IndiaLocation) => void;
+  detectCurrentLocation: () => Promise<{ ok: boolean; error?: string }>;
   updateProfile: (profile: VulnerabilityProfile) => void;
   updatePreferences: (prefs: Partial<UserPreferences>) => void;
   setActiveTab: (tab: NavigationTab) => void;
@@ -36,13 +40,24 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [customLocation, setCustomLocation] = useState<IndiaLocation | null>(() => {
+    try {
+      const saved = localStorage.getItem('breathewise_custom_location');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
   const [selectedCityId, setSelectedCityId] = useState<string>(() => {
     try {
       const qCity = new URLSearchParams(window.location.search).get('city');
       if (qCity) return qCity;
     } catch {}
-    return localStorage.getItem('breathewise_city') || 'delhi-anand-vihar';
+    return localStorage.getItem('breathewise_city') || 'bengaluru-indiranagar';
   });
+
+  const selectedLocation = resolveLocationById(selectedCityId, customLocation);
 
   const [userPreferences, setUserPreferences] = useState<UserPreferences>(() => {
     try {
@@ -67,31 +82,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   });
 
-  const setSessionApiKey = (key: string) => {
-    setSessionApiKeyState(key);
-    try {
-      if (key) {
-        sessionStorage.setItem('breathewise_session_gemini_key', key);
-      } else {
-        sessionStorage.removeItem('breathewise_session_gemini_key');
-      }
-    } catch {}
-
-    // Regenerate plan with new key
-    setIsLoadingPlan(true);
-    fetchGeminiLivingPlan(telemetry, cleanAirWindow, userPreferences.vulnerabilityProfile, key)
-      .then((plan) => {
-        setLivingPlan(plan);
-        setIsLoadingPlan(false);
-      })
-      .catch(() => {
-        setLivingPlan(generateDeterministicLivingPlan(telemetry, cleanAirWindow, userPreferences.vulnerabilityProfile));
-        setIsLoadingPlan(false);
-      });
-  };
-
   const [telemetry, setTelemetry] = useState<EnvironmentalTelemetry>(() => {
-    return FALLBACK_TELEMETRY[selectedCityId] || FALLBACK_TELEMETRY['delhi-anand-vihar'];
+    return FALLBACK_TELEMETRY[selectedCityId] || FALLBACK_TELEMETRY['bengaluru-indiranagar'];
   });
 
   const [isLoadingTelemetry, setIsLoadingTelemetry] = useState<boolean>(true);
@@ -106,11 +98,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [isLoadingPlan, setIsLoadingPlan] = useState<boolean>(false);
+
+  const setSessionApiKey = (key: string) => {
+    setSessionApiKeyState(key);
+    try {
+      if (key) {
+        sessionStorage.setItem('breathewise_session_gemini_key', key);
+      } else {
+        sessionStorage.removeItem('breathewise_session_gemini_key');
+      }
+    } catch {}
+
+    setIsLoadingPlan(true);
+    fetchGeminiLivingPlan(telemetry, cleanAirWindow, userPreferences.vulnerabilityProfile, key)
+      .then((plan) => {
+        setLivingPlan(plan);
+        setIsLoadingPlan(false);
+      })
+      .catch(() => {
+        setLivingPlan(generateDeterministicLivingPlan(telemetry, cleanAirWindow, userPreferences.vulnerabilityProfile));
+        setIsLoadingPlan(false);
+      });
+  };
+
+  const VALID_TABS: NavigationTab[] = ['landing', 'overview', 'commute', 'indoor', 'simulator', 'assistant', 'exposure', 'advisor'];
+
   const [activeTab, setActiveTabState] = useState<NavigationTab>(() => {
     try {
       const hash = window.location.hash.replace('#', '');
       if (hash === 'diurnal') return 'overview';
-      if (['landing', 'overview', 'commute', 'indoor', 'simulator', 'assistant'].includes(hash)) {
+      if (VALID_TABS.includes(hash as NavigationTab)) {
         return hash as NavigationTab;
       }
     } catch {}
@@ -123,7 +140,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const hash = window.location.hash.replace('#', '');
         if (hash === 'diurnal') {
           setActiveTabState('overview');
-        } else if (['landing', 'overview', 'commute', 'indoor', 'simulator', 'assistant'].includes(hash)) {
+        } else if (VALID_TABS.includes(hash as NavigationTab)) {
           setActiveTabState(hash as NavigationTab);
         }
       } catch {}
@@ -164,20 +181,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  // Monotonic request counter prevents stale async telemetry/AI responses from overwriting newer city selections
   const latestRequestIdRef = useRef<number>(0);
 
-  // Load telemetry when city changes or demo mode toggles
-  const loadTelemetry = useCallback(async (cityId: string) => {
+  const loadTelemetry = useCallback(async (loc: IndiaLocation) => {
     const requestId = ++latestRequestIdRef.current;
     setIsLoadingTelemetry(true);
     setTelemetryError(null);
     try {
       let data: EnvironmentalTelemetry;
-      if (isDemoMode) {
-        data = FALLBACK_TELEMETRY[cityId] || FALLBACK_TELEMETRY['delhi-anand-vihar'];
+      if (isDemoMode && FALLBACK_TELEMETRY[loc.id]) {
+        data = FALLBACK_TELEMETRY[loc.id];
       } else {
-        data = await getCityTelemetry(cityId);
+        data = await getCityTelemetry(loc);
       }
       if (requestId !== latestRequestIdRef.current) return;
 
@@ -185,7 +200,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const window = calculateCleanAirWindow(data.hourly);
       setCleanAirWindow(window);
 
-      // Load AI living plan
       setIsLoadingPlan(true);
       const plan = await fetchGeminiLivingPlan(
         data,
@@ -200,11 +214,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (err: unknown) {
       if (requestId !== latestRequestIdRef.current) return;
       console.warn('Failed to load telemetry:', err);
-      // Fallback safely to demo profile
-      const fallback = FALLBACK_TELEMETRY[cityId] || FALLBACK_TELEMETRY['delhi-anand-vihar'];
-      setTelemetry(fallback);
-      setCleanAirWindow(calculateCleanAirWindow(fallback.hourly));
-      setTelemetryError(err instanceof Error ? err.message : 'Could not load live telemetry');
+      const message = err instanceof Error ? err.message : 'Could not load live telemetry';
+      setTelemetryError(message);
+
+      if (FALLBACK_TELEMETRY[loc.id]) {
+        const fallback = FALLBACK_TELEMETRY[loc.id];
+        setTelemetry(fallback);
+        setCleanAirWindow(calculateCleanAirWindow(fallback.hourly));
+      }
+      // Do NOT fabricate fake AQI data for uncalibrated locations when live telemetry fails
     } finally {
       if (requestId === latestRequestIdRef.current) {
         setIsLoadingTelemetry(false);
@@ -213,14 +231,65 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [userPreferences.vulnerabilityProfile, sessionApiKey, isDemoMode]);
 
   useEffect(() => {
-    loadTelemetry(selectedCityId);
-  }, [selectedCityId, loadTelemetry]);
+    loadTelemetry(selectedLocation);
+  }, [selectedLocation.id, loadTelemetry]);
 
   const selectCity = (cityId: string) => {
     setSelectedCityId(cityId);
     try {
       localStorage.setItem('breathewise_city', cityId);
     } catch {}
+  };
+
+  const selectLocation = (location: IndiaLocation) => {
+    setCustomLocation(location);
+    setSelectedCityId(location.id);
+    try {
+      localStorage.setItem('breathewise_custom_location', JSON.stringify(location));
+      localStorage.setItem('breathewise_city', location.id);
+    } catch {}
+  };
+
+  const detectCurrentLocation = async (): Promise<{ ok: boolean; error?: string }> => {
+    if (!navigator.geolocation) {
+      return { ok: false, error: 'Geolocation is not supported by your browser.' };
+    }
+    return new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = Number(pos.coords.latitude.toFixed(4));
+          const lon = Number(pos.coords.longitude.toFixed(4));
+          // Find nearest known Indian location within ~35km for friendly naming, or label by coordinates
+          let nearest: IndiaLocation | null = null;
+          let minDist = Infinity;
+          for (const loc of INDIA_LOCATIONS) {
+            const d = Math.hypot(loc.lat - lat, loc.lon - lon);
+            if (d < minDist) {
+              minDist = d;
+              nearest = loc;
+            }
+          }
+          if (nearest && minDist < 0.3) {
+            selectLocation(nearest);
+          } else {
+            selectLocation({
+              id: `gps-${lat}-${lon}`,
+              name: `Current Location (${lat.toFixed(2)}°N, ${lon.toFixed(2)}°E)`,
+              district: nearest ? `Near ${nearest.name}` : 'GPS Coordinates',
+              state: nearest ? nearest.state : 'India',
+              lat,
+              lon,
+              isCalibratedPreset: false,
+            });
+          }
+          resolve({ ok: true });
+        },
+        (err) => {
+          resolve({ ok: false, error: err.message || 'Location permission denied.' });
+        },
+        { enableHighAccuracy: false, timeout: 8000 }
+      );
+    });
   };
 
   const updateProfile = (profile: VulnerabilityProfile) => {
@@ -230,7 +299,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem('breathewise_prefs', JSON.stringify(updated));
     } catch {}
 
-    // Update plan with new profile
     setIsLoadingPlan(true);
     fetchGeminiLivingPlan(telemetry, cleanAirWindow, profile, sessionApiKey)
       .then((plan) => {
@@ -252,13 +320,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const refreshData = async () => {
-    await loadTelemetry(selectedCityId);
+    await loadTelemetry(selectedLocation);
   };
 
   return (
     <AppContext.Provider
       value={{
         selectedCityId,
+        selectedLocation,
         telemetry,
         isLoadingTelemetry,
         telemetryError,
@@ -273,6 +342,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isDemoMode,
         toggleDemoMode,
         selectCity,
+        selectLocation,
+        detectCurrentLocation,
         updateProfile,
         updatePreferences,
         setActiveTab,

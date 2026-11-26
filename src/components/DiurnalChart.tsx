@@ -66,29 +66,27 @@ export const DiurnalChart: React.FC = () => {
   };
 
   return (
-    <div className="rounded-3xl bg-white border border-stone-200/80 p-4 sm:p-5 shadow-2xs flex flex-col justify-between h-full">
-      
-      {/* Header (Exact Match to Image 2 Desktop and Mobile) */}
-      <div className="flex items-center justify-between pb-2 border-b border-stone-100">
+    <div className="rounded-3xl bg-white/85 backdrop-blur-md border border-[#CBE0F2] p-4 sm:p-5 shadow-soft flex flex-col h-full space-y-3">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-2.5 border-b border-[#E2EFFA]">
         <div className="flex items-center space-x-2.5">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0">
-            <Leaf className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <div className="w-8 h-8 rounded-xl bg-[#E6F4FA] text-[#0284C7] flex items-center justify-center border border-[#BAE0F5] shrink-0">
+            <Leaf className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-xs sm:text-base font-bold text-slatecharcoal-900 tracking-tight">
+            <h3 className="text-xs sm:text-base font-extrabold text-[#0C2D57] tracking-tight">
               <span className="sm:hidden">WindowSafe™</span>
               <span className="hidden sm:inline">WindowSafe™ 24-Hour Diurnal Forecast</span>
             </h3>
-            <p className="hidden sm:block text-[11px] text-slate-500 mt-0.5">
+            <p className="hidden sm:block text-[11px] text-[#476788] mt-0.5">
               Find the safest time to ventilate based on daily pollution shifts
             </p>
           </div>
         </div>
-        <span className="sm:hidden text-slate-400 text-xs font-bold">›</span>
       </div>
 
-      {/* Main Curved Diurnal Chart with Highlighted Optimal Window (Exact match to Image 2) */}
-      <div className="relative h-40 sm:h-44 w-full pt-2">
+      {/* Main Curved Diurnal Chart with Highlighted Optimal Window */}
+      <div className="relative flex-1 min-h-[210px] sm:min-h-[240px] w-full pt-2">
         
         {/* Floating Dynamic Window Badge */}
         {(() => {

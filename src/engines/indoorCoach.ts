@@ -103,6 +103,10 @@ export function calculateIndoorRecommendations(
       safeWindowText = 'Ventilation unsafe: Severe outdoor particulate pollution';
       actionDirective = `Outdoor PM2.5 is severe (${safePm} µg/m³). Keep all windows and balcony doors sealed. Opening windows now will flood your living space with outdoor particulate smog. Rely on indoor recirculation and mechanical HEPA filtration.`;
       safetyReason = `Outdoor PM2.5 (${safePm} µg/m³) exceeds the safe ventilation limit (60 µg/m³). Natural ventilation is strictly contraindicated.`;
+    } else if (safePm <= VENTILATION_THRESHOLDS.FLUSH_OUTDOOR_PM25_MAX) {
+      safeWindowText = `Keep windows closed until ${cleanAirWindow.displayWindow}`;
+      actionDirective = `Outdoor PM2.5 is moderate (${safePm} µg/m³), and we are currently outside the convective dispersion window (${cleanAirWindow.displayWindow}). Keep windows sealed for now and ventilate during the midday window.`;
+      safetyReason = `Outdoor PM2.5 (${safePm} µg/m³) is in the 31–60 µg/m³ moderate band, outside the active diurnal flush window (${cleanAirWindow.displayWindow}).`;
     } else {
       safeWindowText = 'Keep windows closed: Outdoor air exceeds safe ventilation limit';
       actionDirective = `Outdoor PM2.5 is ${safePm} µg/m³. Natural ventilation is not recommended because outdoor air will degrade your indoor environment. Keep windows closed and utilize indoor filtration.`;

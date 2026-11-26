@@ -11,8 +11,8 @@
   }
   
   body {
-    background-color: #FAFBF8;
-    color: #0F172A;
+    background-color: #EAF4FC;
+    color: #0F2C4C;
   }
 }
 
@@ -28,19 +28,6 @@ select::-ms-expand {
   display: none !important;
 }
 
-/* Atmospheric subtle glow classes */
-.ambient-glow-good {
-  background: radial-gradient(circle at 50% 0%, rgba(45, 106, 79, 0.08) 0%, rgba(250, 251, 248, 0) 70%);
-}
-
-.ambient-glow-moderate {
-  background: radial-gradient(circle at 50% 0%, rgba(217, 119, 6, 0.08) 0%, rgba(250, 251, 248, 0) 70%);
-}
-
-.ambient-glow-severe {
-  background: radial-gradient(circle at 50% 0%, rgba(153, 27, 27, 0.09) 0%, rgba(250, 251, 248, 0) 70%);
-}
-
 /* Custom subtle scrollbars */
 ::-webkit-scrollbar {
   width: 5px;
@@ -52,10 +39,10 @@ select::-ms-expand {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #E2E8F0;
+  background: #BFD9EE;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #CBD5E1;
+  background: #94BFE2;
 }
