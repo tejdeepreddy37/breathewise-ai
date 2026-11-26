@@ -357,7 +357,7 @@ export const InteractiveGlobe: React.FC<{
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 1000);
-    camera.position.set(0, 0, 7.65);
+    camera.position.set(0, 0, 8.65);
     cameraRef.current = camera;
 
     // 2. WebGL Renderer with High-DPI & Antialiasing
@@ -443,14 +443,14 @@ export const InteractiveGlobe: React.FC<{
     globeGroup.add(glowMesh);
 
     // 7. Ambient Daylight Sky Lighting System
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.05);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(ambientLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x38bdf8, 0.85);
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x38bdf8, 0.9);
     scene.add(hemiLight);
 
     // Primary Sun directional light from upper-left
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.05);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.15);
     sunLight.position.set(-4, 5, 6);
     scene.add(sunLight);
 
@@ -605,16 +605,16 @@ export const InteractiveGlobe: React.FC<{
         }}
       />
 
-      {/* Crisp Thin Elliptical White/Cyan Orbital Curves Framing the Earth (Unclipped, Target Image 2) */}
+      {/* Crisp Thin Elliptical White/Cyan Orbital Curves Framing Outside the Earth (Image 2 Match) */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible"
-        viewBox="-50 -20 600 540"
+        viewBox="-60 -30 620 560"
         preserveAspectRatio="xMidYMid meet"
         fill="none"
       >
         <defs>
-          <filter id="orbitGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="1.6" result="blur" />
+          <filter id="orbitGlow" x="-25%" y="-25%" width="150%" height="150%">
+            <feGaussianBlur stdDeviation="2.2" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -624,21 +624,21 @@ export const InteractiveGlobe: React.FC<{
         <ellipse
           cx="250"
           cy="250"
-          rx="278"
-          ry="162"
+          rx="272"
+          ry="152"
           transform="rotate(-24 250 250)"
-          stroke="rgba(255, 255, 255, 0.8)"
-          strokeWidth="1.3"
+          stroke="rgba(255, 255, 255, 0.88)"
+          strokeWidth="1.4"
           filter="url(#orbitGlow)"
         />
         <ellipse
           cx="250"
           cy="250"
-          rx="262"
-          ry="142"
+          rx="258"
+          ry="136"
           transform="rotate(20 250 250)"
-          stroke="rgba(224, 242, 254, 0.68)"
-          strokeWidth="1.05"
+          stroke="rgba(224, 242, 254, 0.78)"
+          strokeWidth="1.15"
           filter="url(#orbitGlow)"
         />
       </svg>
