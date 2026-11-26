@@ -1,21 +1,19 @@
 import React from 'react';
 import { useApp } from './context/AppContext';
-import { Header } from './components/Header';
-import { HeroDirective } from './components/HeroDirective';
-import { MetricsStrip } from './components/MetricsStrip';
-import { DiurnalChart } from './components/DiurnalChart';
+import { Sidebar } from './components/Sidebar';
+import { OverviewWorkspace } from './components/OverviewWorkspace';
 import { CommuteSimulator } from './components/CommuteSimulator';
 import { IndoorCoachView } from './components/IndoorCoachView';
 import { WhatIfSimulator } from './components/WhatIfSimulator';
 import { AiAssistantWorkspace } from './components/AiAssistantWorkspace';
-import { SubpageContextBar } from './components/SubpageContextBar';
+import { IndiaLocationPicker } from './components/IndiaLocationPicker';
 import { TransparencyDrawer } from './components/TransparencyDrawer';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { LandingPage } from './components/LandingPage';
-import { AlertTriangle, RefreshCw, Car, Home, Sliders, Sparkles } from 'lucide-react';
+import { AlertTriangle, RefreshCw, FlaskConical } from 'lucide-react';
 
 export const App: React.FC = () => {
-  const { activeTab, telemetryError, refreshData, isLoadingTelemetry } = useApp();
+  const { activeTab, setActiveTab, telemetryError, refreshData, isLoadingTelemetry, setIsTransparencyOpen } = useApp();
 
   if (activeTab === 'landing') {
     return (
@@ -26,10 +24,43 @@ export const App: React.FC = () => {
     );
   }
 
+  const getHeaderMeta = () => {
+    if (activeTab === 'commute') {
+      return {
+        title: 'Commute Intelligence',
+        subtitle: 'Plan a cleaner, healthier commute with exposure-aware insights',
+      };
+    }
+    if (activeTab === 'indoor') {
+      return {
+        title: 'Indoor Air Intelligence',
+        subtitle: 'Understand and improve the air quality inside your spaces',
+      };
+    }
+    if (activeTab === 'exposure' || activeTab === 'simulator') {
+      return {
+        title: 'Exposure / What-If Analysis',
+        subtitle: 'Estimate your personal exposure and compare different scenarios',
+      };
+    }
+    if (activeTab === 'advisor' || activeTab === 'assistant') {
+      return {
+        title: 'AI Advisor',
+        subtitle: 'Your personal air quality and health assistant',
+      };
+    }
+    return {
+      title: 'Air Intelligence Overview',
+      subtitle: 'Real-time air quality, trends, and health insights for your location',
+    };
+  };
+
+  const headerMeta = getHeaderMeta();
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#DCEEFB] via-[#EAF4FC] to-[#F3F8FD] flex flex-col font-sans text-[#0F2C4C] pb-20 md:pb-12 selection:bg-[#BAE6FD] selection:text-[#0C2D57] relative overflow-x-hidden">
-      {/* Subtle Atmospheric Sky Backdrop */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-45">
+    <div className="min-h-screen bg-gradient-to-br from-[#EAF4FD] via-[#DDF0FC] to-[#CFE9FB] flex font-sans text-[#0C2340] selection:bg-[#BAE6FD] selection:text-[#0C2340] relative overflow-x-hidden">
+      {/* Subtle Bottom Horizon Clouds Matching Reference Panels 2–6 */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-40">
         <img
           src={`${import.meta.env.BASE_URL}images/sky-clouds-backdrop.png`}
           alt=""
@@ -37,100 +68,87 @@ export const App: React.FC = () => {
         />
       </div>
 
-      <Header />
+      {/* Desktop Left Sidebar */}
+      <Sidebar />
 
-      {/* Main Container */}
-      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-3.5 sm:py-5 space-y-4 overflow-x-hidden">
-        {/* Honest Telemetry Unavailable Banner */}
-        {telemetryError && (
-          <div className="rounded-2xl bg-amber-50/95 border border-amber-300 px-4 py-3 flex items-center justify-between gap-3 text-xs text-amber-900 shadow-xs">
-            <div className="flex items-center space-x-2.5">
-              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>{telemetryError}</span>
+      {/* Main Content Area */}
+      <div className="relative z-10 flex-1 flex flex-col min-w-0 pb-20 md:pb-8">
+        {/* Mobile Brand + Utility Bar */}
+        <div className="md:hidden flex items-center justify-between gap-2 px-3 py-2.5 bg-white/75 backdrop-blur-md border-b border-white/85">
+          <button
+            type="button"
+            onClick={() => setActiveTab('landing')}
+            className="flex items-center space-x-1.5 shrink-0 cursor-pointer"
+          >
+            <div className="w-7 h-7 rounded-full bg-gradient-to-b from-[#38BDF8] to-[#0284C7] flex items-center justify-center text-white shrink-0">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+              </svg>
             </div>
+            <span className="font-extrabold text-sm text-[#0C2340] whitespace-nowrap">
+              BreatheWise <span className="text-[#10B981]">AI</span>
+            </span>
+          </button>
+
+          <div className="flex items-center space-x-1.5 min-w-0">
+            <IndiaLocationPicker />
             <button
               type="button"
-              onClick={refreshData}
-              disabled={isLoadingTelemetry}
-              className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold transition-colors cursor-pointer shrink-0"
+              onClick={() => setIsTransparencyOpen(true)}
+              aria-label="Science & Methodology"
+              className="p-2 rounded-full bg-white border border-[#CBE0F2] text-[#0284C7] shrink-0"
             >
-              <RefreshCw className={`w-3 h-3 ${isLoadingTelemetry ? 'animate-spin' : ''}`} />
-              <span>Retry</span>
+              <FlaskConical className="w-4 h-4" />
             </button>
           </div>
-        )}
+        </div>
 
-        {/* 1. Overview Workspace */}
-        {activeTab === 'overview' && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            <HeroDirective />
-            <MetricsStrip />
+        <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-5">
+          {/* Consistent Top Workspace Header Row (Title + Subtitle on Left, Location Picker on Right) */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black text-[#0C2340] tracking-tight">
+                {headerMeta.title}
+              </h1>
+              <p className="text-xs sm:text-sm text-[#476788] font-medium">
+                {headerMeta.subtitle}
+              </p>
+            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
-              <div className="w-full order-1 flex flex-col">
-                <DiurnalChart />
-              </div>
-              <div className="w-full order-2 flex flex-col">
-                <WhatIfSimulator />
-              </div>
-              <div className="w-full order-4 lg:order-3 flex flex-col">
-                <CommuteSimulator />
-              </div>
-              <div className="w-full order-3 lg:order-4 flex flex-col">
-                <IndoorCoachView />
-              </div>
+            <div className="hidden md:block shrink-0">
+              <IndiaLocationPicker />
             </div>
           </div>
-        )}
 
-        {/* 2. Dedicated Commute Workspace */}
-        {activeTab === 'commute' && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            <SubpageContextBar
-              title="Commute Exposure & Eco-Swap Optimizer"
-              subtitle="Analyze urban travel modes to minimize inhaled particulate dose and reduce transit carbon footprint."
-              icon={<Car className="w-4 h-4 text-[#0284C7]" />}
-            />
-            <CommuteSimulator isDedicatedWorkspace={true} />
-          </div>
-        )}
+          {/* Honest Unavailable Telemetry Banner */}
+          {telemetryError && (
+            <div className="rounded-2xl bg-amber-50/95 border border-amber-300 px-4 py-3 flex items-center justify-between gap-3 text-xs text-amber-900 shadow-xs">
+              <div className="flex items-center space-x-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>{telemetryError}</span>
+              </div>
+              <button
+                type="button"
+                onClick={refreshData}
+                disabled={isLoadingTelemetry}
+                className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold transition-colors cursor-pointer shrink-0"
+              >
+                <RefreshCw className={`w-3 h-3 ${isLoadingTelemetry ? 'animate-spin' : ''}`} />
+                <span>Retry</span>
+              </button>
+            </div>
+          )}
 
-        {/* 3. Dedicated Indoor Workspace */}
-        {activeTab === 'indoor' && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            <SubpageContextBar
-              title="Indoor Air Envelope & Ventilation Coach"
-              subtitle="Dynamic mass-balance modeling, infiltration control, and air purifier performance optimization."
-              icon={<Home className="w-4 h-4 text-[#0284C7]" />}
-            />
-            <IndoorCoachView isDedicatedWorkspace={true} />
-          </div>
-        )}
-
-        {/* 4. Dedicated Exposure Workspace */}
-        {(activeTab === 'simulator' || activeTab === 'exposure') && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            <SubpageContextBar
-              title="What-If Respiratory Exposure Sandbox"
-              subtitle="Calculate particulate intake and simulate protective intervention reductions using physical ventilation rates."
-              icon={<Sliders className="w-4 h-4 text-[#0284C7]" />}
-            />
+          {/* 5 Workspace Views */}
+          {activeTab === 'overview' && <OverviewWorkspace />}
+          {activeTab === 'commute' && <CommuteSimulator isDedicatedWorkspace={true} />}
+          {activeTab === 'indoor' && <IndoorCoachView isDedicatedWorkspace={true} />}
+          {(activeTab === 'exposure' || activeTab === 'simulator') && (
             <WhatIfSimulator isDedicatedWorkspace={true} />
-          </div>
-        )}
-
-        {/* 5. Dedicated AI Advisor Workspace */}
-        {(activeTab === 'assistant' || activeTab === 'advisor') && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            <SubpageContextBar
-              title="BreatheWise AI Living Assistant"
-              subtitle="Adaptive 24-hour daily routine timeline and personalized air-health guidance."
-              icon={<Sparkles className="w-4 h-4 text-[#0284C7]" />}
-            />
-            <AiAssistantWorkspace />
-          </div>
-        )}
-      </main>
+          )}
+          {(activeTab === 'advisor' || activeTab === 'assistant') && <AiAssistantWorkspace />}
+        </main>
+      </div>
 
       <TransparencyDrawer />
       <MobileBottomNav />

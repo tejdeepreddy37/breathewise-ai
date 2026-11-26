@@ -362,10 +362,12 @@ export async function askBreatheWiseAssistant(
   telemetry: EnvironmentalTelemetry,
   window: CleanAirWindow,
   profile: VulnerabilityProfile,
-  customApiKey?: string
+  customApiKey?: string,
+  scenarioSummary?: string
 ): Promise<string> {
   const qLower = (question || '').toLowerCase();
-  const pm = telemetry.current.pm25;
+  const isUnavailable = Boolean(telemetry.metadata.isUnavailable);
+  const pm = typeof telemetry.current.pm25 === 'number' && Number.isFinite(telemetry.current.pm25) ? telemetry.current.pm25 : 0;
 
   // CRITICAL SAFETY GATE: Medical Triage, Clinical Diagnosis & Prescription Refusal
   // Executes UNCONDITIONALLY before API key evaluation, before network calls, before LLM request
@@ -386,7 +388,14 @@ export async function askBreatheWiseAssistant(
     qLower.includes('prescri') ||
     qLower.includes('shortness of breath')
   ) {
-    return `Medical & Clinical Triage Notice:\nBreatheWise AI is an environmental lifestyle and exposure-reduction assistant, NOT a medical diagnostic or clinical prescribing service.\n\nWe cannot recommend medication dosages, advise on prescription inhaler adjustments, or diagnose clinical symptoms.\n\n• If you are experiencing acute shortness of breath, continuous wheezing, chest tightness, or declining peak flow, please consult your licensed physician or seek emergency medical care immediately.\n• Environmental Safety Advice: In ${telemetry.city}, current PM2.5 is ${pm} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}). Maintain a sealed indoor envelope with continuous HEPA filtration active, and avoid any outdoor physical exertion.`;
+    const telemetryStatus = isUnavailable
+      ? `Live atmospheric readings are currently unavailable for ${telemetry.city}.`
+      : `In ${telemetry.city}, current PM2.5 is ${pm} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}).`;
+    return `Medical & Clinical Triage Notice:\nBreatheWise AI is an environmental lifestyle and exposure-reduction assistant, NOT a medical diagnostic or clinical prescribing service.\n\nWe cannot recommend medication dosages, advise on prescription inhaler adjustments, or diagnose clinical symptoms.\n\n• If you are experiencing acute shortness of breath, continuous wheezing, chest tightness, or declining peak flow, please consult your licensed physician or seek emergency medical care immediately.\n• Environmental Safety Advice: ${telemetryStatus} Maintain a sealed indoor envelope with continuous HEPA filtration active, and avoid any outdoor physical exertion.`;
+  }
+
+  if (isUnavailable && !qLower.includes('mask') && !qLower.includes('cpcb') && !qLower.includes('plant')) {
+    return `Telemetry Unavailable for ${telemetry.city}, ${telemetry.state} (${telemetry.metadata.latitude.toFixed(2)}°N, ${telemetry.metadata.longitude.toFixed(2)}°E):\nLive atmospheric measurements are currently unavailable for this location (no fabricated readings are used).\n\n• Retry the live connection in the header, or select a calibrated monitoring station from the location picker for live guidance.\n${scenarioSummary ? `• Your active scenario context: ${scenarioSummary}` : ''}`;
   }
 
   const apiKey = customApiKey || import.meta.env?.VITE_GEMINI_API_KEY;
@@ -488,7 +497,8 @@ export async function askBreatheWiseAssistant(
     }
 
     // Default: General Overview
-    return `In ${telemetry.city} (${provenanceLabel}), current PM2.5 is ${telemetry.current.pm25} µg/m³ and CPCB NAQI is ${telemetry.current.aqi} (${telemetry.current.aqiCategory}, driven by ${telemetry.current.primaryPollutant}). Today's lowest relative exposure window is ${window.displayWindow} (${window.statusLabel}). For your ${profile.replace('_', ' ')} profile, prioritize barrier protection (N95) during rush hours and keep indoor spaces sealed when outdoor PM2.5 exceeds 60 µg/m³.`;
+    const scenarioNote = scenarioSummary ? `\n\nActive Scenario Context: ${scenarioSummary}` : '';
+    return `In ${telemetry.city} (${provenanceLabel}), current PM2.5 is ${telemetry.current.pm25} µg/m³ and CPCB NAQI is ${telemetry.current.aqi} (${telemetry.current.aqiCategory}, driven by ${telemetry.current.primaryPollutant}). Today's lowest relative exposure window is ${window.displayWindow} (${window.statusLabel}). For your ${profile.replace('_', ' ')} profile, prioritize barrier protection (N95) during rush hours and keep indoor spaces sealed when outdoor PM2.5 exceeds 60 µg/m³.${scenarioNote}`;
   };
 
   if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY') {
@@ -508,6 +518,7 @@ Current verified environmental context for ${telemetry.city}, ${telemetry.state}
 - Lowest Exposure Window: ${window.displayWindow} (${window.statusLabel})
 - Active Vulnerability Profile: ${profile}
 - Ozone Warning: ${window.ozoneRiskWarning || 'None'}
+${scenarioSummary ? `- User Active Scenarios: ${scenarioSummary}` : ''}
 
 STRICT RULES:
 1. If PM2.5 > 60 µg/m³ or O3 > 100 µg/m³, NEVER tell the user to open windows or ventilate.

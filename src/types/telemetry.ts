@@ -47,6 +47,7 @@ export interface StationMetadata {
   modelTimestamp?: string;
   isLive: boolean;
   isSimulated: boolean;
+  isUnavailable?: boolean;
   attribution: string;
 }
 

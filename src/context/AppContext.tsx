@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { EnvironmentalTelemetry } from '../types/telemetry';
-import { CleanAirWindow, VulnerabilityProfile } from '../types/engines';
+import { CleanAirWindow, VulnerabilityProfile, ActivityType, CommuteMode, IndoorSourceType } from '../types/engines';
+import { MASK_EFFICIENCIES } from '../engines/inhaledDose';
 import { UserPreferences, DEFAULT_USER_PREFERENCES } from '../types/user';
 import { GroundedAiLivingPlan } from '../types/ai';
 import { getCityTelemetry, resolveLocationById } from '../services/telemetryService';
@@ -10,6 +11,54 @@ import { FALLBACK_TELEMETRY } from '../data/staticFallback';
 import { INDIA_LOCATIONS, IndiaLocation } from '../data/indiaLocations';
 
 export type NavigationTab = 'landing' | 'overview' | 'diurnal' | 'commute' | 'indoor' | 'simulator' | 'assistant' | 'exposure' | 'advisor';
+
+export interface ActiveScenarioState {
+  commute: {
+    origin: string;
+    destination: string;
+    distanceKm: number;
+    mode: CommuteMode;
+  };
+  indoor: {
+    roomType: string;
+    roomAreaM2: number;
+    ceilingHeightM: number;
+    ventilationAch: number;
+    usingPurifier: boolean;
+    purifierCadr: number;
+    indoorSource: IndoorSourceType;
+  };
+  exposure: {
+    activity: ActivityType;
+    durationMinutes: number;
+    maskType: keyof typeof MASK_EFFICIENCIES;
+    pm25Source: 'city' | 'benchmark' | 'severe';
+  };
+}
+
+const DEFAULT_SCENARIO_STATE: ActiveScenarioState = {
+  commute: {
+    origin: 'Home Locality',
+    destination: 'Work Corridor',
+    distanceKm: 16.8,
+    mode: 'ac_cab',
+  },
+  indoor: {
+    roomType: 'Bedroom',
+    roomAreaM2: 12,
+    ceilingHeightM: 2.8,
+    ventilationAch: 0.5,
+    usingPurifier: true,
+    purifierCadr: 300,
+    indoorSource: 'none',
+  },
+  exposure: {
+    activity: 'light_walking',
+    durationMinutes: 60,
+    maskType: 'n95',
+    pm25Source: 'city',
+  },
+};
 
 interface AppContextType {
   selectedCityId: string;
@@ -35,6 +84,8 @@ interface AppContextType {
   setActiveTab: (tab: NavigationTab) => void;
   setIsTransparencyOpen: (open: boolean) => void;
   refreshData: () => Promise<void>;
+  scenarioState: ActiveScenarioState;
+  updateScenario: <K extends keyof ActiveScenarioState>(section: K, patch: Partial<ActiveScenarioState[K]>) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -73,7 +124,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   });
 
-  // Secure session-only storage for API key (wiped when browser tab closes, never in localStorage)
+  const [scenarioState, setScenarioState] = useState<ActiveScenarioState>(DEFAULT_SCENARIO_STATE);
+
+  const updateScenario = useCallback(<K extends keyof ActiveScenarioState>(section: K, patch: Partial<ActiveScenarioState[K]>) => {
+    setScenarioState((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        ...patch,
+      },
+    }));
+  }, []);
+
   const [sessionApiKey, setSessionApiKeyState] = useState<string>(() => {
     try {
       return sessionStorage.getItem('breathewise_session_gemini_key') || '';
@@ -221,8 +283,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const fallback = FALLBACK_TELEMETRY[loc.id];
         setTelemetry(fallback);
         setCleanAirWindow(calculateCleanAirWindow(fallback.hourly));
+      } else {
+        // Explicitly clear stale values from previous city and mark telemetry Unavailable
+        setTelemetry({
+          city: loc.name,
+          state: loc.state,
+          country: 'India',
+          current: {
+            pm25: NaN,
+            pm10: null,
+            no2: null,
+            so2: null,
+            co: null,
+            o3: null,
+            aqi: NaN,
+            aqiCategory: 'Moderate',
+            primaryPollutant: 'Unavailable',
+            aqiStandard: 'Indian CPCB NAQI',
+          },
+          weather: {
+            temperature: NaN,
+            humidity: NaN,
+            windSpeed: NaN,
+            windDirection: 0,
+            surfacePressure: NaN,
+            weatherDescription: 'Telemetry unavailable offline',
+            isThermalInversionLikely: false,
+          },
+          hourly: [],
+          metadata: {
+            provider: 'Open-Meteo (Copernicus Atmosphere Grid)',
+            stationName: `${loc.name}, ${loc.state}`,
+            latitude: loc.lat,
+            longitude: loc.lon,
+            fetchTimestamp: 'Telemetry Unavailable',
+            isLive: false,
+            isSimulated: false,
+            isUnavailable: true,
+            attribution: 'Live telemetry unavailable; no fabricated values shown.',
+          },
+        });
       }
-      // Do NOT fabricate fake AQI data for uncalibrated locations when live telemetry fails
     } finally {
       if (requestId === latestRequestIdRef.current) {
         setIsLoadingTelemetry(false);
@@ -259,7 +360,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         (pos) => {
           const lat = Number(pos.coords.latitude.toFixed(4));
           const lon = Number(pos.coords.longitude.toFixed(4));
-          // Find nearest known Indian location within ~35km for friendly naming, or label by coordinates
           let nearest: IndiaLocation | null = null;
           let minDist = Infinity;
           for (const loc of INDIA_LOCATIONS) {
@@ -349,6 +449,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActiveTab,
         setIsTransparencyOpen,
         refreshData,
+        scenarioState,
+        updateScenario,
       }}
     >
       {children}

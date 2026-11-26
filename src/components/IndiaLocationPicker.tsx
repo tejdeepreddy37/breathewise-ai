@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import {
   INDIA_STATES_AND_UTS,
   IndiaLocation,
+  getDistrictsForState,
   searchLocalIndiaLocations,
   searchRemoteIndiaLocations,
 } from '../data/indiaLocations';
@@ -13,6 +14,7 @@ export const IndiaLocationPicker: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedState, setSelectedState] = useState<string>('ALL');
+  const [selectedDistrict, setSelectedDistrict] = useState<string>('ALL');
   const [remoteResults, setRemoteResults] = useState<IndiaLocation[]>([]);
   const [isSearchingRemote, setIsSearchingRemote] = useState(false);
   const [isDetectingGps, setIsDetectingGps] = useState(false);
@@ -33,6 +35,10 @@ export const IndiaLocationPicker: React.FC = () => {
   }, [isOpen]);
 
   useEffect(() => {
+    setSelectedDistrict('ALL');
+  }, [selectedState]);
+
+  useEffect(() => {
     const q = query.trim();
     if (q.length < 3) {
       setRemoteResults([]);
@@ -47,7 +53,8 @@ export const IndiaLocationPicker: React.FC = () => {
     return () => clearTimeout(timer);
   }, [query]);
 
-  const localResults = searchLocalIndiaLocations(query, selectedState);
+  const availableDistricts = getDistrictsForState(selectedState);
+  const localResults = searchLocalIndiaLocations(query, selectedState, selectedDistrict);
   const seenNames = new Set(localResults.map((l) => `${l.name.toLowerCase()}-${l.state.toLowerCase()}`));
   const mergedResults = [
     ...localResults,
@@ -82,48 +89,59 @@ export const IndiaLocationPicker: React.FC = () => {
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="Select Indian Location"
-        className="flex items-center space-x-1.5 bg-white/90 hover:bg-white text-[#0F2C4C] text-xs font-semibold py-1.5 px-3 rounded-full border border-[#CBE0F2] shadow-xs transition-all cursor-pointer max-w-[190px] sm:max-w-[260px]"
+        className="inline-flex items-center space-x-1.5 sm:space-x-2 bg-white/90 hover:bg-white text-[#0F2C4C] text-xs font-bold py-1.5 sm:py-2 px-2.5 sm:px-3.5 rounded-full border border-white shadow-soft transition-all cursor-pointer max-w-[165px] sm:max-w-[290px]"
       >
-        <MapPin className="w-3.5 h-3.5 text-[#0891B2] shrink-0" />
+        <MapPin className="w-3.5 h-3.5 text-[#0EA5E9] shrink-0" />
         <span className="truncate">{displayLabel}</span>
         <ChevronDown className={`w-3.5 h-3.5 text-[#5A7896] shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 mt-2 w-[310px] sm:w-[370px] rounded-2xl bg-white/98 backdrop-blur-xl border border-[#CBE0F2] shadow-elevated z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-          <div className="p-3 bg-gradient-to-b from-[#F0F7FD] to-white border-b border-[#E2EFFA] space-y-2.5">
+        <div className="absolute right-0 mt-2 w-[310px] sm:w-[400px] rounded-2xl bg-white/98 backdrop-blur-xl border border-[#CBE0F2] shadow-elevated z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <div className="p-3.5 bg-gradient-to-b from-[#F0F7FD] to-white border-b border-[#E2EFFA] space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#1E4976]">
                 India-Wide Location Search
               </span>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="p-1 rounded-full hover:bg-[#E2EFFA] text-[#5A7896] cursor-pointer"
-                aria-label="Close location picker"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex items-center space-x-1.5">
+                <button
+                  type="button"
+                  onClick={handleUseGps}
+                  disabled={isDetectingGps}
+                  className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-[#E6F4FA] hover:bg-[#D4ECFA] text-[#0369A1] border border-[#BAE0F5] text-[10px] font-bold transition-colors cursor-pointer"
+                >
+                  {isDetectingGps ? <Loader2 className="w-3 h-3 animate-spin" /> : <Navigation className="w-3 h-3" />}
+                  <span>My Location</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 rounded-full hover:bg-[#E2EFFA] text-[#5A7896] cursor-pointer"
+                  aria-label="Close location picker"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
-            {/* Search Input */}
+            {/* Direct Search Input */}
             <div className="relative">
               <Search className="w-3.5 h-3.5 text-[#5A7896] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search any city, district, or town in India..."
-                className="w-full pl-8 pr-8 py-1.5 text-xs bg-white border border-[#CBE0F2] rounded-xl text-[#0F2C4C] placeholder-[#7B97B2] focus:outline-none focus:ring-2 focus:ring-[#0891B2]/30"
+                placeholder="Search any city, town, district, or state..."
+                className="w-full pl-8 pr-8 py-1.5 text-xs bg-white border border-[#CBE0F2] rounded-xl text-[#0F2C4C] placeholder-[#7B97B2] focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]/30"
               />
               {isSearchingRemote && (
-                <Loader2 className="w-3.5 h-3.5 text-[#0891B2] animate-spin absolute right-2.5 top-1/2 -translate-y-1/2" />
+                <Loader2 className="w-3.5 h-3.5 text-[#0EA5E9] animate-spin absolute right-2.5 top-1/2 -translate-y-1/2" />
               )}
             </div>
 
-            {/* State / UT Filter + GPS Button */}
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
+            {/* Hierarchical State/UT -> District Selectors */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="relative">
                 <select
                   aria-label="Filter by State or Union Territory"
                   value={selectedState}
@@ -140,19 +158,22 @@ export const IndiaLocationPicker: React.FC = () => {
                 <ChevronDown className="w-3 h-3 text-[#5A7896] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
 
-              <button
-                type="button"
-                onClick={handleUseGps}
-                disabled={isDetectingGps}
-                className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-[#E6F4FA] hover:bg-[#D4ECFA] text-[#0369A1] border border-[#BAE0F5] text-[11px] font-bold transition-colors cursor-pointer shrink-0"
-              >
-                {isDetectingGps ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  <Navigation className="w-3 h-3" />
-                )}
-                <span>My Location</span>
-              </button>
+              <div className="relative">
+                <select
+                  aria-label="Filter by District"
+                  value={selectedDistrict}
+                  onChange={(e) => setSelectedDistrict(e.target.value)}
+                  className="w-full bg-white border border-[#CBE0F2] rounded-xl py-1.5 pl-2.5 pr-6 text-[11px] font-semibold text-[#0F2C4C] focus:outline-none cursor-pointer truncate"
+                >
+                  <option value="ALL">All Districts ({availableDistricts.length})</option>
+                  {availableDistricts.map((dist) => (
+                    <option key={dist} value={dist}>
+                      {dist}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3 h-3 text-[#5A7896] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
 
             {gpsError && (
@@ -162,11 +183,11 @@ export const IndiaLocationPicker: React.FC = () => {
             )}
           </div>
 
-          {/* Results List */}
+          {/* City / Town Results List */}
           <div className="max-h-64 overflow-y-auto divide-y divide-[#F0F7FD]">
             {mergedResults.length === 0 ? (
               <div className="p-4 text-center text-xs text-[#5A7896]">
-                No matching Indian locations found. Try typing a city or district name.
+                No matching Indian locations found. Try typing a city, town, or district name.
               </div>
             ) : (
               mergedResults.slice(0, 50).map((loc) => {
@@ -193,7 +214,7 @@ export const IndiaLocationPicker: React.FC = () => {
                         {loc.district} • {loc.state} ({loc.lat.toFixed(2)}°N, {loc.lon.toFixed(2)}°E)
                       </div>
                     </div>
-                    {isSelected && <Check className="w-4 h-4 text-[#0891B2] shrink-0" />}
+                    {isSelected && <Check className="w-4 h-4 text-[#0EA5E9] shrink-0" />}
                   </button>
                 );
               })

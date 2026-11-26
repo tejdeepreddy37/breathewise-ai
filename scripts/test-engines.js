@@ -884,6 +884,51 @@ async function runRealModuleTests() {
 
     const provExplain = await mod.askBreatheWiseAssistant('Is this based on live data?', [], testTelemetry, testWindow, 'normal_adult', '');
     assert(provExplain.includes('Calibrated Regional Baseline') && !provExplain.includes('Live Copernicus CAMS (Live'), 'AI accurately discloses calibrated baseline provenance without pretending it is live');
+
+    // --- 22. Testing State->District Cascade, Unavailable Telemetry Guard & Scenario Context ---
+    console.log('\n--- 22. Testing State->District Cascade, Unavailable State & AI Scenario Context ---');
+    const karnatakaDistricts = mod.getDistrictsForState('Karnataka');
+    assert(Array.isArray(karnatakaDistricts) && karnatakaDistricts.includes('Bengaluru Urban') && karnatakaDistricts.includes('Mysuru'), `Karnataka districts include Bengaluru Urban & Mysuru (got ${karnatakaDistricts.length})`);
+
+    const filteredBengaluru = mod.searchLocalIndiaLocations('', 'Karnataka', 'Bengaluru Urban');
+    assert(filteredBengaluru.length >= 1 && filteredBengaluru.every((l) => l.state === 'Karnataka' && l.district === 'Bengaluru Urban'), 'State + District filter restricts results strictly to Bengaluru Urban, Karnataka');
+
+    const unavailableTelemetry = {
+      ...testTelemetry,
+      city: 'Remote Village',
+      state: 'Rajasthan',
+      current: {
+        ...testTelemetry.current,
+        pm25: NaN,
+        pm10: null,
+        no2: null,
+        so2: null,
+        co: null,
+        o3: null,
+        aqi: 0,
+        aqiCategory: 'Unavailable',
+        primaryPollutant: 'Unavailable',
+      },
+      metadata: {
+        ...testTelemetry.metadata,
+        isLive: false,
+        isSimulated: false,
+        isUnavailable: true,
+        fetchTimestamp: 'Telemetry Unavailable',
+      },
+    };
+
+    const unavailReply = await mod.askBreatheWiseAssistant(
+      'Can I go for an outdoor run?',
+      [],
+      unavailableTelemetry,
+      testWindow,
+      'normal_adult',
+      '',
+      'Active Scenario -> Commute: Bike 10 km; Exposure: Running 45 min with N95'
+    );
+    assert(unavailReply.includes('Telemetry Unavailable for Remote Village, Rajasthan'), 'Unavailable telemetry triggers honest Telemetry Unavailable disclosure');
+    assert(unavailReply.includes('no fabricated readings') && unavailReply.includes('Commute: Bike 10 km'), 'Unavailable reply avoids fabricated numbers and reflects active scenario context');
   } finally {
     globalThis.fetch = origFetch;
     fs.rmSync(tmpDir, { recursive: true, force: true });

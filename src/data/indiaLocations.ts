@@ -195,10 +195,25 @@ export const INDIA_LOCATIONS: IndiaLocation[] = [
   { id: 'kavaratti', name: 'Kavaratti', district: 'Lakshadweep', state: 'Lakshadweep', lat: 10.5593, lon: 72.6358 },
 ];
 
-export function searchLocalIndiaLocations(query: string, stateFilter?: string): IndiaLocation[] {
+export function getDistrictsForState(stateFilter?: string): string[] {
+  const districts = new Set<string>();
+  for (const loc of INDIA_LOCATIONS) {
+    if (!stateFilter || stateFilter === 'ALL' || loc.state === stateFilter) {
+      districts.add(loc.district);
+    }
+  }
+  return Array.from(districts).sort((a, b) => a.localeCompare(b));
+}
+
+export function searchLocalIndiaLocations(
+  query: string,
+  stateFilter?: string,
+  districtFilter?: string
+): IndiaLocation[] {
   const q = query.trim().toLowerCase();
   return INDIA_LOCATIONS.filter((loc) => {
     if (stateFilter && stateFilter !== 'ALL' && loc.state !== stateFilter) return false;
+    if (districtFilter && districtFilter !== 'ALL' && loc.district !== districtFilter) return false;
     if (!q) return true;
     return (
       loc.name.toLowerCase().includes(q) ||
