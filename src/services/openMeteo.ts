@@ -67,6 +67,7 @@ export async function fetchOpenMeteoTelemetry(
       co: coMg,
     });
 
+    const hasLiveWeather = Boolean(weatherData && weatherData.current);
     const currentWeather = weatherData?.current || {};
     const temp = Math.round(currentWeather.temperature_2m ?? 22);
     const humidity = Math.round(currentWeather.relative_humidity_2m ?? 60);
@@ -83,7 +84,9 @@ export async function fetchOpenMeteoTelemetry(
       windSpeed,
       windDirection: windDir,
       surfacePressure: pressure,
-      weatherDescription: isThermalInversion
+      weatherDescription: !hasLiveWeather
+        ? 'Defaulted atmospheric profile (weather feed unavailable)'
+        : isThermalInversion
         ? 'Thermal atmospheric inversion trapping ground-level emissions'
         : windSpeed > 12
         ? 'Active atmospheric convective mixing with steady dispersion'

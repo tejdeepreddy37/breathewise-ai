@@ -1042,6 +1042,48 @@ async function runRealModuleTests() {
       globalThis.clearTimeout = origClearTimeout;
     }
     assert(rejectedCleanly && clearTimeoutCalled, 'fetchOpenMeteoTelemetry clears timeout via finally on early network rejection');
+
+    console.log('\n--- 25. Testing Weather Fallback Honesty & Exposure Contextual AI ---');
+    globalThis.fetch = async (url) => {
+      if (String(url).includes('air-quality-api')) {
+        return {
+          ok: true,
+          json: async () => ({
+            current: { pm2_5: 42, pm10: 68, nitrogen_dioxide: 24, sulphur_dioxide: 8, carbon_monoxide: 400, ozone: 36, us_aqi: 117 },
+            hourly: {
+              time: ['2026-11-27T08:00', '2026-11-27T14:00'],
+              pm2_5: [55, 30],
+              pm10: [80, 50],
+              nitrogen_dioxide: [28, 18],
+              sulphur_dioxide: [8, 6],
+              ozone: [30, 42],
+              us_aqi: [149, 89],
+              boundary_layer_height: [320, 1100],
+            },
+          }),
+        };
+      }
+      return { ok: false, status: 503, statusText: 'Service Unavailable' };
+    };
+    const partialWeatherTelemetry = await mod.fetchOpenMeteoTelemetry(12.97, 77.59, 'Bengaluru', 'Karnataka');
+    assert(
+      partialWeatherTelemetry.weather.weatherDescription.includes('weather feed unavailable'),
+      'Partial weather failure is transparently disclosed in weatherDescription'
+    );
+
+    const exposureAiReply = await mod.askBreatheWiseAssistant(
+      'Interpret my personal exposure simulation: Outdoor Walk 60 min with N95',
+      [],
+      testTelemetry,
+      testWindow,
+      'pediatric',
+      '',
+      'Exposure: light_walking for 60 min, Mask=n95'
+    );
+    assert(
+      exposureAiReply.includes('Personal Exposure Interpretation') && exposureAiReply.includes('Mask=n95'),
+      'Exposure contextual AI prompt grounds response in inhaled dose equation and active scenario'
+    );
   } finally {
     globalThis.fetch = origFetch;
     fs.rmSync(tmpDir, { recursive: true, force: true });

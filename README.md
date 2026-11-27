@@ -8,7 +8,7 @@
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-2.0%20Flash-orange?style=flat-square&logo=google)](https://deepmind.google/technologies/gemini/)
-[![Tests](https://img.shields.io/badge/Tests-262%20Passed%2C%200%20Failed-brightgreen?style=flat-square)](scripts/test-engines.js)
+[![Tests](https://img.shields.io/badge/Tests-265%20Passed%2C%200%20Failed-brightgreen?style=flat-square)](scripts/test-engines.js)
 
 **Live App:** [https://tejdeepreddy37.github.io/breathewise-ai/](https://tejdeepreddy37.github.io/breathewise-ai/)  
 **Repository:** [https://github.com/tejdeepreddy37/breathewise-ai](https://github.com/tejdeepreddy37/breathewise-ai)
@@ -97,7 +97,7 @@ flowchart LR
 | **Styling** | Tailwind CSS `3.4.15`, `clsx`, `tailwind-merge` |
 | **3D & Visualization** | Three.js `0.187.0` (3D Earth Globe), Recharts `2.13.3` (24h Trend & Exposure Charts), Lucide React `0.460.0` |
 | **Generative AI** | `@google/generative-ai` (`0.21.0`) targeting `gemini-2.0-flash` + deterministic fallback |
-| **Testing** | Node.js test harness (`scripts/test-engines.js` — **262 Passed, 0 Failed**) |
+| **Testing** | Node.js test harness (`scripts/test-engines.js` — **265 Passed, 0 Failed**) |
 
 ---
 

@@ -82,6 +82,9 @@ interface AppContextType {
   refreshData: () => Promise<void>;
   scenarioState: ActiveScenarioState;
   updateScenario: <K extends keyof ActiveScenarioState>(section: K, patch: Partial<ActiveScenarioState[K]>) => void;
+  pendingAiPrompt: string | null;
+  askAiWithPrompt: (prompt: string) => void;
+  clearPendingAiPrompt: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -121,6 +124,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [scenarioState, setScenarioState] = useState<ActiveScenarioState>(DEFAULT_SCENARIO_STATE);
+  const [pendingAiPrompt, setPendingAiPrompt] = useState<string | null>(null);
+
+  const clearPendingAiPrompt = useCallback(() => {
+    setPendingAiPrompt(null);
+  }, []);
 
   const updateScenario = useCallback(<K extends keyof ActiveScenarioState>(section: K, patch: Partial<ActiveScenarioState[K]>) => {
     setScenarioState((prev) => ({
@@ -409,6 +417,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         refreshData,
         scenarioState,
         updateScenario,
+        pendingAiPrompt,
+        askAiWithPrompt: (prompt: string) => {
+          setPendingAiPrompt(prompt);
+          setActiveTab('advisor');
+        },
+        clearPendingAiPrompt,
       }}
     >
       {children}

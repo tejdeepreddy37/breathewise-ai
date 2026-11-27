@@ -13,7 +13,7 @@ import {
   Cell,
   LabelList,
 } from 'recharts';
-import { Activity, Clock, Wind, Shield, ChevronDown } from 'lucide-react';
+import { Activity, Clock, Wind, Shield, ChevronDown, Bot } from 'lucide-react';
 
 const ACTIVITY_LABELS: Record<ActivityType, string> = {
   resting_sleep: 'Resting (6 L/min)',
@@ -33,7 +33,7 @@ const MASK_LABELS: Record<keyof typeof MASK_EFFICIENCIES, string> = {
 };
 
 export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () => {
-  const { telemetry, scenarioState, updateScenario } = useApp();
+  const { telemetry, scenarioState, updateScenario, askAiWithPrompt } = useApp();
   const isUnavailable = Boolean(telemetry.metadata.isUnavailable);
   const cityPm25 =
     !isUnavailable && typeof telemetry.current.pm25 === 'number' && Number.isFinite(telemetry.current.pm25)
@@ -298,19 +298,33 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
       </div>
 
       {/* Bottom Takeaway Bar Matching Image 2 Bottom */}
-      <div className="rounded-2xl bg-white border border-white px-5 py-3.5 flex items-center space-x-3 text-[13px] shadow-[0_10px_28px_-8px_rgba(14,165,233,0.14)]">
-        <div className="w-8 h-8 rounded-lg bg-[#E0F2FE] border border-[#BAE6FD] flex items-center justify-center shrink-0">
-          <Shield className="w-4 h-4 text-[#0284C7]" />
+      <div className="rounded-2xl bg-white border border-white px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[13px] shadow-[0_10px_28px_-8px_rgba(14,165,233,0.14)]">
+        <div className="flex items-center space-x-3 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-[#E0F2FE] border border-[#BAE6FD] flex items-center justify-center shrink-0">
+            <Shield className="w-4 h-4 text-[#0284C7]" />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-2.5 min-w-0">
+            <span className="font-extrabold text-[#0C2340]">Takeaway</span>
+            <span className="text-[#CBD5E1]">|</span>
+            <span className="text-[#334E68] font-medium">
+              {maskType === 'none'
+                ? `Unprotected ${durationMinutes}-minute activity at ${activePm25} µg/m³ inhales ~${result.unmaskedDoseUg} µg PM₂.₅ (${result.whoExceedanceRatio}× WHO guideline). An N95 spares 95% of particulate mass.`
+                : `Using a ${maskType.toUpperCase()} mask reduces your PM₂.₅ exposure by ~${reductionPercent}% (${result.doseAvoidedUg} µg spared) for this activity.`}
+            </span>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-x-2.5">
-          <span className="font-extrabold text-[#0C2340]">Takeaway</span>
-          <span className="text-[#CBD5E1]">|</span>
-          <span className="text-[#334E68] font-medium">
-            {maskType === 'none'
-              ? `Unprotected ${durationMinutes}-minute activity at ${activePm25} µg/m³ inhales ~${result.unmaskedDoseUg} µg PM₂.₅ (${result.whoExceedanceRatio}× WHO guideline). An N95 spares 95% of particulate mass.`
-              : `Using a ${maskType.toUpperCase()} mask reduces your PM₂.₅ exposure by ~${reductionPercent}% (${result.doseAvoidedUg} µg spared) for this activity.`}
-          </span>
-        </div>
+        <button
+          type="button"
+          onClick={() =>
+            askAiWithPrompt(
+              `Interpret my personal exposure simulation in ${telemetry.city}: ${ACTIVITY_LABELS[activity]} for ${durationMinutes} minutes at ${activePm25} µg/m³ PM2.5 with ${MASK_LABELS[maskType]} (${result.estimatedInhaledMassUg} µg inhaled vs ${result.unmaskedDoseUg} µg unmasked). What contributed most and what change gives the biggest impact?`
+            )
+          }
+          className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-[#E0F2FE] hover:bg-[#BAE6FD] text-[#0369A1] text-xs font-bold transition-colors cursor-pointer shrink-0 self-start sm:self-center"
+        >
+          <Bot className="w-3.5 h-3.5" />
+          <span>Explain with AI</span>
+        </button>
       </div>
     </div>
   );

@@ -17,6 +17,7 @@ import {
   Footprints,
   ChevronRight,
   AlertTriangle,
+  Bot,
 } from 'lucide-react';
 
 function getCompactWeatherLabel(desc?: string): string {
@@ -32,7 +33,7 @@ function getCompactWeatherLabel(desc?: string): string {
 }
 
 export const OverviewWorkspace: React.FC = () => {
-  const { telemetry, telemetryError, cleanAirWindow, setActiveTab } = useApp();
+  const { telemetry, telemetryError, cleanAirWindow, setActiveTab, askAiWithPrompt } = useApp();
   const isUnavailable = Boolean(telemetry.metadata.isUnavailable);
   const { current, weather, hourly } = telemetry;
 
@@ -293,9 +294,25 @@ export const OverviewWorkspace: React.FC = () => {
 
         {/* Right 5 Columns: Health & Actionable Insights */}
         <div className="lg:col-span-5 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-3">
-          <h3 className="text-[14px] font-extrabold text-[#0C2340]">
-            Health & Actionable Insights
-          </h3>
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-[14px] font-extrabold text-[#0C2340]">
+              Health & Actionable Insights
+            </h3>
+            <button
+              type="button"
+              onClick={() =>
+                askAiWithPrompt(
+                  hasAqi
+                    ? `Explain what is driving today's CPCB NAQI ${aqiVal} (${aqiCat}, ${primaryPollutant}) in ${telemetry.city}, why ${cleanAirWindow.displayWindow} is the best window now, and what daily routine gives the highest exposure reduction.`
+                    : `Live telemetry is unavailable for ${telemetry.city}. What general exposure precautions should I follow today?`
+                )
+              }
+              className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-[#E0F2FE] hover:bg-[#BAE6FD] text-[#0369A1] text-[11px] font-bold transition-colors cursor-pointer shrink-0"
+            >
+              <Bot className="w-3 h-3" />
+              <span>Explain with AI</span>
+            </button>
+          </div>
 
           <div className="space-y-2.5 flex-1 flex flex-col justify-center">
             <button

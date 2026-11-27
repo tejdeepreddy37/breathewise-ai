@@ -23,6 +23,8 @@ export const AiAssistantWorkspace: React.FC = () => {
     sessionApiKey,
     setSessionApiKey,
     scenarioState,
+    pendingAiPrompt,
+    clearPendingAiPrompt,
   } = useApp();
 
   const isUnavailable = Boolean(telemetry.metadata.isUnavailable);
@@ -65,6 +67,14 @@ export const AiAssistantWorkspace: React.FC = () => {
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  useEffect(() => {
+    if (pendingAiPrompt && !isSubmitting) {
+      const promptToRun = pendingAiPrompt;
+      clearPendingAiPrompt();
+      void handleSend(promptToRun);
+    }
+  }, [pendingAiPrompt]);
 
   const buildScenarioSummary = () => {
     const c = scenarioState.commute;
@@ -248,7 +258,16 @@ export const AiAssistantWorkspace: React.FC = () => {
         </div>
 
         {/* Bottom Input Bar Matching Image 8 */}
-        <div className="p-3.5 border-t border-[#E6F1FA] bg-white/85">
+        <div className="p-3.5 border-t border-[#E6F1FA] bg-white/85 space-y-2">
+          <div className="flex items-center justify-between px-1 text-[10.5px] font-semibold text-[#5A7896]">
+            <span>
+              Engine:{' '}
+              <strong className={sessionApiKey ? 'text-[#059669]' : 'text-[#0284C7]'}>
+                {sessionApiKey ? 'Gemini 2.0 Flash (Live Key Active)' : 'Deterministic Physics Engine (Add Key for Live Gemini)'}
+              </strong>
+            </span>
+            <span className="hidden sm:inline text-[#7B97B2]">Profile: {userPreferences.vulnerabilityProfile.replace('_', ' ')}</span>
+          </div>
           <form
             onSubmit={(e) => {
               e.preventDefault();

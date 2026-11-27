@@ -3,10 +3,10 @@ import { useApp } from '../context/AppContext';
 import { calculateIndoorRecommendations, getIndianStandardTimeHour } from '../engines/indoorCoach';
 import { calculateCpcbAqi, getCpcbSemanticColors } from '../engines/cpcbAqi';
 import { IndoorSourceType } from '../types/engines';
-import { Home, ChevronDown, AlertTriangle } from 'lucide-react';
+import { Home, ChevronDown, AlertTriangle, Bot } from 'lucide-react';
 
 export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () => {
-  const { telemetry, cleanAirWindow, scenarioState, updateScenario } = useApp();
+  const { telemetry, cleanAirWindow, scenarioState, updateScenario, askAiWithPrompt } = useApp();
   const isUnavailable = Boolean(telemetry.metadata.isUnavailable);
   const ambientPm25 =
     !isUnavailable && typeof telemetry.current.pm25 === 'number' && Number.isFinite(telemetry.current.pm25)
@@ -267,10 +267,10 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
             </h2>
 
             {indoorAqiResult ? (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 flex-1">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 flex-1">
                 {/* Gradient Arc Gauge */}
                 <div
-                  className="relative w-40 h-32 flex flex-col items-center justify-end shrink-0"
+                  className="relative w-36 h-32 flex flex-col items-center justify-end shrink-0"
                   role="img"
                   aria-label={`Estimated indoor AQI is ${indoorAqiResult.aqi} (${indoorAqiResult.category})`}
                 >
@@ -314,7 +314,7 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
                 </div>
 
                 {/* Truthful Modeled Parameters Table */}
-                <div className="flex-1 min-w-0 w-full space-y-2.5 text-xs">
+                <div className="flex-1 min-w-0 w-full pr-1 space-y-2.5 text-xs">
                   <div className="flex justify-between items-center gap-3 py-1">
                     <span className="text-[#476788] font-medium whitespace-nowrap">Modeled PM₂.₅</span>
                     <strong className="font-extrabold text-[#0C2340] tabular-nums whitespace-nowrap">{modeledIndoorPm25} µg/m³</strong>
@@ -382,18 +382,32 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
         </div>
 
         {/* Bottom Insight Bar Matching Image 2 Top */}
-        <div className="rounded-2xl bg-white border border-white p-4 flex items-center space-x-3.5 text-xs shadow-[0_10px_28px_-8px_rgba(14,165,233,0.14)]">
-          <div className="w-10 h-10 rounded-xl bg-[#E0F2FE] border border-[#BAE6FD] flex items-center justify-center shrink-0">
-            <Home className="w-5 h-5 text-[#0284C7]" />
+        <div className="rounded-2xl bg-white border border-white p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-[0_10px_28px_-8px_rgba(14,165,233,0.14)]">
+          <div className="flex items-center space-x-3.5 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-[#E0F2FE] border border-[#BAE6FD] flex items-center justify-center shrink-0">
+              <Home className="w-5 h-5 text-[#0284C7]" />
+            </div>
+            <div className="min-w-0">
+              <div className="font-extrabold text-[#0C2340] text-xs">Insight</div>
+              <p className="text-[#334E68] font-medium mt-0.5 leading-snug">
+                {ambientPm25 == null
+                  ? 'Live outdoor PM2.5 unavailable for this location. Keep HEPA filtration active indoors if haze is visible.'
+                  : `${rec.safetyReason}${ventilationExplanation} Purifier recommended on ${rec.purifierRecommendation.recommendedSpeed} speed (target clean-down ~${rec.purifierRecommendation.estimatedPostCleanPm25} µg/m³).`}
+              </p>
+            </div>
           </div>
-          <div>
-            <div className="font-extrabold text-[#0C2340] text-xs">Insight</div>
-            <p className="text-[#334E68] font-medium mt-0.5 leading-snug">
-              {ambientPm25 == null
-                ? 'Live outdoor PM2.5 unavailable for this location. Keep HEPA filtration active indoors if haze is visible.'
-                : `${rec.safetyReason}${ventilationExplanation} Purifier recommended on ${rec.purifierRecommendation.recommendedSpeed} speed (target clean-down ~${rec.purifierRecommendation.estimatedPostCleanPm25} µg/m³).`}
-            </p>
-          </div>
+          <button
+            type="button"
+            onClick={() =>
+              askAiWithPrompt(
+                `Explain my indoor air scenario in ${telemetry.city}: ${roomType} (${roomAreaM2} m², ${ventilationAch} ACH, source: ${indoorSource}, purifier ${usingPurifier ? `ON at ${purifierCadr} m³/h` : 'OFF'}). Modeled indoor PM2.5 is ${modeledIndoorPm25 ?? 'unavailable'} µg/m³ vs outdoor ${ambientPm25 ?? 'unavailable'} µg/m³. Why is this ventilation & purifier action recommended right now?`
+              )
+            }
+            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-[#E0F2FE] hover:bg-[#BAE6FD] text-[#0369A1] text-xs font-bold transition-colors cursor-pointer shrink-0 self-start sm:self-center"
+          >
+            <Bot className="w-3.5 h-3.5" />
+            <span>Explain with AI</span>
+          </button>
         </div>
       </div>
     </div>

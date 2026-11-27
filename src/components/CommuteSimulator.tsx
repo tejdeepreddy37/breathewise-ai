@@ -1,67 +1,95 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { calculateCommuteTradeoffs } from '../engines/commuteSwap';
 import { calculateCpcbAqi } from '../engines/cpcbAqi';
 import { CommuteMode } from '../types/engines';
-import { Bike, Car, Bus, Train, MapPin, ArrowRight, Sprout, ChevronDown } from 'lucide-react';
+import { Bike, Car, Bus, Train, MapPin, ArrowRight, Sprout, ChevronDown, Bot } from 'lucide-react';
 
-const ORIGIN_ZONES = [
-  'HSR Layout',
-  'City Center',
-  'Residential Locality',
-  'Tech Corridor West',
-  'Suburban Transit Hub',
-] as const;
+interface CityCorridorConfig {
+  origins: readonly string[];
+  destinations: readonly string[];
+}
 
-const DESTINATION_ZONES = [
-  'Electronic City',
-  'Koramangala Core',
-  'Whitefield / ITPL',
-  'Outer Ring Road',
-  'Airport Express',
-] as const;
+const CITY_CORRIDORS: Array<{ match: string; config: CityCorridorConfig }> = [
+  {
+    match: 'bengaluru',
+    config: {
+      origins: ['HSR Layout', 'Indiranagar', 'Jayanagar', 'Yelahanka', 'Malleshwaram'],
+      destinations: ['Electronic City', 'Koramangala Core', 'Whitefield / ITPL', 'Outer Ring Road', 'Airport Express'],
+    },
+  },
+  {
+    match: 'delhi',
+    config: {
+      origins: ['Dwarka', 'Rohini', 'South Delhi', 'Connaught Place', 'East Delhi / Mayur Vihar'],
+      destinations: ['Anand Vihar Hub', 'Central Secretariat', 'Noida / Tech Corridor', 'Gurugram Cyber City', 'IGI Airport Corridor'],
+    },
+  },
+  {
+    match: 'mumbai',
+    config: {
+      origins: ['Bandra / Khar', 'Andheri West', 'Powai', 'Thane West', 'Dadar'],
+      destinations: ['BKC Financial District', 'Lower Parel', 'Nariman Point', 'Navi Mumbai / Vashi', 'CSMIA Airport'],
+    },
+  },
+  {
+    match: 'hyderabad',
+    config: {
+      origins: ['Banjara Hills', 'Sanathnagar', 'Kukatpally', 'Secunderabad', 'Madhapur'],
+      destinations: ['HITEC City', 'Gachibowli Financial', 'Begumpet', 'Uppal Corridor', 'RGIA Airport'],
+    },
+  },
+  {
+    match: 'chennai',
+    config: {
+      origins: ['Adyar', 'Anna Nagar', 'Velachery', 'T. Nagar', 'Mylapore'],
+      destinations: ['OMR IT Corridor', 'Guindy Industrial', 'Central / Parry’s', 'Ambattur', 'Chennai Airport'],
+    },
+  },
+  {
+    match: 'kolkata',
+    config: {
+      origins: ['Ballygunge', 'Park Street', 'Behala', 'Dum Dum', 'Garia'],
+      destinations: ['Salt Lake Sector V', 'New Town Action Area', 'Dalhousie / BBD Bagh', 'Howrah Station Hub', 'NSCBI Airport'],
+    },
+  },
+  {
+    match: 'pune',
+    config: {
+      origins: ['Shivajinagar', 'Kothrud', 'Koregaon Park', 'Baner', 'Viman Nagar'],
+      destinations: ['Hinjewadi IT Park', 'Magarpatta City', 'Kharadi EON IT', 'Swargate Hub', 'Pune Airport'],
+    },
+  },
+];
 
-// Deterministic route distances (km) per Origin -> Destination corridor pair
-const CORRIDOR_MATRIX_KM: Record<string, Record<string, number>> = {
-  'HSR Layout': {
-    'Electronic City': 16.8,
-    'Koramangala Core': 5.4,
-    'Whitefield / ITPL': 18.6,
-    'Outer Ring Road': 11.2,
-    'Airport Express': 41.0,
-  },
-  'City Center': {
-    'Electronic City': 19.5,
-    'Koramangala Core': 7.8,
-    'Whitefield / ITPL': 21.4,
-    'Outer Ring Road': 14.6,
-    'Airport Express': 34.5,
-  },
-  'Residential Locality': {
-    'Electronic City': 14.2,
-    'Koramangala Core': 6.5,
-    'Whitefield / ITPL': 15.8,
-    'Outer Ring Road': 9.8,
-    'Airport Express': 38.2,
-  },
-  'Tech Corridor West': {
-    'Electronic City': 22.4,
-    'Koramangala Core': 12.6,
-    'Whitefield / ITPL': 24.8,
-    'Outer Ring Road': 17.5,
-    'Airport Express': 31.8,
-  },
-  'Suburban Transit Hub': {
-    'Electronic City': 26.0,
-    'Koramangala Core': 16.4,
-    'Whitefield / ITPL': 28.5,
-    'Outer Ring Road': 20.2,
-    'Airport Express': 27.5,
-  },
+const GENERIC_CORRIDORS: CityCorridorConfig = {
+  origins: ['Home Locality', 'Residential Zone', 'Old City / Town', 'Suburban Hub', 'Transit Junction'],
+  destinations: ['City Center', 'Work / IT Corridor', 'Commercial District', 'Ring Road Bypass', 'Airport / Rail Hub'],
 };
 
-export function getCorridorDistanceKm(origin: string, destination: string): number {
-  return CORRIDOR_MATRIX_KM[origin]?.[destination] ?? 16.8;
+function getCorridorsForCity(cityName: string): CityCorridorConfig {
+  const lower = (cityName || '').toLowerCase();
+  const found = CITY_CORRIDORS.find((c) => lower.includes(c.match));
+  return found ? found.config : GENERIC_CORRIDORS;
+}
+
+// Deterministic index-based corridor distances (km) mapped across any city's 5x5 origin/destination grid
+const INDEX_DISTANCE_MATRIX_KM: number[][] = [
+  [16.8, 5.4, 18.6, 11.2, 41.0],
+  [19.5, 7.8, 21.4, 14.6, 34.5],
+  [14.2, 6.5, 15.8, 9.8, 38.2],
+  [22.4, 12.6, 24.8, 17.5, 31.8],
+  [26.0, 16.4, 28.5, 20.2, 27.5],
+];
+
+export function getCorridorDistanceKm(origin: string, destination: string, cityName: string = 'Bengaluru'): number {
+  const cfg = getCorridorsForCity(cityName);
+  const oIdx = cfg.origins.indexOf(origin);
+  const dIdx = cfg.destinations.indexOf(destination);
+  if (oIdx >= 0 && dIdx >= 0) {
+    return INDEX_DISTANCE_MATRIX_KM[oIdx]?.[dIdx] ?? 16.8;
+  }
+  return 16.8;
 }
 
 interface AnalyzedCommuteState {
@@ -72,21 +100,21 @@ interface AnalyzedCommuteState {
 }
 
 export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () => {
-  const { telemetry, cleanAirWindow, scenarioState, updateScenario } = useApp();
+  const { telemetry, cleanAirWindow, scenarioState, updateScenario, askAiWithPrompt } = useApp();
   const isUnavailable = Boolean(telemetry.metadata.isUnavailable);
   const ambientPm25 =
     !isUnavailable && typeof telemetry.current.pm25 === 'number' && Number.isFinite(telemetry.current.pm25)
       ? telemetry.current.pm25
       : null;
 
-  const initialOrigin = ORIGIN_ZONES.includes(scenarioState.commute.origin as (typeof ORIGIN_ZONES)[number])
+  const corridors = useMemo(() => getCorridorsForCity(telemetry.city), [telemetry.city]);
+
+  const initialOrigin = corridors.origins.includes(scenarioState.commute.origin)
     ? scenarioState.commute.origin
-    : 'HSR Layout';
-  const initialDestination = DESTINATION_ZONES.includes(
-    scenarioState.commute.destination as (typeof DESTINATION_ZONES)[number]
-  )
+    : corridors.origins[0];
+  const initialDestination = corridors.destinations.includes(scenarioState.commute.destination)
     ? scenarioState.commute.destination
-    : 'Electronic City';
+    : corridors.destinations[0];
   const initialMode: CommuteMode = scenarioState.commute.mode || 'ac_cab';
 
   // Pending draft controls — changing inputs prepares the scenario until "Analyze Commute" runs
@@ -98,9 +126,26 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
   const [analyzedScenario, setAnalyzedScenario] = useState<AnalyzedCommuteState>(() => ({
     origin: initialOrigin,
     destination: initialDestination,
-    distanceKm: getCorridorDistanceKm(initialOrigin, initialDestination),
+    distanceKm: getCorridorDistanceKm(initialOrigin, initialDestination, telemetry.city),
     mode: initialMode,
   }));
+
+  // Keep corridor labels synchronized when switching cities
+  useEffect(() => {
+    if (!corridors.origins.includes(draftOrigin) || !corridors.destinations.includes(draftDestination)) {
+      const nextOrigin = corridors.origins[0];
+      const nextDest = corridors.destinations[0];
+      const nextDist = getCorridorDistanceKm(nextOrigin, nextDest, telemetry.city);
+      setDraftOrigin(nextOrigin);
+      setDraftDestination(nextDest);
+      setAnalyzedScenario((prev) => ({
+        ...prev,
+        origin: nextOrigin,
+        destination: nextDest,
+        distanceKm: nextDist,
+      }));
+    }
+  }, [corridors, telemetry.city, draftOrigin, draftDestination]);
 
   const isDirty =
     draftOrigin !== analyzedScenario.origin ||
@@ -162,7 +207,7 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
 
   const handleAnalyze = (e: React.FormEvent) => {
     e.preventDefault();
-    const nextDistanceKm = getCorridorDistanceKm(draftOrigin, draftDestination);
+    const nextDistanceKm = getCorridorDistanceKm(draftOrigin, draftDestination, telemetry.city);
     const nextAnalyzed: AnalyzedCommuteState = {
       origin: draftOrigin,
       destination: draftDestination,
@@ -210,7 +255,7 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
                   onChange={(e) => setDraftOrigin(e.target.value)}
                   className="w-full bg-transparent text-xs font-extrabold text-[#0C2340] pt-0.5 pr-5 cursor-pointer focus:outline-none truncate"
                 >
-                  {ORIGIN_ZONES.map((z) => (
+                  {corridors.origins.map((z) => (
                     <option key={z} value={z}>
                       {z}
                     </option>
@@ -231,7 +276,7 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
                   onChange={(e) => setDraftDestination(e.target.value)}
                   className="w-full bg-transparent text-xs font-extrabold text-[#0C2340] pt-0.5 pr-5 cursor-pointer focus:outline-none truncate"
                 >
-                  {DESTINATION_ZONES.map((d) => (
+                  {corridors.destinations.map((d) => (
                     <option key={d} value={d}>
                       {d}
                     </option>
@@ -394,20 +439,34 @@ export const CommuteSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = ()
       </div>
 
       {/* Bottom Recommendation Banner */}
-      <div className="rounded-2xl bg-white border border-white px-5 py-3.5 flex items-center space-x-3 text-[13px] shadow-[0_10px_28px_-8px_rgba(14,165,233,0.14)]">
-        <div className="w-8 h-8 rounded-lg bg-[#ECFDF5] border border-[#A7F3D0] flex items-center justify-center shrink-0">
-          <Sprout className="w-4 h-4 text-[#059669]" />
+      <div className="rounded-2xl bg-white border border-white px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[13px] shadow-[0_10px_28px_-8px_rgba(14,165,233,0.14)]">
+        <div className="flex items-center space-x-3 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-[#ECFDF5] border border-[#A7F3D0] flex items-center justify-center shrink-0">
+            <Sprout className="w-4 h-4 text-[#059669]" />
+          </div>
+          <div className="flex flex-wrap items-baseline gap-x-2.5 min-w-0">
+            <span className="font-extrabold text-[#0C2340]">Recommendation</span>
+            <span className="text-[#334E68] font-medium">
+              {ambientPm25 == null
+                ? `Live pollution data unavailable for ${telemetry.city}. Enclosed filtered transit is safest for ${analyzedScenario.origin} → ${analyzedScenario.destination}.`
+                : analysis.isMetroSelected
+                ? `Rapid AC Metro for ${analyzedScenario.origin} → ${analyzedScenario.destination} (${analyzedScenario.distanceKm} km) cuts inhaled dose by ${analysis.doseReductionVsTargetPercent}% vs private cab (${analysis.selectedComp.inhaledDoseUg} µg inhaled) and saves ${analysis.carbonSavedKg.toFixed(2)} kg CO₂.`
+                : `For ${analyzedScenario.origin} → ${analyzedScenario.destination} (${analyzedScenario.distanceKm} km), switch from ${analysis.selectedComp.modeLabel.split('(')[0].trim()} to Rapid AC Metro or travel during ${cleanAirWindow.displayWindow} for ~${analysis.doseReductionVsTargetPercent}% lower exposure (saves ${analysis.carbonSavedKg.toFixed(2)} kg CO₂).`}
+            </span>
+          </div>
         </div>
-        <div className="flex flex-wrap items-baseline gap-x-2.5">
-          <span className="font-extrabold text-[#0C2340]">Recommendation</span>
-          <span className="text-[#334E68] font-medium">
-            {ambientPm25 == null
-              ? `Live pollution data unavailable for ${telemetry.city}. Enclosed filtered transit is safest for ${analyzedScenario.origin} → ${analyzedScenario.destination}.`
-              : analysis.isMetroSelected
-              ? `Rapid AC Metro for ${analyzedScenario.origin} → ${analyzedScenario.destination} (${analyzedScenario.distanceKm} km) cuts inhaled dose by ${analysis.doseReductionVsTargetPercent}% vs private cab (${analysis.selectedComp.inhaledDoseUg} µg inhaled) and saves ${analysis.carbonSavedKg.toFixed(2)} kg CO₂.`
-              : `For ${analyzedScenario.origin} → ${analyzedScenario.destination} (${analyzedScenario.distanceKm} km), switch from ${analysis.selectedComp.modeLabel.split('(')[0].trim()} to Rapid AC Metro or travel during ${cleanAirWindow.displayWindow} for ~${analysis.doseReductionVsTargetPercent}% lower exposure (saves ${analysis.carbonSavedKg.toFixed(2)} kg CO₂).`}
-          </span>
-        </div>
+        <button
+          type="button"
+          onClick={() =>
+            askAiWithPrompt(
+              `Explain my commute options in ${telemetry.city} for ${analyzedScenario.origin} to ${analyzedScenario.destination} (${analyzedScenario.distanceKm} km): why does ${analysis.selectedComp.modeLabel.split('(')[0].trim()} give ${analysis.selectedComp.inhaledDoseUg} µg inhaled PM2.5 and how much impact does switching to Metro (${analysis.carbonSavedKg.toFixed(2)} kg CO2 saved, ${analysis.doseReductionVsTargetPercent}% dose difference) have right now?`
+            )
+          }
+          className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-[#E0F2FE] hover:bg-[#BAE6FD] text-[#0369A1] text-xs font-bold transition-colors cursor-pointer shrink-0 self-start sm:self-center"
+        >
+          <Bot className="w-3.5 h-3.5" />
+          <span>Explain with AI</span>
+        </button>
       </div>
     </div>
   );

@@ -503,6 +503,12 @@ export async function askBreatheWiseAssistant(
       return `Family Air Quality Guidance:\nOutdoor PM2.5 is ${pm} µg/m³. Today's relatively lower exposure window is ${window.displayWindow}. Schedule outdoor family activities during this window and avoid major arterial roadways during morning and evening rush hours.`;
     }
 
+    // Intent 4B: Personal Exposure / Inhaled Dose Interpretation (before generic mask intent)
+    if (qLower.includes('inhaled') || qLower.includes('exposure simulation') || qLower.includes('personal exposure') || qLower.includes('contributed most')) {
+      const scenarioNote = scenarioSummary ? `\n• Active Scenario: ${scenarioSummary}` : '';
+      return `Personal Exposure Interpretation for ${telemetry.city} (${provenanceLabel}):\n• Why this matters: Gross inhaled PM2.5 mass (M_inh = C_ambient × V_E × t × (1 - η_mask)) depends on three multipliers: ambient concentration (${pm} µg/m³), breathing rate (minute ventilation V_E, which rises from 16 L/min walking to 55 L/min running), and duration.${scenarioNote}\n• Why now: Today's lowest outdoor exposure window is ${window.displayWindow} (${window.statusLabel}); exercising or commuting outside this window exposes airways to higher peak concentrations.\n• What impact: Wearing a well-fitted N95 respirator cuts inhaled particulate mass by ~95%, while shifting vigorous activity indoors with HEPA filtration or to ${window.displayWindow} is the highest-leverage reduction.`;
+    }
+
     // Intent 5: Masks & Physical Barrier Filtration
     if (qLower.includes('mask') || qLower.includes('n95') || qLower.includes('cloth') || qLower.includes('surgical') || qLower.includes('respirator')) {
       return `Mask Efficacy & Barrier Science:\n• Cloth Masks: Provide only 20–25% nominal filtration for PM2.5 because woven fabric pores (20–100 µm) are much larger than fine combustion aerosols (<2.5 µm).\n• Surgical Masks: Filter ~60% under ideal conditions, but lack perimeter facial seal, allowing inward leakage around the cheeks and nose bridge.\n• Certified N95 / FFP2: Provides >95% filtration efficiency using electrostatically charged meltblown polypropylene microfibers that capture sub-micron particles via impaction, interception, and diffusion.\n\nRecommendation: When ambient PM2.5 exceeds 90 µg/m³, wear a snug-fitting N95 respirator for all outdoor transit.`;
