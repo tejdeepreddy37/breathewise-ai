@@ -493,7 +493,7 @@ export const DayTwinWorkspace: React.FC = () => {
             </div>
 
             <p className="text-[10px] text-[#5A7896] pt-2 border-t border-[#EDF5FC]">
-              Descriptive count over {robustness.uniqueValidScenarios} deduplicated deterministic scenarios — not a statistical probability.
+              Includes magnitude (×0.75–1.25), shape (±2h, 50% flat), and combined stress tests ({robustness.uniqueValidScenarios} unique scenarios) — descriptive, not a probability or independent validation.
             </p>
           </div>
 
@@ -506,9 +506,9 @@ export const DayTwinWorkspace: React.FC = () => {
                   <span>Decision Boundary (Shape k)</span>
                 </h3>
                 <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-[#F0F7FD] text-[#0369A1]">
-                  {decisionFlip.hasCrossover
-                    ? `Flip @ k≈${decisionFlip.transitions[0].kCrossover}`
-                    : 'Stable [0–1.5]'}
+                  {decisionFlip.hasPracticalCrossover
+                    ? `Flip @ k≈${decisionFlip.transitions.find((t) => !t.isPracticallyNegligible)?.kCrossover}`
+                    : 'Stable [0.1–1.5]'}
                 </span>
               </div>
               <p className="text-[10.5px] text-[#5A7896]">
@@ -650,6 +650,9 @@ export const DayTwinWorkspace: React.FC = () => {
                   {demoSurvivePm} µg/m³ @ 6 AM
                 </button>
               </div>
+              <p className="text-[10px] text-[#5A7896] leading-snug pt-0.5">
+                Bounded adjustment scenario from one reading (point reading ≠ ~45 km regional grid; does not calibrate the full day).
+              </p>
             </div>
 
             {obsValidationError && (
@@ -886,6 +889,7 @@ export const DayTwinWorkspace: React.FC = () => {
                   <thead>
                     <tr className="border-b border-[#E5EEF6] text-[#5A7896]">
                       <th className="py-1.5 pr-3">Scenario</th>
+                      <th className="py-1.5 pr-3">Type</th>
                       <th className="py-1.5 pr-3">Baseline</th>
                       <th className="py-1.5 pr-3">Candidate</th>
                       <th className="py-1.5 pr-3">Saving</th>
@@ -896,6 +900,7 @@ export const DayTwinWorkspace: React.FC = () => {
                     {robustness.scenarios.map((s) => (
                       <tr key={s.id} className="border-b border-[#F1F6FB]">
                         <td className="py-1.5 pr-3 font-semibold text-[#0C2340]">{s.name}</td>
+                        <td className="py-1.5 pr-3 capitalize text-[#5A7896]">{s.category}</td>
                         <td className="py-1.5 pr-3 tabular-nums">{s.baselineUg} µg</td>
                         <td className="py-1.5 pr-3 tabular-nums">{s.candidateUg} µg</td>
                         <td className="py-1.5 pr-3 tabular-nums font-bold text-[#059669]">

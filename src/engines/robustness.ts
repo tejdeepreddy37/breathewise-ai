@@ -20,9 +20,12 @@ import {
 
 export type RobustnessClassification = 'ROBUST' | 'SENSITIVE' | 'FRAGILE' | 'INCONCLUSIVE';
 
+export type ScenarioStressCategory = 'magnitude' | 'shape' | 'combined';
+
 export interface RobustnessScenarioSpec {
   id: string;
   name: string;
+  category: ScenarioStressCategory;
   description: string;
   transform: (pm25: number[]) => number[];
 }
@@ -30,6 +33,7 @@ export interface RobustnessScenarioSpec {
 export interface EvaluatedRobustnessScenario {
   id: string;
   name: string;
+  category: ScenarioStressCategory;
   description: string;
   baselineUg: number;
   candidateUg: number;
@@ -81,55 +85,64 @@ export const ROBUSTNESS_SCENARIO_SPECS: RobustnessScenarioSpec[] = [
   {
     id: 'baseline',
     name: 'Baseline profile',
+    category: 'magnitude',
     description: 'Unmodified modeled/calibrated 24-hour concentration profile.',
     transform: (pm) => pm.map((v) => Math.max(0, +v.toFixed(2))),
   },
   {
     id: 'scale_075',
     name: 'Concentration ×0.75',
-    description: 'Whole-profile 25% lower ambient particulate levels.',
+    category: 'magnitude',
+    description: 'Magnitude stress test: 25% lower ambient particulate levels.',
     transform: (pm) => pm.map((v) => Math.max(0, +(v * 0.75).toFixed(2))),
   },
   {
     id: 'scale_090',
     name: 'Concentration ×0.90',
-    description: 'Whole-profile 10% lower ambient particulate levels.',
+    category: 'magnitude',
+    description: 'Magnitude stress test: 10% lower ambient particulate levels.',
     transform: (pm) => pm.map((v) => Math.max(0, +(v * 0.9).toFixed(2))),
   },
   {
     id: 'scale_110',
     name: 'Concentration ×1.10',
-    description: 'Whole-profile 10% higher ambient particulate levels.',
+    category: 'magnitude',
+    description: 'Magnitude stress test: 10% higher ambient particulate levels.',
     transform: (pm) => pm.map((v) => Math.max(0, +(v * 1.1).toFixed(2))),
   },
   {
     id: 'scale_125',
     name: 'Concentration ×1.25',
-    description: 'Whole-profile 25% higher ambient particulate levels.',
+    category: 'magnitude',
+    description: 'Magnitude stress test: 25% higher ambient particulate levels.',
     transform: (pm) => pm.map((v) => Math.max(0, +(v * 1.25).toFixed(2))),
   },
   {
     id: 'shift_minus_2',
     name: 'Diurnal shift −2h',
-    description: 'Circular 2-hour earlier shift of diurnal pollution peaks and valleys.',
+    category: 'shape',
+    description: 'Shape stress test: circular 2-hour earlier shift of peaks and valleys.',
     transform: (pm) => circularShift(pm, -2),
   },
   {
     id: 'shift_plus_2',
     name: 'Diurnal shift +2h',
-    description: 'Circular 2-hour later shift of diurnal pollution peaks and valleys.',
+    category: 'shape',
+    description: 'Shape stress test: circular 2-hour later shift of peaks and valleys.',
     transform: (pm) => circularShift(pm, 2),
   },
   {
     id: 'flatten_50',
     name: 'Contrast flattened 50%',
-    description: 'Diurnal deviation from daily mean compressed to 50% (weaker midday dispersion).',
+    category: 'shape',
+    description: 'Shape stress test: diurnal deviation compressed to 50% of daily mean.',
     transform: (pm) => flattenContrast(pm, 0.5),
   },
   {
     id: 'adverse_combined',
     name: 'Adverse (×1.25 + 50% flat)',
-    description: '25% higher pollution combined with 50% compressed diurnal dispersion.',
+    category: 'combined',
+    description: 'Combined stress test: +25% concentration with 50% compressed dispersion.',
     transform: (pm) => flattenContrast(pm.map((v) => v * 1.25), 0.5),
   },
 ];
@@ -199,6 +212,7 @@ export function evaluateDayTwinRobustness(
       evaluated.push({
         id: spec.id,
         name: spec.name,
+        category: spec.category,
         description: spec.description,
         baselineUg: 0,
         candidateUg: 0,
@@ -224,6 +238,7 @@ export function evaluateDayTwinRobustness(
     evaluated.push({
       id: spec.id,
       name: spec.name,
+      category: spec.category,
       description: spec.description,
       baselineUg: baseEval.totalInhaledUg,
       candidateUg: candEval.totalInhaledUg,

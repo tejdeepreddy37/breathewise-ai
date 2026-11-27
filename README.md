@@ -24,7 +24,7 @@ Legacy air quality apps stop at raw numbers (*"AQI is 124 — Moderate"*), while
 3. *"If I cook or burn incense indoors, should I open windows or run my HEPA purifier—and what happens to modeled indoor $\text{PM}_{2.5}$?"*
 4. *"For a specific activity, duration, and mask (e.g., N95), how much particulate mass actually enters my airways?"*
 
-**BreatheWise AI** bridges this **Actionability Chasm**. It is an **exposure-aware decision intelligence application** combining live atmospheric telemetry, official Indian CPCB NAQI standards, deterministic environmental physics engines, vulnerability-profile personalization, and a grounded Google Gemini 2.0 Flash AI Advisor with an unconditional clinical triage guard.
+**BreatheWise AI** bridges this **Actionability Chasm**. It is an **exposure-aware decision intelligence application** combining live atmospheric model telemetry, official Indian CPCB NAQI standards, deterministic environmental physics engines, 9-scenario robustness stress-testing, shape-based decision-flip analysis, bounded observation anchoring, and a grounded Google Gemini 3.8 Flash AI Advisor with an unconditional clinical triage guard.
 
 ---
 
@@ -80,16 +80,17 @@ Legacy air quality apps stop at raw numbers (*"AQI is 124 — Moderate"*), while
 
 ```mermaid
 flowchart LR
-    A["Open-Meteo Air Quality & Weather<br/>(Copernicus CAMS 0.25° Grid)"] --> B["telemetryService.ts<br/>(15-min LocalStorage TTL Cache)"]
-    B --> C["Deterministic Physics Tier<br/>(CPCB NAQI • WindowSafe • Dose • Indoor • Commute)"]
-    C --> D["6 Frozen Workspaces<br/>(Landing • Overview • Commute • Indoor • Exposure • AI Advisor)"]
-    C --> E["Grounded AI Tier<br/>(Gemini 2.0 Flash + Clinical Triage Guard + Offline Fallback)"]
+    A["Open-Meteo Air Quality & Weather<br/>(CAMS Global 0.4° / ~45 km Grid)"] --> B["telemetryService.ts<br/>(15-min LocalStorage TTL Cache)"]
+    B --> C["Deterministic Physics Tier<br/>(CPCB NAQI • WindowSafe • Dose • Indoor • Commute • Day Twin)"]
+    C --> D["7 Workspaces<br/>(Landing • Overview • Day Twin • Commute • Indoor • Exposure • AI Advisor)"]
+    C --> E["Grounded AI Tier<br/>(Gemini 3.8 Flash + Clinical Triage Guard + Offline Fallback)"]
     E --> D
 ```
 
 ### Honest Telemetry & Provenance Disclosure
-* **Atmospheric Model Grid:** Live data is fetched from Open-Meteo's European Copernicus Atmosphere Monitoring Service (**CAMS**) at a **$0.25^\circ \times 0.25^\circ$ regional grid** (~25 km resolution) with hourly updates. It is regional atmospheric modeling rather than a hyper-local street-corner hardware sensor.
-* **Fallback Transparency:** When offline or unreachable, calibrated presets transparently report `Calibrated Baseline`, and uncalibrated custom locations report `Telemetry Unavailable` rather than fabricating live sensor readings.
+* **Atmospheric Model Grid (Global vs. European):** For India, Open-Meteo serves **CAMS Global Atmospheric Composition Forecasts** at **$0.4^\circ \times 0.4^\circ$ (~40–45 km) spatial resolution** with 3-hourly native model output interpolated to hourly—**not** Europe's higher-resolution $0.1^\circ$ (~11 km) CAMS grid and **not** hyper-local street-corner monitoring stations.
+* **Hourly CPCB NAQI Proxy:** Official CPCB NAQI breakpoints are defined for 24-hour ($\text{PM}_{2.5}, \text{PM}_{10}, \text{NO}_2, \text{SO}_2$) and 8-hour ($\text{O}_3, \text{CO}$) averages; computing instantaneous CPCB NAQI from hourly model outputs is a real-time proxy.
+* **Fallback & Observation Transparency:** When offline or unreachable, calibrated presets report `Calibrated Baseline` and uncalibrated custom locations report `Telemetry Unavailable`. Single user-provided observations (`0.33×–3.0×`) create a bounded model-adjusted scenario and never calibrate an entire day.
 * **Non-Medical Boundary:** BreatheWise AI is an environmental exposure-reduction planning tool, not a clinical diagnostic or prescription service.
 
 ---
@@ -132,7 +133,7 @@ npm run preview -- --port 4178 --strictPort --host 127.0.0.1
 ```
 
 ### Optional Gemini API Key Configuration
-BreatheWise AI works **out-of-the-box with zero API keys** using its deterministic physics and rule-based advisor engine. To enable live **Google Gemini 2.0 Flash** synthesis:
+BreatheWise AI works **out-of-the-box with zero API keys** using its deterministic physics and rule-based advisor engine. To enable live **Google Gemini 3.8 Flash** synthesis:
 * **Option A (In-App Session Key):** Open **AI Advisor**, click the settings icon on the left side of the message bar, and paste your Google AI Studio key. It is stored only in `sessionStorage` and cleared when the browser tab closes.
 * **Option B (Local `.env.local`):** Copy `.env.example` to `.env.local` and set:
   ```env

@@ -37,6 +37,7 @@ export interface DecisionTransition {
   kHigh: number;
   kCrossover: number;
   verifiedBothSides: boolean;
+  isPracticallyNegligible: boolean;
   fromDecision: string;
   toDecision: string;
 }
@@ -45,6 +46,7 @@ export interface DecisionFlipAnalysisResult {
   hasValidData: boolean;
   isMonotonic: boolean;
   hasCrossover: boolean;
+  hasPracticalCrossover: boolean;
   currentK: number;
   currentDecision: string;
   dailyMeanPm25: number;
@@ -97,6 +99,7 @@ export function analyzeDecisionFlipSensitivity(
       hasValidData: false,
       isMonotonic: false,
       hasCrossover: false,
+      hasPracticalCrossover: false,
       currentK: 1.0,
       currentDecision: 'Unavailable',
       dailyMeanPm25: 0,
@@ -169,6 +172,7 @@ export function analyzeDecisionFlipSensitivity(
         kHigh: sweep[i + 1].k,
         kCrossover: kCross,
         verifiedBothSides,
+        isPracticallyNegligible: kCross <= 0.05,
         fromDecision: cur.decisionLabel,
         toDecision: sweep[i + 1].decisionLabel,
       });
@@ -178,23 +182,29 @@ export function analyzeDecisionFlipSensitivity(
   const currentPt = sweep.find((s) => Math.abs(s.k - 1.0) < 0.01) || sweep[10];
   const isMonotonic = !revisitedPreviousKey && transitions.length <= 2;
   const hasCrossover = transitions.length > 0;
+  const practicalTransitions = transitions.filter((t) => !t.isPracticallyNegligible);
+  const hasPracticalCrossover = practicalTransitions.length > 0;
 
   let summaryText = '';
   if (!hasCrossover) {
     summaryText = `No decision crossover detected across k ∈ [0, 1.5]. Primary decision (${currentPt.decisionLabel}) remains stable even if diurnal contrast flattens completely to the ${dailyMeanPm25} µg/m³ daily mean or amplifies to 1.5×.`;
+  } else if (!hasPracticalCrossover) {
+    const t = transitions[0];
+    summaryText = `The recommendation (${currentPt.decisionLabel}) remains unchanged across practically meaningful daily pollution patterns (k ∈ [0.1, 1.5]). The calculated crossover at k ≈ ${t.kCrossover} occurs near a nearly flat profile (1.0 µg minimum-saving threshold) and is not a meaningful real-world threshold.`;
   } else if (!isMonotonic) {
     summaryText = `Non-monotonic sweep across k ∈ [0, 1.5] with ${transitions.length} transitions; review the full curve rather than a single threshold.`;
-  } else if (transitions.length === 1) {
-    const t = transitions[0];
+  } else if (practicalTransitions.length === 1) {
+    const t = practicalTransitions[0];
     summaryText = `Model decision flips near diurnal contrast k ≈ ${t.kCrossover}: below k=${t.kCrossover} it selects "${t.fromDecision}", while above k=${t.kCrossover} it selects "${t.toDecision}". Current modeled contrast is k = 1.0.`;
   } else {
-    summaryText = `Detected ${transitions.length} decision transitions across k ∈ [0, 1.5] (at ${transitions.map((t) => `k≈${t.kCrossover}`).join(', ')}). Current modeled contrast is k = 1.0 (${currentPt.decisionLabel}).`;
+    summaryText = `Detected ${practicalTransitions.length} practical decision transitions across k ∈ [0, 1.5] (at ${practicalTransitions.map((t) => `k≈${t.kCrossover}`).join(', ')}). Current modeled contrast is k = 1.0 (${currentPt.decisionLabel}).`;
   }
 
   return {
     hasValidData: true,
     isMonotonic,
     hasCrossover,
+    hasPracticalCrossover,
     currentK: 1.0,
     currentDecision: currentPt.decisionLabel,
     dailyMeanPm25,

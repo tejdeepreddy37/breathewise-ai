@@ -89,7 +89,7 @@ export const TransparencyDrawer: React.FC = () => {
             <div className="text-[10px] text-slate-500 pt-2 border-t border-cream-200/70 leading-relaxed">
               {meta.isSimulated
                 ? 'NOTICE: Currently displaying an offline illustrative diurnal profile for demonstration purposes. Values do not represent live physical sensor observations.'
-                : 'Regional atmospheric model data derived from Open-Meteo & European Copernicus Atmosphere Monitoring Service (CAMS). Atmospheric reanalysis covers a 0.25° grid with hourly resolution.'}
+                : 'Modeled regional atmospheric forecast data from Open-Meteo using Copernicus Atmosphere Monitoring Service (CAMS) Global 0.4° (~40–45 km) grid (interpolated to hourly; not a local street-level monitoring station).'}
             </div>
           </div>
 

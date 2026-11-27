@@ -2,7 +2,7 @@
  * Open-Meteo Environmental Telemetry Service
  * 
  * Ingests atmospheric reanalysis and meteorological forecast data derived from
- * the European Copernicus Atmosphere Monitoring Service (CAMS) 0.25° grid model.
+ * the Copernicus Atmosphere Monitoring Service (CAMS) Global 0.4° (~40–45 km) grid model.
  * 
  * Quality Principles:
  * 1. Timezone isolation: Parses local hours directly from ISO strings to preserve Indian Standard Time.
@@ -184,7 +184,7 @@ export async function fetchOpenMeteoTelemetry(
       hourly,
       metadata: {
         provider: 'Open-Meteo (Copernicus Atmosphere Grid)',
-        stationName: `Copernicus CAMS 0.25° Regional Grid (${cityName})`,
+        stationName: `Copernicus CAMS Global 0.4° (~45 km) Grid (${cityName})`,
         latitude: lat,
         longitude: lon,
         fetchTimestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),

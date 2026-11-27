@@ -435,7 +435,7 @@ function buildHourlyProfile(telemetry: EnvironmentalTelemetry): {
     points,
     provenanceLabel: telemetry.metadata.isSimulated
       ? 'Calibrated Offline Diurnal Baseline (Simulated)'
-      : 'Open-Meteo / Copernicus CAMS 0.25° Hourly Model',
+      : 'Open-Meteo / CAMS Global 0.4° (~45 km) Model',
   };
 }
 
@@ -742,7 +742,7 @@ export function optimizeDayRoutine(
           evidence: `Ambient PM2.5 averages ${origEval.averageAmbientPm25} µg/m³ (${origEval.inhaledUg} µg inhaled).`,
           exposureDeltaUg: 0,
           tradeOff: 'None — constraint preserved.',
-          uncertainty: 'Regional 0.25° grid model.',
+          uncertainty: 'Regional 0.4° (~45 km) grid model.',
         });
         continue;
       }
@@ -978,7 +978,7 @@ export function optimizeDayRoutine(
     dataQualityLabel: profileResult.provenanceLabel,
     dataLimitationNote: telemetry.metadata.isSimulated
       ? 'Using Calibrated Offline Diurnal Baseline (simulated regional curve, not live physical sensors).'
-      : 'Derived from Open-Meteo / Copernicus CAMS 0.25° regional atmospheric model; street-level traffic hotspots may be higher.',
+      : 'Derived from Open-Meteo / CAMS Global 0.4° (~45 km) atmospheric model (interpolated to hourly), not local ground-station sensors.',
     noMeaningfulImprovement,
     zeroImprovementReason: noMeaningfulImprovement
       ? 'Ambient PM2.5 is already low or fixed constraints prevent a >1 µg reduction today.'

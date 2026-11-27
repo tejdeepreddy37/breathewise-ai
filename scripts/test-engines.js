@@ -1224,7 +1224,8 @@ async function runRealModuleTests() {
     console.log('\n--- 29. Testing Shape-Based Decision-Flip Analysis (k ∈ [0, 1.5]) ---');
     const flipDelhi = mod.analyzeDecisionFlipSensitivity(defaultActs, delhiTel, 'normal_adult');
     assert(flipDelhi.hasValidData && flipDelhi.sweep.length === 16, 'Decision-flip sweep evaluates 16 k-points (0.0 to 1.5)');
-    assert(flipDelhi.hasCrossover && flipDelhi.transitions.length >= 1 && flipDelhi.transitions[0].verifiedBothSides, `Delhi detects verified decision crossover at k≈${flipDelhi.transitions[0]?.kCrossover}`);
+    assert(flipDelhi.hasCrossover && flipDelhi.transitions.length >= 1 && flipDelhi.transitions[0].verifiedBothSides, `Delhi detects mathematical crossover at k≈${flipDelhi.transitions[0]?.kCrossover}`);
+    assert(!flipDelhi.hasPracticalCrossover && flipDelhi.transitions[0]?.isPracticallyNegligible === true, 'Near-zero k≈0.004 crossover is flagged as practically negligible (not overstated as real-world threshold)');
     const flipFlat = mod.analyzeDecisionFlipSensitivity(defaultActs, cleanTelemetry, 'normal_adult');
     assert(flipFlat.hasValidData && !flipFlat.hasCrossover && flipFlat.transitions.length === 0, 'Flat profile honestly reports no crossover within [0, 1.5]');
     const flipUnavail = mod.analyzeDecisionFlipSensitivity(defaultActs, unavailableTelemetry, 'normal_adult');
