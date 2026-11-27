@@ -39,7 +39,10 @@ export interface WeatherTelemetry {
 }
 
 export interface StationMetadata {
-  provider: 'Open-Meteo (Copernicus Atmosphere Grid)' | 'BreatheWise Simulated Regional Profile';
+  provider:
+    | 'Open-Meteo (Copernicus Atmosphere Grid)'
+    | 'BreatheWise Simulated Regional Profile'
+    | 'Model-adjusted using a single user observation';
   stationName: string;
   latitude: number;
   longitude: number;

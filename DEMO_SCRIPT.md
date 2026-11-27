@@ -1,65 +1,46 @@
-# BreatheWise AI — 3-Minute Live Demo Script
+# BreatheWise AI — 90-Second Reproducible Competition Demo Script
 
-**Target Duration:** ~3:00 (180 seconds)  
-**App URL:** [https://tejdeepreddy37.github.io/breathewise-ai/](https://tejdeepreddy37.github.io/breathewise-ai/)  
-**Preparation:** Open the live URL in a desktop browser (`1440×900` or full screen). No API key is required—the deterministic physics and AI engine works out-of-the-box (optionally add a Gemini API key in AI Advisor settings beforehand if demonstrating live LLM synthesis).
-
----
-
-### 0:00 – 0:25 | Hook & 3D Earth Landing Page
-* **On Screen:** Start on the **3D Earth Landing Page**.
-* **Action:** Briefly orbit or let the animated Earth globe and orbital rings sit cleanly in frame.
-* **Narration:**  
-  *"Every air quality app tells you a number—like AQI 124—but leaves you guessing what to do next. Can my child walk outside this evening? Should I take the Metro instead of a cab? Should I open my apartment windows right now? Meet **BreatheWise AI**—an exposure-aware decision intelligence assistant built for urban living across all 36 Indian States and Union Territories."*
-* **Transition:** Click **`Enter Air Intelligence →`**.
+**Live URL:** [https://tejdeepreddy37.github.io/breathewise-ai/](https://tejdeepreddy37.github.io/breathewise-ai/)  
+**Preparation:** Open the live URL at `1440×900` (no API key required — the entire Air Day Twin, Robustness, Decision-Flip, Observation Anchoring, and Deterministic AI brief run reproducibly out-of-the-box). Select **Delhi — Anand Vihar** in the Location Picker for the strongest pollution contrast.
 
 ---
 
-### 0:25 – 0:55 | Air Intelligence Overview & Location / Profile Context
-* **On Screen:** **Overview** workspace (`#overview`).
-* **Action:**
-  1. Point to **Current AQI**, **Key Pollutants (µg/m³)**, **Weather**, and the **AQI Trend (Last 24 Hours)** area chart.
-  2. Click the top-right **Location Pill** (`Bengaluru, Karnataka`) to briefly show the **State → District → City** selector (e.g., switch or keep Bengaluru), then point to the **Health Profile** dropdown in the left sidebar (`Child / Pediatric` or `General Adult`).
-  3. Click the **Science / Lab** icon button next to `Live CAMS` in the sidebar to briefly show the **Scientific Methodology & Telemetry Provenance** modal, then close it.
+### 0:00 – 0:15 | The Problem & 3D Earth Entrance
+* **Action:** Start on the **3D Earth Landing Page**, click **`Enter Air Intelligence →`**, and select **Delhi — Anand Vihar** in the top-right Location Picker (`Overview` shows Live CAMS / Calibrated CPCB NAQI).
 * **Narration:**  
-  *"Here in **Overview**, BreatheWise pulls live Copernicus CAMS atmospheric telemetry and computes official Indian CPCB NAQI sub-indices. We can see the exact dominant pollutant driver, 24-hour diurnal trend, and the lowest-exposure activity window—all transparently labeled with live data provenance and tailored to the selected Health Profile."*
+  *"Air pollution changes dramatically hour by hour, but people cannot cancel work, school, or commutes. Legacy AQI apps only show a single number—they don't plan your day around the air or test whether their advice survives real-world uncertainty."*
 
 ---
 
-### 0:55 – 1:30 | Commute Intelligence (Corridor & Mode Tradeoffs)
-* **On Screen:** Click **`Commute`** in the left sidebar (`#commute`).
-* **Action:**
-  1. Select **Origin** and **Destination** (e.g., `HSR Layout` → `Electronic City`), select **`Car`** or **`Bike`**, then switch to **`Metro`** and click **`Analyze Commute →`**.
-  2. Point to **Route Comparison** (Selected vs. Baseline), **Commute Exposure Estimate** (Inhaled Dose in `µg` and `%` Exposure Savings), and the bottom **Recommendation** bar showing `kg CO2` saved.
+### 0:15 – 0:30 | Air Day Twin — Optimization Under Real Constraints
+* **Action:** Click **`Day Twin`** in the left sidebar. Point to the **Baseline Day** (`Urban Commuter & Runner`, e.g., `1853.4 µg` live CAMS or `3007.2 µg` winter baseline) and fixed `9 AM–12 PM` / `1 PM–5 PM` work blocks. Click **`Optimize My Day →`**.
 * **Narration:**  
-  *"In **Commute Intelligence**, we move beyond ambient AQI to real inhaled dose. Choosing a corridor like HSR Layout to Electronic City and clicking **Analyze Commute** compares open two-wheelers, private cabs, buses, and Rapid AC Metro—showing both the exact micrograms of PM2.5 you avoid inhaling and the kilograms of CO2 saved."*
+  *"Meet **Air Day Twin**. Using EPA minute-ventilation rates, commute corridor factors, and indoor mass-balance math, clicking **Optimize My Day** shifts our flexible 6 AM run into the cleaner 12 PM dispersion window, upgrades road commutes to AC Metro, and enables indoor HEPA filtration—cutting cumulative daily inhaled PM₂.₅ by 51–60% and saving 0.92 kg CO₂, without touching fixed work hours."*
 
 ---
 
-### 1:30 – 2:00 | Indoor Air Intelligence (Mass-Balance & Safety Ceilings)
-* **On Screen:** Click **`Indoor`** in the left sidebar (`#indoor`).
-* **Action:**
-  1. Show **Room Setup** (`Bedroom`, `12 m²`, `2.8 m`, `0.5 (Sealed)`).
-  2. Change **Indoor Source** from `None` to **`Cooking / Frying`** (and toggle **Using Air Purifier** on/off) so the **Indoor Air Analysis** gauge, **Modeled PM2.5**, **Scenarios & Impact** (`With Ventilation`, `With Purifier`), and **Insight** card update immediately.
+### 0:30 – 0:45 | Robustness Test (Self-Challenging Decisions)
+* **Action:** Point to the **Robustness Test** card (`ROBUST`, `9/9 (100%)`, Median Saving, Worst Case).
 * **Narration:**  
-  *"**Indoor Air Intelligence** runs a single-zone steady-state mass-balance model. When we simulate indoor cooking or incense, BreatheWise updates modeled indoor PM2.5 and purifier impact in real time—while enforcing strict outdoor smog and ozone safety ceilings so it never recommends opening windows into hazardous outdoor air."*
+  *"Instead of blindly trusting one forecast, BreatheWise stress-tests its own plan across nine deterministic perturbations—scaling ±25%, ±2-hour diurnal shifts, contrast flattening, and an adverse combined scenario. Our recommendation wins 9 out of 9 scenarios and classifies as **ROBUST**."*
 
 ---
 
-### 2:00 – 2:30 | Exposure / What-If Analysis (Physiological Dose)
-* **On Screen:** Click **`Exposure`** in the left sidebar (`#exposure`).
-* **Action:**
-  1. Show **Scenario Inputs** (`Activity`, `Duration`, `Air Quality (PM2.5)`, `Mask Protection`).
-  2. Switch **Activity** (e.g., `Outdoor Walk` → `Outdoor Running`) or **Mask Protection** (`None` → `N95 (≈95%)`) and point to **Exposure Results** (`µg` inhaled dose), the **Scenario Comparison** bar chart, and the **Takeaway** banner.
+### 0:45 – 1:00 | Shape-Based Decision Boundary (`k ∈ [0, 1.5]`)
+* **Action:** Point to the **Decision Boundary (Shape k)** `LineChart` (`Flip @ k≈0.004`).
 * **Narration:**  
-  *"In **Exposure / What-If Analysis**, BreatheWise applies US EPA minute ventilation rates to show how activity intensity and mask filtration change what actually enters your lungs—comparing unmasked vs. N95-protected inhaled mass in clear micrograms."*
+  *"Uniform scaling doesn't change which hour is cleanest—diurnal shape does. Sweeping contrast parameter k from 0 to 1.5 shows the exact modeled boundary where the recommendation flips, proving why midday dispersion drives the decision."*
 
 ---
 
-### 2:30 – 3:00 | AI Advisor, Clinical Triage Guard & Closing
-* **On Screen:** Click **`AI Advisor`** in the left sidebar (`#advisor`).
-* **Action:**
-  1. Click the first **Quick Question** (`"Is it safe to exercise today?"`) and highlight the grounded reply citing the active city, AQI, PM2.5, optimal window, and selected Health Profile.
-  2. Type a clinical/medication question (e.g., `"Should I take 2 puffs of my inhaler?"`) and submit to demonstrate the **Clinical Triage Guard** ethical refusal.
+### 1:00 – 1:15 | Real-World Observation Anchoring & Reset
+* **Action:** In **Anchor Local Reading**, click the first **Demo Input** (`0.40× @ 6 AM`) to show live recalculation of exposure, robustness, and whether the decision changed or survived, then click **`Reset`** to restore the exact original model.
 * **Narration:**  
-  *"Finally, our **AI Advisor** grounds every answer in your live city telemetry, health profile, and active scenario—powered by Google Gemini 2.0 Flash with a 100% deterministic offline fallback. And if a user asks for prescription dosing or reports acute symptoms, an unconditional **Clinical Triage Guard** intercepts it before any LLM call and directs them to licensed medical care. BreatheWise AI: don't just understand the air—understand how to live in it."*
+  *"When a user enters a local sensor reading at 6 AM, BreatheWise validates it within bounded limits (0.33×–3.0×), applies circular 24-hour decay without mutating the original model, and reruns the entire optimization, robustness, and boundary pipeline—honestly reporting whether the decision flips or survives."*
+
+---
+
+### 1:15 – 1:30 | Evidence, Grounded AI Advisor & Closing
+* **Action:** Expand **`Evidence, Mathematical Assumptions & Provenance (9 Scenarios)`** briefly, then click **`"What makes this plan robust?"`** to jump to **`AI Advisor`** with the computed Day Twin summary grounded in the response.
+* **Narration:**  
+  *"Every number is traceable in the Evidence table, and our AI Advisor explains the exact Robustness, Boundary, and Observation results—with a strict Clinical Triage Guard protecting medical safety. BreatheWise AI: an environmental decision system that plans your day, stress-tests itself, and adapts to real-world evidence."*

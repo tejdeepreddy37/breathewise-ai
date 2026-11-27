@@ -541,6 +541,94 @@ function summarizeDay(
   };
 }
 
+export function evaluateScheduleOnTelemetry(
+  activities: DayActivity[],
+  telemetry: EnvironmentalTelemetry
+): {
+  valid: boolean;
+  error: string | null;
+  totalInhaledUg: number;
+  totalCarbonKg: number;
+  activities: EvaluatedActivityResult[];
+} {
+  const validationError = validateDaySchedule(activities);
+  if (validationError) {
+    return { valid: false, error: validationError, totalInhaledUg: 0, totalCarbonKg: 0, activities: [] };
+  }
+  const profileResult = buildHourlyProfile(telemetry);
+  if (!profileResult.valid) {
+    return { valid: false, error: 'Hourly environmental profile unavailable', totalInhaledUg: 0, totalCarbonKg: 0, activities: [] };
+  }
+  const summary = summarizeDay(activities, profileResult.points);
+  return {
+    valid: true,
+    error: null,
+    totalInhaledUg: summary.metrics.totalInhaledUg,
+    totalCarbonKg: summary.metrics.totalCarbonKg,
+    activities: summary.metrics.activities,
+  };
+}
+
+export function buildNormalized24hPm25(telemetry: EnvironmentalTelemetry): number[] | null {
+  const profileResult = buildHourlyProfile(telemetry);
+  if (!profileResult.valid) return null;
+  return profileResult.points.map((p) => p.pm25);
+}
+
+export function withTransformedPm25Profile(
+  telemetry: EnvironmentalTelemetry,
+  pm25ByHour: number[],
+  metaOverride?: Partial<EnvironmentalTelemetry['metadata']>
+): EnvironmentalTelemetry {
+  const baseProfile = buildHourlyProfile(telemetry);
+  const hourly = Array.from({ length: 24 }, (_, h) => {
+    const existing = telemetry.hourly?.find((p) => ((Math.round(p.hour) % 24) + 24) % 24 === h);
+    const basePt = baseProfile.points[h];
+    const nextPm = Math.max(0, Math.round((pm25ByHour[h] ?? 0) * 10) / 10);
+    const o3Val = existing?.o3 ?? basePt?.o3 ?? 0;
+    const no2Val = existing?.no2 ?? null;
+    const pm10Val = existing?.pm10 ?? null;
+    const aqiRes = calculateCpcbAqi({ pm25: Math.round(nextPm), pm10: pm10Val, no2: no2Val, o3: o3Val });
+    return {
+      time: existing?.time || `2026-11-27T${String(h).padStart(2, '0')}:00`,
+      hour: h,
+      pm25: nextPm,
+      pm10: pm10Val,
+      no2: no2Val,
+      o3: o3Val,
+      usAqi: existing?.usAqi ?? aqiRes.aqi,
+      cpcbAqi: aqiRes.aqi,
+      boundaryLayerHeight: existing?.boundaryLayerHeight ?? null,
+    };
+  });
+
+  const firstPm = Math.round(pm25ByHour[0] ?? telemetry.current.pm25 ?? 0);
+  const currentAqi = calculateCpcbAqi({
+    pm25: firstPm,
+    pm10: telemetry.current.pm10,
+    no2: telemetry.current.no2,
+    so2: telemetry.current.so2,
+    o3: telemetry.current.o3,
+    co: telemetry.current.co,
+  });
+
+  return {
+    ...telemetry,
+    current: {
+      ...telemetry.current,
+      pm25: firstPm,
+      aqi: currentAqi.aqi,
+      aqiCategory: currentAqi.category,
+      primaryPollutant: currentAqi.primaryPollutant,
+    },
+    hourly,
+    metadata: {
+      ...telemetry.metadata,
+      ...metaOverride,
+    },
+  };
+}
+
 export function optimizeDayRoutine(
   inputActivities: DayActivity[],
   telemetry: EnvironmentalTelemetry,

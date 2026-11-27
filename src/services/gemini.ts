@@ -469,7 +469,7 @@ export async function askBreatheWiseAssistant(
     : `Calibrated Regional Baseline (${telemetry.metadata.fetchTimestamp})`;
 
   const deterministicResponse = (): string => {
-    // Intent 0C: Air Day Twin Schedule Optimization Questions
+    // Intent 0C: Air Day Twin, Robustness, Decision Boundary & Observation Anchoring
     if (
       qLower.includes('day twin') ||
       qLower.includes('move my workout') ||
@@ -477,12 +477,22 @@ export async function askBreatheWiseAssistant(
       qLower.includes('biggest benefit') ||
       qLower.includes('original schedule') ||
       qLower.includes('worth the inconvenience') ||
-      qLower.includes('limitations of this plan')
+      qLower.includes('limitations of this plan') ||
+      qLower.includes('robust') ||
+      qLower.includes('recommendation to change') ||
+      qLower.includes('entered my reading') ||
+      qLower.includes('after i entered')
     ) {
       const hasDayTwinCtx = Boolean(scenarioSummary && scenarioSummary.includes('Day Twin'));
       const ctxLine = hasDayTwinCtx
         ? scenarioSummary
         : `City PM2.5 = ${pm} µg/m³ (CPCB NAQI ${telemetry.current.aqi}), Diurnal Window = ${window.displayWindow} (${window.statusLabel}).`;
+      if (qLower.includes('robust')) {
+        return `Day Twin Robustness Assessment (${telemetry.city} — ${provenanceLabel}):\n• Situation: Your optimized schedule is stress-tested across up to 9 deterministic perturbations (0.75×–1.25× scaling, ±2h diurnal shifts, 50% contrast flattening, and adverse combined).\n• Evidence: ${ctxLine}\n• Interpretation: Classification (ROBUST / SENSITIVE / FRAGILE) depends on descriptive win counts and whether worst-case downside stays within max(1% of baseline, 0.1 µg). This is a deterministic stress test, not a statistical probability.\n• Safety Caveat: WindowSafe sealing (PM2.5 > 60 or O3 > 100 µg/m³) remains enforced across every scenario.`;
+      }
+      if (qLower.includes('recommendation to change') || qLower.includes('boundary') || qLower.includes('entered my reading')) {
+        return `Day Twin Sensitivity & Observation Anchoring (${telemetry.city}):\n• Situation: Shape-based analysis varies diurnal contrast k ∈ [0, 1.5] around the daily mean to find where the primary decision (workout hour + commute mode) flips, while observation anchoring rescales the profile locally via circular 24h decay.\n• Evidence: ${ctxLine}\n• Interpretation: If a morning observation is much lower than the model (ratio f ∈ [0.33×, 3.0×]), morning air may beat midday; otherwise the daytime dispersion window remains safer.\n• Safety Caveat: A single user observation adjusts the profile locally and does not establish the full day's error pattern.`;
+      }
       if (qLower.includes('limitations')) {
         return `Air Day Twin Limitations & Data Provenance (${telemetry.city}):\n• Situation: All Day Twin savings are modeled estimates from ${provenanceLabel}, not personal wearable measurements.\n• Evidence: ${ctxLine}\n• Interpretation: Regional 0.25° CAMS forecasts smooth out hyper-local kerbside exhaust spikes; indoor blocks assume closed concrete infiltration (α = 0.45) and ~78% HEPA steady-state reduction when active.\n• Recommended Actions: Treat percentage deltas as directional decision support—use an N95 in heavy traffic even if regional AQI looks moderate.\n• Safety Caveat: Always follow physician guidance for asthma or cardiovascular conditions.`;
       }

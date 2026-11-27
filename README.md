@@ -7,8 +7,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
-[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-2.0%20Flash-orange?style=flat-square&logo=google)](https://deepmind.google/technologies/gemini/)
-[![Tests](https://img.shields.io/badge/Tests-265%20Passed%2C%200%20Failed-brightgreen?style=flat-square)](scripts/test-engines.js)
+[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-3.8%20Flash-orange?style=flat-square&logo=google)](https://ai.google.dev/gemini-api/docs/models)
+[![Tests](https://img.shields.io/badge/Tests-306%20Passed%2C%200%20Failed-brightgreen?style=flat-square)](scripts/test-engines.js)
 
 **Live App:** [https://tejdeepreddy37.github.io/breathewise-ai/](https://tejdeepreddy37.github.io/breathewise-ai/)  
 **Repository:** [https://github.com/tejdeepreddy37/breathewise-ai](https://github.com/tejdeepreddy37/breathewise-ai)
@@ -44,14 +44,19 @@ Legacy air quality apps stop at raw numbers (*"AQI is 124 — Moderate"*), while
 
 ---
 
-## 3. Six-Screen Workspace Architecture
+## 3. Seven-Screen Workspace Architecture
 
 1. **Earth Landing Page (`LandingPage.tsx` + `InteractiveGlobe.tsx`):** Full-viewport interactive Three.js 3D Earth hero with atmospheric glow, orbital rings, and direct entry into the intelligence workspaces.
-2. **Overview (`OverviewWorkspace.tsx`):** Displays live/cached Indian CPCB NAQI (`calculateCpcbAqi`), dominant pollutant driver (`PM2.5`, `PM10`, `NO2`, `O3`), weather conditions (temperature, humidity, wind), a 24-hour diurnal AQI trend chart, and clickable Health & Actionable Insights linked to deeper workspaces.
-3. **Commute (`CommuteSimulator.tsx`):** Interactive Origin → Destination corridor selector with draft-vs-committed analysis (`Analyze Commute →`). Compares 4 primary UI modes (`Bike`, `Car`, `Bus`, `Metro`) and 6 engine modes (`commuteSwap.ts`) for route AQI, inhaled $\text{PM}_{2.5}$ dose ($\mu\text{g}$), percentage exposure savings vs. private cab baseline, and $\text{CO}_2$ savings ($\text{kg}$).
-4. **Indoor (`IndoorCoachView.tsx`):** Single-zone steady-state mass-balance model (`indoorCoach.ts`) with Room Type, Size ($\text{m}^2$), Ceiling Height ($\text{m}$), Ventilation ($\text{ACH}$), Indoor Source (`None`, `Cooking / Frying`, `Incense / Dhoop`, `Candles`), and Air Purifier CADR toggle. Enforces strict outdoor smog safety ceilings ($\text{PM}_{2.5} > 60\,\mu\text{g/m}^3$ or $\text{O}_3 > 100\,\mu\text{g/m}^3$ blocks natural window ventilation).
-5. **Exposure (`WhatIfSimulator.tsx`):** Physiological What-If Sandbox (`inhaledDose.ts`) computing gross inhaled $\text{PM}_{2.5}$ mass ($M_{\text{inh}} = C_{\text{ambient}} \times V_E \times t \times (1 - \eta_{\text{mask}})$) across US EPA minute ventilation rates ($V_E$) and mask tiers (`None`, `Cloth`, `Surgical`, `N95`, `N99`), with a side-by-side Recharts comparison bar chart.
-6. **AI Advisor (`AiAssistantWorkspace.tsx` + `gemini.ts`):** Context-grounded assistant powered by **Google Gemini 2.0 Flash** (with optional session-only API key drawer in the bottom-left input bar) and a deterministic offline fallback. Automatically grounds responses in live location telemetry, active Health Profile (`General Adult`, `Child / Pediatric`, `Elderly`, `Respiratory Sensitive`, `Outdoor Athlete`), and active workspace scenario state—with an unconditional **Clinical Triage Guard** that intercepts medication/symptom queries before any LLM call.
+2. **Overview (`OverviewWorkspace.tsx`):** Displays live/cached Indian CPCB NAQI (`calculateCpcbAqi`), dominant pollutant driver (`PM2.5`, `PM10`, `NO2`, `O3`), weather conditions, a 24-hour diurnal AQI trend chart, and clickable Health & Actionable Insights.
+3. **Air Day Twin (`DayTwinWorkspace.tsx`):** Signature 24-hour adaptive decision-intelligence workspace integrating:
+   - **Day Schedule Optimizer (`dayTwin.ts`):** Minimizes cumulative inhaled $\text{PM}_{2.5}$ ($\mu\text{g}$) across a 24h routine while keeping fixed commitments locked.
+   - **Robustness Engine (`robustness.ts`):** Stress-tests the optimized plan across up to 9 deduplicated deterministic perturbations (`ROBUST / SENSITIVE / FRAGILE / INCONCLUSIVE`).
+   - **Shape-Based Decision-Flip (`decisionFlip.ts`):** Sweeps diurnal contrast $k \in [0, 1.5]$ via $C_k(h) = \mu + k(C(h)-\mu)$ with bisection boundary detection.
+   - **Localized Observation Anchoring (`observationAnchor.ts`):** Bounded circular 24h adjustment ($f \in [0.33, 3.0]$) from a single user-provided $\text{PM}_{2.5}$ reading with full before/after recalculation and reset.
+4. **Commute (`CommuteSimulator.tsx`):** Location-aware Origin → Destination corridor selector with draft-vs-committed analysis (`Analyze Commute →`) comparing road modes vs. Rapid AC Metro for inhaled $\text{PM}_{2.5}$ ($\mu\text{g}$) and $\text{CO}_2$ savings ($\text{kg}$).
+5. **Indoor (`IndoorCoachView.tsx`):** Single-zone steady-state mass-balance model (`indoorCoach.ts`) with outdoor smog/ozone ventilation safety ceilings ($\text{PM}_{2.5} > 60\,\mu\text{g/m}^3$ or $\text{O}_3 > 100\,\mu\text{g/m}^3$).
+6. **Exposure (`WhatIfSimulator.tsx`):** Physiological What-If Sandbox (`inhaledDose.ts`) computing gross inhaled $\text{PM}_{2.5}$ mass across US EPA minute ventilation rates ($V_E$) and NIOSH mask tiers.
+7. **AI Advisor (`AiAssistantWorkspace.tsx` + `gemini.ts`):** Grounded assistant powered by **Google Gemini 3.8 Flash** (with `gemini-3.5-flash-lite` fallback and optional session-only key) plus a structured deterministic offline engine, grounded in live telemetry, `dayTwinSummary`, and an unconditional **Clinical Triage Guard**.
 
 ### Cross-Cutting Intelligence Controls
 * **State → District → City Location Picker (`IndiaLocationPicker.tsx`):** Covers all **36 Indian States & Union Territories** plus custom coordinate search.
@@ -96,8 +101,8 @@ flowchart LR
 | **Frontend** | React `18.3.1`, TypeScript `5.6.3`, Vite `5.4.11` |
 | **Styling** | Tailwind CSS `3.4.15`, `clsx`, `tailwind-merge` |
 | **3D & Visualization** | Three.js `0.187.0` (3D Earth Globe), Recharts `2.13.3` (24h Trend & Exposure Charts), Lucide React `0.460.0` |
-| **Generative AI** | `@google/generative-ai` (`0.21.0`) targeting `gemini-2.0-flash` + deterministic fallback |
-| **Testing** | Node.js test harness (`scripts/test-engines.js` — **265 Passed, 0 Failed**) |
+| **Generative AI** | `@google/generative-ai` (`0.21.0`) targeting `gemini-3.8-flash` / `gemini-3.5-flash-lite` + deterministic fallback |
+| **Testing** | Node.js test harness (`scripts/test-engines.js` — **306 Passed, 0 Failed**) |
 
 ---
 

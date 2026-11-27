@@ -514,6 +514,9 @@ async function runRealModuleTests() {
       `export * from ${JSON.stringify(path.join(rootDir, 'src/engines/commuteSwap.ts'))};`,
       `export * from ${JSON.stringify(path.join(rootDir, 'src/engines/indoorCoach.ts'))};`,
       `export * from ${JSON.stringify(path.join(rootDir, 'src/engines/dayTwin.ts'))};`,
+      `export * from ${JSON.stringify(path.join(rootDir, 'src/engines/robustness.ts'))};`,
+      `export * from ${JSON.stringify(path.join(rootDir, 'src/engines/decisionFlip.ts'))};`,
+      `export * from ${JSON.stringify(path.join(rootDir, 'src/engines/observationAnchor.ts'))};`,
       `export * from ${JSON.stringify(path.join(rootDir, 'src/services/openMeteo.ts'))};`,
       `export * from ${JSON.stringify(path.join(rootDir, 'src/services/telemetryService.ts'))};`,
       `export * from ${JSON.stringify(path.join(rootDir, 'src/services/gemini.ts'))};`,
@@ -1185,6 +1188,74 @@ async function runRealModuleTests() {
       seenModels[0] === 'gemini-3.8-flash' && seenModels[1] === 'gemini-3.5-flash-lite' && ladderReply.includes('LIVE_LADDER_OK (gemini-3.5-flash-lite)'),
       'Gemini model ladder falls back from gemini-3.8-flash to gemini-3.5-flash-lite cleanly'
     );
+
+    console.log('\n--- 28. Testing Robustness Engine (9 Scenarios, Deduplication, Classification & Tolerances) ---');
+    const delhiTel = mod.FALLBACK_TELEMETRY['delhi-anand-vihar'];
+    const defaultActs = mod.DAY_TWIN_PRESETS[0].activities;
+    const delhiOpt = mod.optimizeDayRoutine(defaultActs, delhiTel, 'normal_adult');
+    const rob1 = mod.evaluateDayTwinRobustness(defaultActs, delhiOpt.optimized.activities, delhiTel);
+    const rob2 = mod.evaluateDayTwinRobustness(defaultActs, delhiOpt.optimized.activities, delhiTel);
+
+    assert(rob1.uniqueValidScenarios === 9 && rob1.deduplicatedCount === 0, 'Varied diurnal curve yields 9 unique valid scenarios');
+    assert(rob1.classification === 'ROBUST' && rob1.wins >= 8, `Delhi optimized schedule classifies as ROBUST (${rob1.wins}/${rob1.uniqueValidScenarios})`);
+    assert(rob1.worstCaseLossUg <= rob1.worstCaseLossToleranceUg, 'ROBUST classification satisfies worst-case loss tolerance');
+    assert(rob1.medianSavingUg === rob2.medianSavingUg && rob1.classification === rob2.classification, 'Robustness evaluation is deterministic');
+    assert(rob1.scenarios.every((s) => Number.isFinite(s.baselineUg) && Number.isFinite(s.candidateUg)), 'All scenario exposures are finite');
+
+    // Deduplication & INCONCLUSIVE on flat profile (shift+2, shift-2, flatten, baseline all identical!)
+    const robFlat = mod.evaluateDayTwinRobustness(defaultActs, alreadyCleanActs, cleanTelemetry);
+    assert(robFlat.deduplicatedCount > 0 && robFlat.uniqueValidScenarios < 9, `Flat profile deduplicates identical scenarios (${robFlat.deduplicatedCount} deduplicated)`);
+    const robUnavail = mod.evaluateDayTwinRobustness(defaultActs, delhiOpt.optimized.activities, unavailableTelemetry);
+    assert(robUnavail.classification === 'INCONCLUSIVE', 'Unavailable data never produces ROBUST — returns INCONCLUSIVE');
+
+    // Invalid overlapping candidate returns INCONCLUSIVE, and genuinely worse candidate classifies as FRAGILE
+    const overlappingCandidate = defaultActs.map((a) =>
+      a.id === 'morning-run' ? { ...a, startHour: 20, endHour: 21 } : a
+    );
+    const robOverlap = mod.evaluateDayTwinRobustness(defaultActs, overlappingCandidate, delhiTel);
+    assert(robOverlap.classification === 'INCONCLUSIVE', 'Invalid overlapping candidate classifies as INCONCLUSIVE');
+
+    const worseCandidate = delhiOpt.optimized.activities.map((a) =>
+      a.id === 'commute-am' ? { ...a, commuteMode: 'two_wheeler_open' } : a
+    );
+    const robWorse = mod.evaluateDayTwinRobustness(delhiOpt.optimized.activities, worseCandidate, delhiTel);
+    assert(robWorse.classification === 'FRAGILE' && robWorse.losses > 0, 'Worse candidate classifies as FRAGILE with recorded losses');
+
+    console.log('\n--- 29. Testing Shape-Based Decision-Flip Analysis (k ∈ [0, 1.5]) ---');
+    const flipDelhi = mod.analyzeDecisionFlipSensitivity(defaultActs, delhiTel, 'normal_adult');
+    assert(flipDelhi.hasValidData && flipDelhi.sweep.length === 16, 'Decision-flip sweep evaluates 16 k-points (0.0 to 1.5)');
+    assert(flipDelhi.hasCrossover && flipDelhi.transitions.length >= 1 && flipDelhi.transitions[0].verifiedBothSides, `Delhi detects verified decision crossover at k≈${flipDelhi.transitions[0]?.kCrossover}`);
+    const flipFlat = mod.analyzeDecisionFlipSensitivity(defaultActs, cleanTelemetry, 'normal_adult');
+    assert(flipFlat.hasValidData && !flipFlat.hasCrossover && flipFlat.transitions.length === 0, 'Flat profile honestly reports no crossover within [0, 1.5]');
+    const flipUnavail = mod.analyzeDecisionFlipSensitivity(defaultActs, unavailableTelemetry, 'normal_adult');
+    assert(!flipUnavail.hasValidData, 'Unavailable telemetry returns hasValidData=false for decision-flip');
+
+    console.log('\n--- 30. Testing Localized Observation Anchoring, Bounds, Circular Symmetry & Flip/Survive ---');
+    assert(mod.circularHourDistance(23, 0) === 1 && mod.circularHourDistance(0, 23) === 1, 'Circular 24h distance avoids 23:00<->00:00 discontinuity');
+    assert(!mod.anchorTelemetryWithObservation(delhiTel, { pm25: NaN, hour: 6 }).valid, 'Rejects NaN observation');
+    assert(!mod.anchorTelemetryWithObservation(delhiTel, { pm25: Infinity, hour: 6 }).valid, 'Rejects Infinity observation');
+    assert(!mod.anchorTelemetryWithObservation(delhiTel, { pm25: 0.5, hour: 6 }).valid, 'Rejects observation < 1 µg/m³');
+    assert(!mod.anchorTelemetryWithObservation(delhiTel, { pm25: 1200, hour: 6 }).valid, 'Rejects observation > 1000 µg/m³');
+    assert(!mod.anchorTelemetryWithObservation(delhiTel, { pm25: 150, hour: 24 }).valid, 'Rejects hour outside 0-23');
+    assert(!mod.anchorTelemetryWithObservation(delhiTel, { pm25: 150, hour: 6.5 }).valid, 'Rejects non-integer hour');
+    assert(!mod.anchorTelemetryWithObservation(delhiTel, { pm25: 50, hour: 6 }).valid, 'Rejects ratio < 0.33 (50 / 305 = 0.16)');
+    assert(!mod.anchorTelemetryWithObservation(delhiTel, { pm25: 950, hour: 6 }).valid, 'Rejects ratio > 3.0 (950 / 305 = 3.11)');
+
+    // Identity property: exact modeled reading preserves profile
+    const modeled6 = delhiTel.hourly.find((p) => p.hour === 6).pm25;
+    const identityAnchor = mod.anchorTelemetryWithObservation(delhiTel, { pm25: modeled6, hour: 6 });
+    assert(identityAnchor.valid && identityAnchor.ratio === 1 && identityAnchor.adjustedProfile[6] === modeled6, 'Identity observation (ratio=1.0) preserves modeled profile');
+
+    // Immutability & Flip vs Survive verification
+    const orig6Before = delhiTel.hourly.find((p) => p.hour === 6).pm25;
+    const flipAnchor = mod.anchorTelemetryWithObservation(delhiTel, { pm25: 122, hour: 6, source: 'Demo Flip' });
+    assert(flipAnchor.valid && delhiTel.hourly.find((p) => p.hour === 6).pm25 === orig6Before, 'Original telemetry remains immutable after observation anchoring');
+    const flipOpt = mod.optimizeDayRoutine(defaultActs, flipAnchor.anchoredTelemetry, 'normal_adult');
+    assert(flipOpt.optimized.activities.find((a) => a.id === 'morning-run').startHour === 6, '122 µg/m³ @ 6 AM observation genuinely flips optimized run back to 6 AM');
+
+    const surviveAnchor = mod.anchorTelemetryWithObservation(delhiTel, { pm25: 220, hour: 6, source: 'Demo Survive' });
+    const surviveOpt = mod.optimizeDayRoutine(defaultActs, surviveAnchor.anchoredTelemetry, 'normal_adult');
+    assert(surviveAnchor.valid && surviveOpt.optimized.activities.find((a) => a.id === 'morning-run').startHour === 12, '220 µg/m³ @ 6 AM observation preserves 12 PM optimized run');
   } finally {
     globalThis.fetch = origFetch;
     fs.rmSync(tmpDir, { recursive: true, force: true });

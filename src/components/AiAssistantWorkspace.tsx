@@ -85,7 +85,7 @@ export const AiAssistantWorkspace: React.FC = () => {
     const c = scenarioState.commute;
     const i = scenarioState.indoor;
     const e = scenarioState.exposure;
-    const base = `Commute: ${c.origin} -> ${c.destination} (${c.distanceKm} km via ${c.mode}); Indoor: ${i.roomType} ${i.roomAreaM2}m² at ${i.ventilationAch} ACH, Purifier ${i.usingPurifier ? `ON (${i.purifierCadr} m³/h CADR)` : 'OFF'}, Source=${i.indoorSource}; Exposure: ${e.activity} for ${e.durationMinutes} min, Mask=${e.maskType}.`;
+    const base = `Commute: ${c.origin} -> ${c.destination} (${c.distanceKm} km via ${c.mode}); Indoor: ${i.roomType} ${i.roomAreaM2}m² at ${i.ventilationAch} ACH, Purifier ${i.usingPurifier ? `ON (${i.purifierCadr} m³/h CADR)` : 'OFF'}, Source=${i.indoorSource}; Exposure: ${e.activity} for ${e.durationMinutes} min, Mask=${e.maskType}`;
     return dayTwinSummary ? `${dayTwinSummary} | ${base}` : base;
   };
 
