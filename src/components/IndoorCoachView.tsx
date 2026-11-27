@@ -12,6 +12,10 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
     !isUnavailable && typeof telemetry.current.pm25 === 'number' && Number.isFinite(telemetry.current.pm25)
       ? telemetry.current.pm25
       : null;
+  const ambientPm10 =
+    !isUnavailable && typeof telemetry.current.pm10 === 'number' && Number.isFinite(telemetry.current.pm10)
+      ? telemetry.current.pm10
+      : null;
   const ambientO3 = !isUnavailable ? telemetry.current.o3 : null;
 
   const [roomType, setRoomType] = useState(scenarioState.indoor.roomType || 'Bedroom');
@@ -40,6 +44,9 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
   const modeledIndoorPm25 = ambientPm25 != null
     ? Math.max(2, Math.round(rawIndoorBeforePurifier * (1 - effectiveReductionRatio)))
     : null;
+  const modeledIndoorPm10 = ambientPm10 != null
+    ? Math.max(4, Math.round((ambientPm10 * infiltrationAlpha + sourceBonus * 1.2) * (1 - effectiveReductionRatio * 0.85)))
+    : null;
 
   const indoorAqiResult = modeledIndoorPm25 != null ? calculateCpcbAqi({ pm25: modeledIndoorPm25 }) : null;
   const indoorColors = getCpcbSemanticColors(indoorAqiResult?.aqi ?? 0, indoorAqiResult?.category ?? 'Good');
@@ -52,14 +59,14 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
       : 0;
   const purifierDeltaPct = -Math.round((purifierCadr / Math.max(10, roomVolumeM3) / (purifierCadr / Math.max(10, roomVolumeM3) + ventilationAch + 0.5)) * 100);
 
-  const gaugePct = indoorAqiResult ? Math.min(1, Math.max(0.05, indoorAqiResult.aqi / 300)) : 0;
+  const gaugePct = indoorAqiResult ? Math.min(1, Math.max(0.14, indoorAqiResult.aqi / 220)) : 0;
   const arcLen = Math.PI * 64;
   const dashOffset = arcLen * (1 - gaugePct);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch animate-in fade-in duration-200">
       {/* Col 1 (4 Cols): Full-Height Room Setup Table */}
-      <div className="lg:col-span-4 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col justify-between space-y-3">
+      <div className="lg:col-span-4 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-3">
         <h2 className="text-[14px] font-extrabold text-[#0C2340]">Room Setup</h2>
 
         <div className="space-y-2.5 text-xs flex-1 flex flex-col justify-center">
@@ -74,7 +81,7 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
                   setRoomType(e.target.value);
                   syncIndoor({ roomType: e.target.value });
                 }}
-                className="w-full bg-white border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
+                className="w-full bg-[#F8FBFF] border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
               >
                 <option value="Bedroom">Bedroom</option>
                 <option value="Living Room">Living Room</option>
@@ -96,7 +103,7 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
                   setRoomAreaM2(val);
                   syncIndoor({ roomAreaM2: val });
                 }}
-                className="w-full bg-white border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
+                className="w-full bg-[#F8FBFF] border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
               >
                 <option value={12}>12 m²</option>
                 <option value={20}>20 m²</option>
@@ -119,7 +126,7 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
                   setCeilingHeightM(val);
                   syncIndoor({ ceilingHeightM: val });
                 }}
-                className="w-full bg-white border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
+                className="w-full bg-[#F8FBFF] border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
               >
                 <option value={2.5}>2.5 m</option>
                 <option value={2.8}>2.8 m</option>
@@ -141,7 +148,7 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
                   setVentilationAch(val);
                   syncIndoor({ ventilationAch: val });
                 }}
-                className="w-full bg-white border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
+                className="w-full bg-[#F8FBFF] border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
               >
                 <option value={0.5}>0.5 (Sealed)</option>
                 <option value={1.5}>1.5 (Crack)</option>
@@ -163,7 +170,7 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
                   setIndoorSource(val);
                   syncIndoor({ indoorSource: val });
                 }}
-                className="w-full bg-white border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none truncate"
+                className="w-full bg-[#F8FBFF] border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none truncate"
               >
                 <option value="none">None</option>
                 <option value="cooking_frying">Cooking (+85)</option>
@@ -234,7 +241,7 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
       <div className="lg:col-span-8 flex flex-col justify-between gap-4">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
           {/* Card: Indoor Air Analysis */}
-          <div className="md:col-span-7 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col justify-between space-y-3">
+          <div className="md:col-span-7 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-3">
             <h2 className="text-[14px] font-extrabold text-[#0C2340]">
               Indoor Air Analysis
             </h2>
@@ -255,14 +262,14 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
                       d="M 16 84 A 64 64 0 0 1 144 84"
                       fill="none"
                       stroke="#E6EEF6"
-                      strokeWidth="12"
+                      strokeWidth="13"
                       strokeLinecap="round"
                     />
                     <path
                       d="M 16 84 A 64 64 0 0 1 144 84"
                       fill="none"
                       stroke="url(#indoorGaugeGrad)"
-                      strokeWidth="12"
+                      strokeWidth="13"
                       strokeLinecap="round"
                       strokeDasharray={arcLen}
                       strokeDashoffset={dashOffset}
@@ -282,15 +289,19 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
                   </span>
                 </div>
 
-                {/* Truthful Modeled Metrics Table */}
+                {/* Truthful Modeled Parameters Table */}
                 <div className="flex-1 min-w-0 w-full space-y-2.5 text-xs">
                   <div className="flex justify-between items-center gap-3 py-1">
                     <span className="text-[#476788] font-medium whitespace-nowrap">Modeled PM₂.₅</span>
                     <strong className="font-extrabold text-[#0C2340] tabular-nums whitespace-nowrap">{modeledIndoorPm25} µg/m³</strong>
                   </div>
                   <div className="flex justify-between items-center gap-3 py-1">
-                    <span className="text-[#476788] font-medium whitespace-nowrap">Outdoor PM₂.₅</span>
-                    <strong className="font-extrabold text-[#0C2340] tabular-nums whitespace-nowrap">{ambientPm25} µg/m³</strong>
+                    <span className="text-[#476788] font-medium whitespace-nowrap">
+                      {modeledIndoorPm10 != null ? 'Modeled PM₁₀' : 'Outdoor PM₂.₅'}
+                    </span>
+                    <strong className="font-extrabold text-[#0C2340] tabular-nums whitespace-nowrap">
+                      {modeledIndoorPm10 != null ? `${modeledIndoorPm10} µg/m³` : `${ambientPm25} µg/m³`}
+                    </strong>
                   </div>
                   <div className="flex justify-between items-center gap-3 py-1">
                     <span className="text-[#476788] font-medium whitespace-nowrap">Room Volume</span>
@@ -311,7 +322,7 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
           </div>
 
           {/* Card: Scenarios & Impact */}
-          <div className="md:col-span-5 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col justify-between space-y-3">
+          <div className="md:col-span-5 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-3">
             <h2 className="text-[14px] font-extrabold text-[#0C2340]">
               Scenarios & Impact
             </h2>
@@ -346,8 +357,8 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
           </div>
         </div>
 
-        {/* Bottom Insight Card */}
-        <div className="rounded-2xl bg-white/90 backdrop-blur-md border border-white/95 p-4 flex items-center space-x-3.5 text-xs shadow-[0_8px_22px_-6px_rgba(15,44,76,0.08)]">
+        {/* Bottom Insight Bar Matching Image 2 Top */}
+        <div className="rounded-2xl bg-white border border-white p-4 flex items-center space-x-3.5 text-xs shadow-[0_10px_28px_-8px_rgba(14,165,233,0.14)]">
           <div className="w-10 h-10 rounded-xl bg-[#E0F2FE] border border-[#BAE6FD] flex items-center justify-center shrink-0">
             <Home className="w-5 h-5 text-[#0284C7]" />
           </div>

@@ -75,23 +75,23 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
 
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
-      {/* Top 3-Column Row */}
+      {/* Top 3-Column Row Matching Image 2 Bottom */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Column 1: Scenario Inputs */}
-        <div className="lg:col-span-4 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col justify-between space-y-3">
+        <div className="lg:col-span-4 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-3">
           <h2 className="text-[14px] font-extrabold text-[#0C2340]">
             Scenario Inputs
           </h2>
 
           <div className="space-y-2.5 flex-1 flex flex-col justify-center">
             {/* Activity */}
-            <div className="relative rounded-xl bg-white/95 border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
+            <div className="relative rounded-xl bg-white border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
               <div className="w-7 h-7 rounded-full bg-[#EAF4FD] flex items-center justify-center shrink-0">
                 <Activity className="w-3.5 h-3.5 text-[#0284C7]" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[10px] font-semibold text-[#5A7896] leading-none">Activity</div>
-                <div className="text-xs font-bold text-[#0C2340] truncate pt-0.5">
+                <div className="text-xs font-extrabold text-[#0C2340] truncate pt-0.5">
                   {ACTIVITY_LABELS[activity]}
                 </div>
               </div>
@@ -116,13 +116,13 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
             </div>
 
             {/* Duration */}
-            <div className="relative rounded-xl bg-white/95 border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
+            <div className="relative rounded-xl bg-white border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
               <div className="w-7 h-7 rounded-full bg-[#EAF4FD] flex items-center justify-center shrink-0">
                 <Clock className="w-3.5 h-3.5 text-[#0284C7]" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[10px] font-semibold text-[#5A7896] leading-none">Duration</div>
-                <div className="text-xs font-bold text-[#0C2340] truncate pt-0.5">
+                <div className="text-xs font-extrabold text-[#0C2340] truncate pt-0.5">
                   {durationMinutes} minutes
                 </div>
               </div>
@@ -146,13 +146,13 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
             </div>
 
             {/* Air Quality (PM2.5) */}
-            <div className="relative rounded-xl bg-white/95 border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
+            <div className="relative rounded-xl bg-white border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
               <div className="w-7 h-7 rounded-full bg-[#EAF4FD] flex items-center justify-center shrink-0">
                 <Wind className="w-3.5 h-3.5 text-[#0284C7]" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[10px] font-semibold text-[#5A7896] leading-none">Air Quality (PM₂.₅)</div>
-                <div className="text-xs font-bold text-[#0C2340] truncate pt-0.5">
+                <div className="text-xs font-extrabold text-[#0C2340] truncate pt-0.5">
                   {pm25Display}
                 </div>
               </div>
@@ -178,13 +178,18 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
             </div>
 
             {/* Mask Protection */}
-            <div className="relative rounded-xl bg-white/95 border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
+            <div className="relative rounded-xl bg-white border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
               <div className="w-7 h-7 rounded-full bg-[#EAF4FD] flex items-center justify-center shrink-0">
-                <Shield className="w-3.5 h-3.5 text-[#0284C7]" />
+                <svg className="w-3.5 h-3.5 text-[#0284C7]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 10c2-2 12-2 14 0v4c0 3-3.5 5-7 5s-7-2-7-5v-4Z" />
+                  <path d="M5 11H3a1 1 0 0 0-1 1v1a2 2 0 0 0 2 2h1" />
+                  <path d="M19 11h2a1 1 0 0 1 1 1v1a2 2 0 0 1-2 2h-1" />
+                  <path d="M9 13h6" />
+                </svg>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[10px] font-semibold text-[#5A7896] leading-none">Mask Protection</div>
-                <div className="text-xs font-bold text-[#0C2340] truncate pt-0.5">
+                <div className="text-xs font-extrabold text-[#0C2340] truncate pt-0.5">
                   {MASK_LABELS[maskType]}
                 </div>
               </div>
@@ -210,17 +215,21 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
         </div>
 
         {/* Column 2: Exposure Results */}
-        <div className="lg:col-span-4 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-4 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-4">
           <h2 className="text-[14px] font-extrabold text-[#0C2340]">
             Exposure Results
           </h2>
 
           <div className="flex items-center space-x-4 py-1">
-            <div className="w-14 h-14 rounded-2xl bg-[#EAF4FD] border border-[#CFE4F7] flex items-center justify-center shrink-0">
-              <svg className="w-8 h-8 text-[#0EA5E9]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 3v9" />
-                <path d="M12 12c-2-2-6-2-7 3-.7 3.5 1 6 4 6 2 0 3-1 3-3v-6Z" />
-                <path d="M12 12c2-2 6-2 7 3 .7 3.5-1 6-4 6-2 0-3-1-3-3v-6Z" />
+            {/* Crisp Anatomical Lungs Illustration Matching Image 2 */}
+            <div className="w-16 h-16 rounded-2xl bg-[#EAF4FD] border border-[#CFE4F7] flex items-center justify-center shrink-0">
+              <svg className="w-9 h-9 text-[#0284C7]" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 5v9" />
+                <path d="M16 14l-4 3.5" />
+                <path d="M16 14l4 3.5" />
+                <path d="M12.5 11.5C9.2 10.2 5.5 13.5 5 20.5c-.3 4.2 1.8 6.5 5 6.5 2.4 0 4-1.5 4-5v-8.5" />
+                <path d="M19.5 11.5C22.8 10.2 26.5 13.5 27 20.5c.3 4.2-1.8 6.5-5 6.5-2.4 0-4-1.5-4-5v-8.5" />
+                <path d="M10.5 19.5l-2 2.5M12 22l-1.5 2M21.5 19.5l2 2.5M20 22l1.5 2" />
               </svg>
             </div>
 
@@ -241,7 +250,7 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
               <span className="mx-1.5 text-[#CBD5E1]">•</span>
               <span className="tabular-nums">{result.inhaledAirVolumeM3} m³ air</span>
             </div>
-            <div className="rounded-xl bg-[#B9F3D0]/85 border border-[#86EFAC] py-2.5 px-3 text-center font-extrabold text-[15px] text-[#065F46]">
+            <div className="rounded-xl bg-[#BBF7D0]/90 border border-[#86EFAC] py-2.5 px-3 text-center font-extrabold text-[15px] text-[#065F46]">
               {maskType === 'none'
                 ? '0% filtration active'
                 : `-${reductionPercent}% lower exposure`}
@@ -250,7 +259,7 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
         </div>
 
         {/* Column 3: Scenario Comparison Bar Chart */}
-        <div className="lg:col-span-4 rounded-2xl bg-white/88 backdrop-blur-md border border-white/95 p-5 shadow-[0_10px_28px_-8px_rgba(15,44,76,0.1)] flex flex-col justify-between space-y-2">
+        <div className="lg:col-span-4 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-2">
           <h2 className="text-[14px] font-extrabold text-[#0C2340]">
             Scenario Comparison
           </h2>
@@ -282,8 +291,8 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
         </div>
       </div>
 
-      {/* Bottom Takeaway Bar */}
-      <div className="rounded-2xl bg-white/90 backdrop-blur-md border border-white/95 px-5 py-3.5 flex items-center space-x-3 text-xs shadow-[0_8px_22px_-6px_rgba(15,44,76,0.08)]">
+      {/* Bottom Takeaway Bar Matching Image 2 Bottom */}
+      <div className="rounded-2xl bg-white border border-white px-5 py-3.5 flex items-center space-x-3 text-[13px] shadow-[0_10px_28px_-8px_rgba(14,165,233,0.14)]">
         <div className="w-8 h-8 rounded-lg bg-[#E0F2FE] border border-[#BAE6FD] flex items-center justify-center shrink-0">
           <Shield className="w-4 h-4 text-[#0284C7]" />
         </div>
