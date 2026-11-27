@@ -356,6 +356,52 @@ export function extractJsonPayload(text: string): string {
   return trimmed;
 }
 
+export interface GeminiContentMessage {
+  role: 'user' | 'model';
+  parts: Array<{ text: string }>;
+}
+
+export interface GeminiChatModelLike {
+  startChat: (opts: { history: GeminiContentMessage[] }) => {
+    sendMessage: (message: string) => Promise<{ response: { text: () => string } }>;
+  };
+}
+
+/**
+ * Normalizes chat history for Google Gemini's `startChat({ history })` API:
+ * - Preserves recent multi-turn context (last 6 messages)
+ * - Strips empty/malformed entries
+ * - Drops leading `model` messages (such as the initial assistant welcome card)
+ *   so history always starts with a `user` turn as required by Gemini.
+ */
+export function normalizeGeminiHistory(history: ChatMessage[] | undefined | null): GeminiContentMessage[] {
+  if (!Array.isArray(history) || history.length === 0) return [];
+
+  const mapped: GeminiContentMessage[] = history
+    .filter((m): m is ChatMessage => Boolean(m && typeof m.content === 'string' && m.content.trim().length > 0))
+    .slice(-6)
+    .map((m) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content.trim() }],
+    }));
+
+  const firstUserIdx = mapped.findIndex((m) => m.role === 'user');
+  if (firstUserIdx === -1) return [];
+
+  const trimmed = mapped.slice(firstUserIdx);
+  // Collapse consecutive identical roles to keep strict user/model alternation
+  const normalized: GeminiContentMessage[] = [];
+  for (const entry of trimmed) {
+    const prev = normalized[normalized.length - 1];
+    if (prev && prev.role === entry.role) {
+      prev.parts[0].text = `${prev.parts[0].text}\n${entry.parts[0].text}`;
+    } else {
+      normalized.push(entry);
+    }
+  }
+  return normalized;
+}
+
 export async function askBreatheWiseAssistant(
   question: string,
   history: ChatMessage[],
@@ -363,7 +409,8 @@ export async function askBreatheWiseAssistant(
   window: CleanAirWindow,
   profile: VulnerabilityProfile,
   customApiKey?: string,
-  scenarioSummary?: string
+  scenarioSummary?: string,
+  chatModelFactory?: (apiKey: string, systemInstruction: string) => GeminiChatModelLike
 ): Promise<string> {
   const qLower = (question || '').toLowerCase();
   const isUnavailable = Boolean(telemetry.metadata.isUnavailable);
@@ -515,10 +562,7 @@ export async function askBreatheWiseAssistant(
   }
 
   try {
-    const ai = new GoogleGenerativeAI(apiKey);
-    const model = ai.getGenerativeModel({
-      model: 'gemini-2.0-flash',
-      systemInstruction: `You are BreatheWise AI, an expert Environmental Intelligence and Living Assistant.
+    const systemInstruction = `You are BreatheWise AI, an expert Environmental Intelligence and Living Assistant.
 Current verified environmental context for ${telemetry.city}, ${telemetry.state}, India (${telemetry.metadata.latitude.toFixed(4)}°N, ${telemetry.metadata.longitude.toFixed(4)}°E):
 - Data Provenance: ${provenanceLabel} (Provider: ${telemetry.metadata.provider})
 - CPCB NAQI: ${telemetry.current.aqi} (${telemetry.current.aqiCategory}), Dominant Pollutant: ${telemetry.current.primaryPollutant}
@@ -534,14 +578,17 @@ STRICT RULES:
 2. If PM2.5 > 120 µg/m³, advise against outdoor aerobic workouts.
 3. Distinguish measured/modeled values honestly and state data provenance if asked. Never invent numbers or claim cached/baseline data is live.
 4. Never diagnose diseases or prescribe medications.
-Keep responses direct, actionable, and grounded in the exact numbers above.`,
-    });
+Keep responses direct, actionable, and grounded in the exact numbers above.`;
+
+    const model: GeminiChatModelLike = chatModelFactory
+      ? chatModelFactory(apiKey, systemInstruction)
+      : new GoogleGenerativeAI(apiKey).getGenerativeModel({
+          model: 'gemini-2.0-flash',
+          systemInstruction,
+        });
 
     const chat = model.startChat({
-      history: history.slice(-6).map((m) => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }],
-      })),
+      history: normalizeGeminiHistory(history),
     });
 
     const result = await withTimeout(chat.sendMessage(question), AI_TIMEOUT_MS, 'Gemini assistant');

@@ -28,10 +28,19 @@ export const IndiaLocationPicker: React.FC = () => {
         setIsOpen(false);
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
     }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen]);
 
   useEffect(() => {
@@ -89,7 +98,9 @@ export const IndiaLocationPicker: React.FC = () => {
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="Select Indian Location"
-        className="inline-flex items-center space-x-1.5 sm:space-x-2 bg-white hover:bg-white text-[#0C2340] text-xs font-bold py-1.5 sm:py-2 px-3 sm:px-4 rounded-full border border-white shadow-[0_4px_14px_rgba(14,165,233,0.12)] transition-all cursor-pointer max-w-[165px] sm:max-w-[290px]"
+        aria-expanded={isOpen}
+        aria-haspopup="dialog"
+        className="inline-flex items-center space-x-1.5 sm:space-x-2 bg-white hover:bg-white text-[#0C2340] text-xs font-bold py-1.5 sm:py-2 px-3 sm:px-4 rounded-full border border-white shadow-[0_4px_14px_rgba(14,165,233,0.12)] transition-all cursor-pointer max-w-[165px] sm:max-w-[290px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0EA5E9]"
       >
         <MapPin className="w-3.5 h-3.5 text-[#0EA5E9] shrink-0" />
         <span className="truncate">{displayLabel}</span>

@@ -266,7 +266,11 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
             Scenario Comparison
           </h2>
 
-          <div className="h-[210px] w-full">
+          <div
+            className="h-[210px] w-full"
+            role="img"
+            aria-label={`Scenario comparison bar chart: Without mask ${result.unmaskedDoseUg} micrograms vs ${maskType === 'none' ? 'Unmasked' : maskType.toUpperCase()} ${result.estimatedInhaledMassUg} micrograms`}
+          >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 26, right: 16, left: -16, bottom: 4 }}>
                 <CartesianGrid stroke="#EEF5FB" vertical={false} />

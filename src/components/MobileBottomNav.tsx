@@ -28,6 +28,7 @@ export const MobileBottomNav: React.FC = () => {
             <button
               key={t.id}
               type="button"
+              aria-current={isActive ? 'page' : undefined}
               onClick={() => setActiveTab(t.id)}
               className={`flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-2xl transition-all cursor-pointer ${
                 isActive ? 'text-[#0EA5E9] font-bold' : 'text-[#5A7896] hover:text-[#0C2340] font-medium'

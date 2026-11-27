@@ -85,16 +85,17 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
         <div className="space-y-2.5 text-xs flex-1 flex flex-col justify-center">
           {/* Room Type */}
           <div className="grid grid-cols-12 items-center gap-2">
-            <label className="col-span-5 text-[11px] font-semibold text-[#476788]">Room Type</label>
+            <label htmlFor="indoor-room-type" className="col-span-5 text-[11px] font-semibold text-[#476788]">Room Type</label>
             <div className="col-span-7 relative">
               <select
+                id="indoor-room-type"
                 aria-label="Room Type"
                 value={roomType}
                 onChange={(e) => {
                   setRoomType(e.target.value);
                   syncIndoor({ roomType: e.target.value });
                 }}
-                className="w-full bg-[#F8FBFF] border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
+                className="w-full bg-[#F8FBFF] border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0EA5E9]/40"
               >
                 <option value="Bedroom">Bedroom</option>
                 <option value="Living Room">Living Room</option>
@@ -106,9 +107,10 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
 
           {/* Room Size */}
           <div className="grid grid-cols-12 items-center gap-2">
-            <label className="col-span-5 text-[11px] font-semibold text-[#476788]">Room Size</label>
+            <label htmlFor="indoor-room-size" className="col-span-5 text-[11px] font-semibold text-[#476788]">Room Size</label>
             <div className="col-span-7 relative">
               <select
+                id="indoor-room-size"
                 aria-label="Room Size"
                 value={roomAreaM2}
                 onChange={(e) => {
@@ -116,7 +118,7 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
                   setRoomAreaM2(val);
                   syncIndoor({ roomAreaM2: val });
                 }}
-                className="w-full bg-[#F8FBFF] border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
+                className="w-full bg-[#F8FBFF] border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0EA5E9]/40"
               >
                 <option value={12}>12 m²</option>
                 <option value={20}>20 m²</option>
@@ -129,9 +131,10 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
 
           {/* Ceiling Height */}
           <div className="grid grid-cols-12 items-center gap-2">
-            <label className="col-span-5 text-[11px] font-semibold text-[#476788]">Ceiling Height</label>
+            <label htmlFor="indoor-ceiling-height" className="col-span-5 text-[11px] font-semibold text-[#476788]">Ceiling Height</label>
             <div className="col-span-7 relative">
               <select
+                id="indoor-ceiling-height"
                 aria-label="Ceiling Height"
                 value={ceilingHeightM}
                 onChange={(e) => {
@@ -139,7 +142,7 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
                   setCeilingHeightM(val);
                   syncIndoor({ ceilingHeightM: val });
                 }}
-                className="w-full bg-[#F8FBFF] border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
+                className="w-full bg-[#F8FBFF] border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0EA5E9]/40"
               >
                 <option value={2.5}>2.5 m</option>
                 <option value={2.8}>2.8 m</option>
@@ -151,9 +154,10 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
 
           {/* Ventilation (ACH) */}
           <div className="grid grid-cols-12 items-center gap-2">
-            <label className="col-span-5 text-[11px] font-semibold text-[#476788]">Ventilation (ACH)</label>
+            <label htmlFor="indoor-ventilation" className="col-span-5 text-[11px] font-semibold text-[#476788]">Ventilation (ACH)</label>
             <div className="col-span-7 relative">
               <select
+                id="indoor-ventilation"
                 aria-label="Ventilation ACH"
                 value={ventilationAch}
                 onChange={(e) => {
@@ -161,7 +165,7 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
                   setVentilationAch(val);
                   syncIndoor({ ventilationAch: val });
                 }}
-                className="w-full bg-[#F8FBFF] border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none"
+                className="w-full bg-[#F8FBFF] border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0EA5E9]/40"
               >
                 <option value={0.5}>0.5 (Sealed)</option>
                 <option value={1.5}>1.5 (Crack)</option>
@@ -173,9 +177,10 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
 
           {/* Indoor Source */}
           <div className="grid grid-cols-12 items-center gap-2">
-            <label className="col-span-5 text-[11px] font-semibold text-[#476788]">Indoor Source</label>
+            <label htmlFor="indoor-source" className="col-span-5 text-[11px] font-semibold text-[#476788]">Indoor Source</label>
             <div className="col-span-7 relative">
               <select
+                id="indoor-source"
                 aria-label="Indoor Source"
                 value={indoorSource}
                 onChange={(e) => {
@@ -183,7 +188,7 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
                   setIndoorSource(val);
                   syncIndoor({ indoorSource: val });
                 }}
-                className="w-full bg-[#F8FBFF] border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus:outline-none truncate"
+                className="w-full bg-[#F8FBFF] border border-[#DCEBF7] rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold text-[#0C2340] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0EA5E9]/40 truncate"
               >
                 <option value="none">None</option>
                 <option value="cooking_frying">Cooking (+85)</option>
@@ -201,13 +206,14 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
               <button
                 type="button"
                 role="switch"
+                aria-label="Using Air Purifier"
                 aria-checked={usingPurifier}
                 onClick={() => {
                   const next = !usingPurifier;
                   setUsingPurifier(next);
                   syncIndoor({ usingPurifier: next });
                 }}
-                className={`w-11 h-6 rounded-full transition-colors p-0.5 cursor-pointer ${
+                className={`w-11 h-6 rounded-full transition-colors p-0.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0EA5E9] ${
                   usingPurifier ? 'bg-[#0EA5E9]' : 'bg-slate-300'
                 }`}
               >
@@ -221,9 +227,10 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
 
             {/* Purifier CADR Rate */}
             <div className="grid grid-cols-12 items-center gap-2">
-              <span className="col-span-5 text-[11px] font-semibold text-[#476788]">Purifier CADR Rate</span>
+              <label htmlFor="indoor-cadr" className="col-span-5 text-[11px] font-semibold text-[#476788]">Purifier CADR Rate</label>
               <div className="col-span-7 relative">
                 <select
+                  id="indoor-cadr"
                   aria-label="Purifier CADR"
                   disabled={!usingPurifier}
                   value={purifierCadr}
@@ -232,7 +239,7 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
                     setPurifierCadr(val);
                     syncIndoor({ purifierCadr: val });
                   }}
-                  className={`w-full rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold border focus:outline-none ${
+                  className={`w-full rounded-lg py-1.5 pl-2.5 pr-6 text-xs font-bold border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0EA5E9]/40 ${
                     usingPurifier
                       ? 'bg-[#E0F2FE] border-[#BAE6FD] text-[#0284C7] cursor-pointer'
                       : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
@@ -262,7 +269,11 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
             {indoorAqiResult ? (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 flex-1">
                 {/* Gradient Arc Gauge */}
-                <div className="relative w-40 h-32 flex flex-col items-center justify-end shrink-0">
+                <div
+                  className="relative w-40 h-32 flex flex-col items-center justify-end shrink-0"
+                  role="img"
+                  aria-label={`Estimated indoor AQI is ${indoorAqiResult.aqi} (${indoorAqiResult.category})`}
+                >
                   <svg className="w-40 h-28 overflow-visible" viewBox="0 0 160 95">
                     <defs>
                       <linearGradient id="indoorGaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">

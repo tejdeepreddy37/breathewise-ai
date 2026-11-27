@@ -3,10 +3,8 @@ import { EnvironmentalTelemetry } from '../types/telemetry';
 import { CleanAirWindow, VulnerabilityProfile, ActivityType, CommuteMode, IndoorSourceType } from '../types/engines';
 import { MASK_EFFICIENCIES } from '../engines/inhaledDose';
 import { UserPreferences, DEFAULT_USER_PREFERENCES } from '../types/user';
-import { GroundedAiLivingPlan } from '../types/ai';
 import { getCityTelemetry, resolveLocationById } from '../services/telemetryService';
 import { calculateCleanAirWindow } from '../engines/windowSafe';
-import { fetchGeminiLivingPlan, generateDeterministicLivingPlan } from '../services/gemini';
 import { FALLBACK_TELEMETRY } from '../data/staticFallback';
 import { INDIA_LOCATIONS, IndiaLocation } from '../data/indiaLocations';
 
@@ -68,8 +66,6 @@ interface AppContextType {
   telemetryError: string | null;
   cleanAirWindow: CleanAirWindow;
   userPreferences: UserPreferences;
-  livingPlan: GroundedAiLivingPlan | null;
-  isLoadingPlan: boolean;
   activeTab: NavigationTab;
   isTransparencyOpen: boolean;
   sessionApiKey: string;
@@ -155,12 +151,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return calculateCleanAirWindow(telemetry.hourly);
   });
 
-  const [livingPlan, setLivingPlan] = useState<GroundedAiLivingPlan | null>(() => {
-    return generateDeterministicLivingPlan(telemetry, cleanAirWindow, userPreferences.vulnerabilityProfile);
-  });
-
-  const [isLoadingPlan, setIsLoadingPlan] = useState<boolean>(false);
-
   const setSessionApiKey = (key: string) => {
     setSessionApiKeyState(key);
     try {
@@ -170,17 +160,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         sessionStorage.removeItem('breathewise_session_gemini_key');
       }
     } catch {}
-
-    setIsLoadingPlan(true);
-    fetchGeminiLivingPlan(telemetry, cleanAirWindow, userPreferences.vulnerabilityProfile, key)
-      .then((plan) => {
-        setLivingPlan(plan);
-        setIsLoadingPlan(false);
-      })
-      .catch(() => {
-        setLivingPlan(generateDeterministicLivingPlan(telemetry, cleanAirWindow, userPreferences.vulnerabilityProfile));
-        setIsLoadingPlan(false);
-      });
   };
 
   const VALID_TABS: NavigationTab[] = ['landing', 'overview', 'commute', 'indoor', 'simulator', 'assistant', 'exposure', 'advisor'];
@@ -265,18 +244,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setTelemetry(data);
       const window = calculateCleanAirWindow(data.hourly);
       setCleanAirWindow(window);
-
-      setIsLoadingPlan(true);
-      const plan = await fetchGeminiLivingPlan(
-        data,
-        window,
-        profileRef.current,
-        sessionApiKeyRef.current
-      );
-      if (requestId !== latestRequestIdRef.current) return;
-
-      setLivingPlan(plan);
-      setIsLoadingPlan(false);
     } catch (err: unknown) {
       if (requestId !== latestRequestIdRef.current) return;
       console.warn('Failed to load telemetry:', err);
@@ -402,17 +369,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       localStorage.setItem('breathewise_prefs', JSON.stringify(updated));
     } catch {}
-
-    setIsLoadingPlan(true);
-    fetchGeminiLivingPlan(telemetry, cleanAirWindow, profile, sessionApiKey)
-      .then((plan) => {
-        setLivingPlan(plan);
-        setIsLoadingPlan(false);
-      })
-      .catch(() => {
-        setLivingPlan(generateDeterministicLivingPlan(telemetry, cleanAirWindow, profile));
-        setIsLoadingPlan(false);
-      });
   };
 
   const updatePreferences = (prefs: Partial<UserPreferences>) => {
@@ -437,8 +393,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         telemetryError,
         cleanAirWindow,
         userPreferences,
-        livingPlan,
-        isLoadingPlan,
         activeTab,
         isTransparencyOpen,
         sessionApiKey,

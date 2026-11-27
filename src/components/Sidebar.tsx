@@ -52,7 +52,7 @@ export const Sidebar: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('landing')}
-          className="flex items-center space-x-2.5 cursor-pointer text-left focus:outline-none rounded-xl p-1 -ml-1 hover:bg-white/50 transition-colors"
+          className="flex items-center space-x-2.5 cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0EA5E9] rounded-xl p-1 -ml-1 hover:bg-white/50 transition-colors"
           title="Return to 3D Earth Entrance"
         >
           <div className="w-9 h-9 rounded-full bg-gradient-to-b from-[#38BDF8] to-[#0284C7] flex items-center justify-center text-white shadow-sm shadow-[#0284C7]/25 ring-2 ring-white/90 shrink-0">
@@ -77,6 +77,7 @@ export const Sidebar: React.FC = () => {
               <button
                 key={item.id}
                 type="button"
+                aria-current={isActive ? 'page' : undefined}
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm transition-all cursor-pointer ${
                   isActive

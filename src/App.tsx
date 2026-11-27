@@ -1,16 +1,27 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { useApp } from './context/AppContext';
 import { Sidebar } from './components/Sidebar';
-import { OverviewWorkspace } from './components/OverviewWorkspace';
-import { CommuteSimulator } from './components/CommuteSimulator';
-import { IndoorCoachView } from './components/IndoorCoachView';
-import { WhatIfSimulator } from './components/WhatIfSimulator';
-import { AiAssistantWorkspace } from './components/AiAssistantWorkspace';
 import { IndiaLocationPicker } from './components/IndiaLocationPicker';
 import { TransparencyDrawer } from './components/TransparencyDrawer';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { LandingPage } from './components/LandingPage';
 import { AlertTriangle, RefreshCw, FlaskConical } from 'lucide-react';
+
+const OverviewWorkspace = lazy(() =>
+  import('./components/OverviewWorkspace').then((m) => ({ default: m.OverviewWorkspace }))
+);
+const CommuteSimulator = lazy(() =>
+  import('./components/CommuteSimulator').then((m) => ({ default: m.CommuteSimulator }))
+);
+const IndoorCoachView = lazy(() =>
+  import('./components/IndoorCoachView').then((m) => ({ default: m.IndoorCoachView }))
+);
+const WhatIfSimulator = lazy(() =>
+  import('./components/WhatIfSimulator').then((m) => ({ default: m.WhatIfSimulator }))
+);
+const AiAssistantWorkspace = lazy(() =>
+  import('./components/AiAssistantWorkspace').then((m) => ({ default: m.AiAssistantWorkspace }))
+);
 
 export const App: React.FC = () => {
   const { activeTab, setActiveTab, telemetryError, refreshData, isLoadingTelemetry, setIsTransparencyOpen } = useApp();
@@ -140,13 +151,21 @@ export const App: React.FC = () => {
           )}
 
           {/* 5 Workspace Views */}
-          {activeTab === 'overview' && <OverviewWorkspace />}
-          {activeTab === 'commute' && <CommuteSimulator isDedicatedWorkspace={true} />}
-          {activeTab === 'indoor' && <IndoorCoachView isDedicatedWorkspace={true} />}
-          {(activeTab === 'exposure' || activeTab === 'simulator') && (
-            <WhatIfSimulator isDedicatedWorkspace={true} />
-          )}
-          {(activeTab === 'advisor' || activeTab === 'assistant') && <AiAssistantWorkspace />}
+          <Suspense
+            fallback={
+              <div className="min-h-[360px] rounded-2xl bg-white/70 border border-white/80 p-6 flex items-center justify-center text-xs font-semibold text-[#476788]">
+                Loading workspace...
+              </div>
+            }
+          >
+            {activeTab === 'overview' && <OverviewWorkspace />}
+            {activeTab === 'commute' && <CommuteSimulator isDedicatedWorkspace={true} />}
+            {activeTab === 'indoor' && <IndoorCoachView isDedicatedWorkspace={true} />}
+            {(activeTab === 'exposure' || activeTab === 'simulator') && (
+              <WhatIfSimulator isDedicatedWorkspace={true} />
+            )}
+            {(activeTab === 'advisor' || activeTab === 'assistant') && <AiAssistantWorkspace />}
+          </Suspense>
         </main>
       </div>
 

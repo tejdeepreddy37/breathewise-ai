@@ -475,59 +475,73 @@ export const InteractiveGlobe: React.FC<{
     const prefersReducedMotion =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    let animId: number;
+    let animId: number | null = null;
     let frameCount = 0;
+
+    const projectMarkers = () => {
+      if (!container || !camera || !globeGroup) return;
+      globeGroup.updateMatrixWorld();
+      const rect = container.getBoundingClientRect();
+      const positions: Array<{ city: GlobeCity; x: number; y: number; isVisible: boolean }> = [];
+
+      GLOBE_CITIES.forEach((city) => {
+        const localVec = latLonToVector3(city.lat, city.lon, GLOBE_RADIUS);
+        const worldVec = localVec.clone().applyMatrix4(globeGroup.matrixWorld);
+
+        const normal = worldVec.clone().normalize();
+        const viewDir = camera.position.clone().sub(worldVec).normalize();
+        const dot = normal.dot(viewDir);
+        const isVisible = dot > 0.05;
+
+        worldVec.project(camera);
+        const screenX = ((worldVec.x + 1) * rect.width) / 2;
+        const screenY = ((-worldVec.y + 1) * rect.height) / 2;
+
+        positions.push({ city, x: screenX, y: screenY, isVisible });
+      });
+
+      setMarkerPositions(positions);
+    };
+
     const animate = () => {
       animId = requestAnimationFrame(animate);
 
       // Very gentle restrained idle drift so Asia-Pacific / India stays centered gracefully
-      if (!prefersReducedMotion && !isDraggingRef.current && globeGroup) {
+      if (!isDraggingRef.current && globeGroup) {
         globeGroup.rotation.y -= 0.0003;
       }
-      if (!prefersReducedMotion && cloudMesh) {
+      if (cloudMesh) {
         cloudMesh.rotation.y -= 0.0005;
       }
 
       // Project 3D City Coordinates onto 2D Canvas Screen Pixels (throttled to every 2nd frame)
       frameCount++;
-      if (frameCount % 2 === 0 && container && camera && globeGroup) {
-        const rect = container.getBoundingClientRect();
-        const positions: Array<{ city: GlobeCity; x: number; y: number; isVisible: boolean }> = [];
-
-        GLOBE_CITIES.forEach((city) => {
-          const localVec = latLonToVector3(city.lat, city.lon, GLOBE_RADIUS);
-          // Apply globeGroup world transform
-          const worldVec = localVec.clone().applyMatrix4(globeGroup.matrixWorld);
-
-          // Ray from camera to globe center
-          const cameraToCenter = new THREE.Vector3().subVectors(new THREE.Vector3(0, 0, 0), camera.position);
-          const cameraToMarker = new THREE.Vector3().subVectors(worldVec, camera.position);
-
-          // Dot product determines if marker is on front hemisphere visible to camera
-          const normal = worldVec.clone().normalize();
-          const viewDir = camera.position.clone().sub(worldVec).normalize();
-          const dot = normal.dot(viewDir);
-          const isVisible = dot > 0.05;
-
-          // Project to 2D NDC coordinates (-1 to 1)
-          worldVec.project(camera);
-          const screenX = ((worldVec.x + 1) * rect.width) / 2;
-          const screenY = ((-worldVec.y + 1) * rect.height) / 2;
-
-          positions.push({ city, x: screenX, y: screenY, isVisible });
-        });
-
-        setMarkerPositions(positions);
+      if (frameCount % 2 === 0) {
+        projectMarkers();
       }
 
       renderer.render(scene, camera);
     };
 
-    animate();
+    if (prefersReducedMotion) {
+      projectMarkers();
+      renderer.render(scene, camera);
+    } else {
+      animate();
+    }
 
     return () => {
-      cancelAnimationFrame(animId);
+      if (animId !== null) cancelAnimationFrame(animId);
       window.removeEventListener('resize', handleResize);
+      earthGeometry.dispose();
+      cloudGeometry.dispose();
+      glowGeometry.dispose();
+      earthMaterial.dispose();
+      cloudMaterial.dispose();
+      glowMaterial.dispose();
+      earthTexture.dispose();
+      specularMap.dispose();
+      cloudTexture.dispose();
       renderer.dispose();
       if (container) container.innerHTML = '';
     };

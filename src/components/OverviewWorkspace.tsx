@@ -225,7 +225,11 @@ export const OverviewWorkspace: React.FC = () => {
             )}
           </div>
 
-          <div className="h-[185px] w-full">
+          <div
+            className="h-[185px] w-full"
+            role="img"
+            aria-label={`24-hour CPCB NAQI trend chart for ${telemetry.city}${latestChartAqi != null ? `, latest value ${latestChartAqi}` : ''}`}
+          >
             {hourly.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={hourly} margin={{ top: 8, right: 14, left: -20, bottom: 0 }}>

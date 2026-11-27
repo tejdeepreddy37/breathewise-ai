@@ -929,6 +929,99 @@ async function runRealModuleTests() {
     );
     assert(unavailReply.includes('Telemetry Unavailable for Remote Village, Rajasthan'), 'Unavailable telemetry triggers honest Telemetry Unavailable disclosure');
     assert(unavailReply.includes('no fabricated readings') && unavailReply.includes('Commute: Bike 10 km'), 'Unavailable reply avoids fabricated numbers and reflects active scenario context');
+
+    console.log('\n--- 23. Testing Gemini Chat History Normalization, Request Construction & Failure Fallback ---');
+    // A. Welcome assistant message followed by first user question -> startChat receives [] (no leading model turn)
+    let capturedHistoryFirstTurn = null;
+    let capturedSystemInstruction = '';
+    const mockFirstTurnFactory = (_apiKey, sysInstr) => {
+      capturedSystemInstruction = sysInstr;
+      return {
+        startChat: ({ history }) => {
+          capturedHistoryFirstTurn = history;
+          return {
+            sendMessage: async (q) => ({
+              response: { text: () => `LIVE_GEMINI_OK: ${q}` },
+            }),
+          };
+        },
+      };
+    };
+
+    const firstTurnReply = await mod.askBreatheWiseAssistant(
+      'Is it safe to exercise today?',
+      [{ id: 'welcome', role: 'assistant', content: 'Based on the current air quality...', timestamp: 'Just now' }],
+      testTelemetry,
+      testWindow,
+      'pediatric',
+      'AIzaFakeTestKeyForMock123',
+      'Commute: HSR Layout -> Electronic City',
+      mockFirstTurnFactory
+    );
+    assert(Array.isArray(capturedHistoryFirstTurn) && capturedHistoryFirstTurn.length === 0, 'Welcome-only assistant history is normalized to [] before Gemini startChat');
+    assert(firstTurnReply === 'LIVE_GEMINI_OK: Is it safe to exercise today?', 'Live Gemini response is returned when startChat succeeds on Turn 1');
+    assert(capturedSystemInstruction.includes('pediatric') && capturedSystemInstruction.includes('HSR Layout -> Electronic City'), 'System instruction includes profile and active scenario context');
+
+    // B. Multi-turn history starting with assistant/model message preserves user/model turns starting at user
+    let capturedMultiTurnHistory = null;
+    const multiTurnHistory = [
+      { id: 'w', role: 'assistant', content: 'Welcome message', timestamp: '10:00' },
+      { id: 'u1', role: 'user', content: 'First question', timestamp: '10:01' },
+      { id: 'b1', role: 'assistant', content: 'First answer', timestamp: '10:01' },
+      { id: 'u2', role: 'user', content: 'Second question', timestamp: '10:02' },
+      { id: 'b2', role: 'assistant', content: 'Second answer', timestamp: '10:02' },
+    ];
+    await mod.askBreatheWiseAssistant(
+      'Follow-up question',
+      multiTurnHistory,
+      testTelemetry,
+      testWindow,
+      'normal_adult',
+      'AIzaFakeTestKeyForMock123',
+      '',
+      () => ({
+        startChat: ({ history }) => {
+          capturedMultiTurnHistory = history;
+          return { sendMessage: async () => ({ response: { text: () => 'LIVE_MULTI_OK' } }) };
+        },
+      })
+    );
+    assert(
+      Array.isArray(capturedMultiTurnHistory) &&
+        capturedMultiTurnHistory.length === 4 &&
+        capturedMultiTurnHistory[0].role === 'user' &&
+        capturedMultiTurnHistory[0].parts[0].text === 'First question' &&
+        capturedMultiTurnHistory[3].role === 'model',
+      'Multi-turn history strips leading assistant message and preserves user->model alternation'
+    );
+
+    // C. Malformed/empty history entries are stripped safely
+    const malformedNormalized = mod.normalizeGeminiHistory([
+      null,
+      { id: 'e1', role: 'assistant', content: '   ', timestamp: '' },
+      { id: 'u1', role: 'user', content: 'Valid turn', timestamp: '' },
+      { id: 'e2', role: 'user', content: '', timestamp: '' },
+    ]);
+    assert(malformedNormalized.length === 1 && malformedNormalized[0].role === 'user' && malformedNormalized[0].parts[0].text === 'Valid turn', 'Malformed and empty history entries are sanitized safely');
+
+    // D. Gemini request failure falls back cleanly to deterministic response
+    const fallbackReply = await mod.askBreatheWiseAssistant(
+      'Is it safe to exercise today?',
+      [{ id: 'u1', role: 'user', content: 'Hi', timestamp: '10:00' }],
+      testTelemetry,
+      testWindow,
+      'normal_adult',
+      'AIzaFakeTestKeyForMock123',
+      '',
+      () => ({
+        startChat: () => ({
+          sendMessage: async () => {
+            throw new Error('Simulated 429 Quota Exceeded');
+          },
+        }),
+      })
+    );
+    assert(fallbackReply.includes('Outdoor Exercise Guidance') && !fallbackReply.includes('LIVE_'), 'Gemini failure gracefully falls back to deterministic response');
   } finally {
     globalThis.fetch = origFetch;
     fs.rmSync(tmpDir, { recursive: true, force: true });
