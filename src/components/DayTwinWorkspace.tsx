@@ -448,16 +448,16 @@ export const DayTwinWorkspace: React.FC = () => {
 
       {/* Row 3: Robust Decision Brief — Robustness | Shape Decision-Flip | Localized Observation Anchoring */}
       {result.hasValidData && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
           {/* Card 3A: Robustness */}
-          <div className="lg:col-span-4 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-3">
+          <div className="lg:col-span-6 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-3">
             <div className="space-y-2.5">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-[14px] font-extrabold text-[#0C2340] flex items-center space-x-1.5">
-                  <Shield className="w-4 h-4 text-[#0284C7]" />
+                  <Shield className="w-4 h-4 text-[#0284C7] shrink-0" />
                   <span>Robustness Test</span>
                 </h3>
-                <span className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border ${robBadgeClass}`}>
+                <span className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border shrink-0 ${robBadgeClass}`}>
                   {robustness.classification}
                 </span>
               </div>
@@ -500,14 +500,14 @@ export const DayTwinWorkspace: React.FC = () => {
           </div>
 
           {/* Card 3B: Shape-Based Decision-Flip Sensitivity */}
-          <div className="lg:col-span-4 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-2.5">
+          <div className="lg:col-span-6 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-2.5">
             <div className="space-y-1">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-[14px] font-extrabold text-[#0C2340] flex items-center space-x-1.5">
-                  <Activity className="w-4 h-4 text-[#0284C7]" />
+                  <Activity className="w-4 h-4 text-[#0284C7] shrink-0" />
                   <span>Decision Boundary (Shape k)</span>
                 </h3>
-                <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-[#F0F7FD] text-[#0369A1]">
+                <span className="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full bg-[#F0F7FD] text-[#0369A1] whitespace-nowrap shrink-0">
                   {decisionFlip.hasPracticalCrossover
                     ? `Flip @ k≈${decisionFlip.transitions.find((t) => !t.isPracticallyNegligible)?.kCrossover}`
                     : 'Stable [0.1–1.5]'}
@@ -548,17 +548,17 @@ export const DayTwinWorkspace: React.FC = () => {
           </div>
 
           {/* Card 3C: Localized Observation Anchoring */}
-          <div className="lg:col-span-4 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-2.5">
+          <div className="lg:col-span-12 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] space-y-3">
             <div className="flex items-center justify-between gap-2">
               <h3 className="text-[14px] font-extrabold text-[#0C2340] flex items-center space-x-1.5">
-                <Sliders className="w-4 h-4 text-[#0284C7]" />
+                <Sliders className="w-4 h-4 text-[#0284C7] shrink-0" />
                 <span>Anchor Local Reading</span>
               </h3>
               {activeAnchor?.valid && (
                 <button
                   type="button"
                   onClick={handleResetObservation}
-                  className="inline-flex items-center space-x-1 text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 cursor-pointer"
+                  className="inline-flex items-center space-x-1 text-[10.5px] font-bold px-2.5 py-1 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 cursor-pointer shrink-0"
                 >
                   <RotateCcw className="w-3 h-3" />
                   <span>Reset</span>
@@ -566,127 +566,131 @@ export const DayTwinWorkspace: React.FC = () => {
               )}
             </div>
 
-            <form onSubmit={handleApplyObservationForm} className="space-y-2 text-xs">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label htmlFor="obs-pm25" className="text-[10px] font-semibold text-[#476788]">
-                    Observed PM₂.₅ (µg/m³)
-                  </label>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+              <form onSubmit={handleApplyObservationForm} className="lg:col-span-6 space-y-2 text-xs">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label htmlFor="obs-pm25" className="text-[10px] font-semibold text-[#476788]">
+                      Observed PM₂.₅ (µg/m³)
+                    </label>
+                    <input
+                      id="obs-pm25"
+                      type="number"
+                      min={1}
+                      max={1000}
+                      step="any"
+                      placeholder={`e.g. ${demoFlipPm}`}
+                      value={obsPm25Input}
+                      onChange={(e) => setObsPm25Input(e.target.value)}
+                      className="w-full mt-0.5 bg-[#F8FBFF] border border-[#CBE0F2] rounded-lg py-1.5 px-2.5 text-xs font-bold text-[#0C2340] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0EA5E9]"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="obs-hour" className="text-[10px] font-semibold text-[#476788]">
+                      Observation Hour
+                    </label>
+                    <select
+                      id="obs-hour"
+                      value={obsHourInput}
+                      onChange={(e) => setObsHourInput(Number(e.target.value))}
+                      className="w-full mt-0.5 bg-[#F8FBFF] border border-[#CBE0F2] rounded-lg py-1.5 px-2 text-xs font-bold text-[#0C2340] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0EA5E9]"
+                    >
+                      {Array.from({ length: 24 }, (_, h) => (
+                        <option key={h} value={h}>
+                          {formatHr(h)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
                   <input
-                    id="obs-pm25"
-                    type="number"
-                    min={1}
-                    max={1000}
-                    step="any"
-                    placeholder={`e.g. ${demoFlipPm}`}
-                    value={obsPm25Input}
-                    onChange={(e) => setObsPm25Input(e.target.value)}
-                    className="w-full mt-0.5 bg-[#F8FBFF] border border-[#CBE0F2] rounded-lg py-1.5 px-2.5 text-xs font-bold text-[#0C2340] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0EA5E9]"
+                    aria-label="Observation Source (Optional)"
+                    type="text"
+                    placeholder="Source (e.g. Balcony sensor)"
+                    value={obsSourceInput}
+                    onChange={(e) => setObsSourceInput(e.target.value)}
+                    className="flex-1 bg-[#F8FBFF] border border-[#CBE0F2] rounded-lg py-1.5 px-2.5 text-[11px] text-[#0C2340] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0EA5E9]"
                   />
-                </div>
-                <div>
-                  <label htmlFor="obs-hour" className="text-[10px] font-semibold text-[#476788]">
-                    Observation Hour
-                  </label>
-                  <select
-                    id="obs-hour"
-                    value={obsHourInput}
-                    onChange={(e) => setObsHourInput(Number(e.target.value))}
-                    className="w-full mt-0.5 bg-[#F8FBFF] border border-[#CBE0F2] rounded-lg py-1.5 px-2 text-xs font-bold text-[#0C2340] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0EA5E9]"
+                  <button
+                    type="submit"
+                    className="px-3.5 py-1.5 rounded-lg bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-[11px] font-extrabold cursor-pointer shrink-0"
                   >
-                    {Array.from({ length: 24 }, (_, h) => (
-                      <option key={h} value={h}>
-                        {formatHr(h)}
-                      </option>
-                    ))}
-                  </select>
+                    Apply
+                  </button>
                 </div>
-              </div>
+              </form>
 
-              <div className="flex items-center gap-2">
-                <input
-                  aria-label="Observation Source (Optional)"
-                  type="text"
-                  placeholder="Source (e.g. Balcony sensor)"
-                  value={obsSourceInput}
-                  onChange={(e) => setObsSourceInput(e.target.value)}
-                  className="flex-1 bg-[#F8FBFF] border border-[#CBE0F2] rounded-lg py-1.5 px-2.5 text-[11px] text-[#0C2340] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0EA5E9]"
-                />
-                <button
-                  type="submit"
-                  className="px-3 py-1.5 rounded-lg bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-[11px] font-extrabold cursor-pointer shrink-0"
-                >
-                  Apply
-                </button>
-              </div>
-            </form>
+              {/* Reproducible Demo Observation Buttons (Explicitly Labeled) */}
+              <div className="lg:col-span-6 space-y-2">
+                <div className="space-y-1">
+                  <div className="text-[10px] font-bold text-[#5A7896] uppercase">
+                    Demo Inputs (Not Live Sensor Data)
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setObsPm25Input(String(demoFlipPm));
+                        setObsHourInput(6);
+                        setObsSourceInput('Demo: Cleaner 6 AM check');
+                        applyObservation(demoFlipPm, 6, 'Demo: Cleaner 6 AM check');
+                      }}
+                      className="text-[10.5px] font-bold px-2.5 py-1 rounded-lg bg-[#E0F2FE] hover:bg-[#BAE6FD] text-[#0369A1] cursor-pointer"
+                    >
+                      {demoFlipPm} µg/m³ @ 6 AM
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setObsPm25Input(String(demoSurvivePm));
+                        setObsHourInput(6);
+                        setObsSourceInput('Demo: Elevated 6 AM check');
+                        applyObservation(demoSurvivePm, 6, 'Demo: Elevated 6 AM check');
+                      }}
+                      className="text-[10.5px] font-bold px-2.5 py-1 rounded-lg bg-[#F0F7FD] hover:bg-[#E0F2FE] text-[#334E68] border border-[#CBE0F2] cursor-pointer"
+                    >
+                      {demoSurvivePm} µg/m³ @ 6 AM
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-[#5A7896] leading-snug pt-0.5">
+                    Bounded adjustment scenario from one reading (point reading ≠ ~45 km regional grid; does not calibrate the full day).
+                  </p>
+                </div>
 
-            {/* Reproducible Demo Observation Buttons (Explicitly Labeled) */}
-            <div className="space-y-1">
-              <div className="text-[10px] font-bold text-[#5A7896] uppercase">
-                Demo Inputs (Not Live Sensor Data)
+                {obsValidationError && (
+                  <div className="text-[10.5px] text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-2">
+                    {obsValidationError}
+                  </div>
+                )}
+
+                {activeAnchor?.valid && (
+                  <div
+                    className={`text-[10.5px] rounded-xl border p-2.5 space-y-1 ${
+                      planChangedAfterObs ? 'bg-amber-50 border-amber-300 text-amber-950' : 'bg-[#ECFDF5] border-[#A7F3D0] text-[#065F46]'
+                    }`}
+                  >
+                    <div className="font-extrabold">
+                      {planChangedAfterObs
+                        ? `Decision CHANGED (${formatHr(origRunHour ?? 0)} → ${formatHr(newRunHour ?? 0)})`
+                        : 'Original Decision SURVIVED'}
+                    </div>
+                    <div>
+                      Ratio {activeAnchor.ratio.toFixed(2)}× vs modeled {activeAnchor.modeledAtHour} µg/m³ • Exposure:{' '}
+                      <strong>{originalResult.optimized.totalInhaledUg} µg</strong> → <strong>{result.optimized.totalInhaledUg} µg</strong> • Robustness: <strong>{robustness.classification}</strong>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setObsPm25Input(String(demoFlipPm));
-                    setObsHourInput(6);
-                    setObsSourceInput('Demo: Cleaner 6 AM check');
-                    applyObservation(demoFlipPm, 6, 'Demo: Cleaner 6 AM check');
-                  }}
-                  className="text-[10.5px] font-bold px-2 py-1 rounded-lg bg-[#E0F2FE] hover:bg-[#BAE6FD] text-[#0369A1] cursor-pointer"
-                >
-                  {demoFlipPm} µg/m³ @ 6 AM
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setObsPm25Input(String(demoSurvivePm));
-                    setObsHourInput(6);
-                    setObsSourceInput('Demo: Elevated 6 AM check');
-                    applyObservation(demoSurvivePm, 6, 'Demo: Elevated 6 AM check');
-                  }}
-                  className="text-[10.5px] font-bold px-2 py-1 rounded-lg bg-[#F0F7FD] hover:bg-[#E0F2FE] text-[#334E68] border border-[#CBE0F2] cursor-pointer"
-                >
-                  {demoSurvivePm} µg/m³ @ 6 AM
-                </button>
-              </div>
-              <p className="text-[10px] text-[#5A7896] leading-snug pt-0.5">
-                Bounded adjustment scenario from one reading (point reading ≠ ~45 km regional grid; does not calibrate the full day).
-              </p>
             </div>
-
-            {obsValidationError && (
-              <div className="text-[10.5px] text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-2">
-                {obsValidationError}
-              </div>
-            )}
-
-            {activeAnchor?.valid && (
-              <div
-                className={`text-[10.5px] rounded-xl border p-2.5 space-y-1 ${
-                  planChangedAfterObs ? 'bg-amber-50 border-amber-300 text-amber-950' : 'bg-[#ECFDF5] border-[#A7F3D0] text-[#065F46]'
-                }`}
-              >
-                <div className="font-extrabold">
-                  {planChangedAfterObs
-                    ? `Decision CHANGED (${formatHr(origRunHour ?? 0)} → ${formatHr(newRunHour ?? 0)})`
-                    : 'Original Decision SURVIVED'}
-                </div>
-                <div>
-                  Ratio {activeAnchor.ratio.toFixed(2)}× vs modeled {activeAnchor.modeledAtHour} µg/m³ • Exposure:{' '}
-                  <strong>{originalResult.optimized.totalInhaledUg} µg</strong> → <strong>{result.optimized.totalInhaledUg} µg</strong> • Robustness: <strong>{robustness.classification}</strong>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
 
       {/* Row 4: 24-Hour Routine Builder / Timeline + Why This Plan Is Better */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        <div className="lg:col-span-6 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col space-y-3">
+        <div className="lg:col-span-5 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-[14px] font-extrabold text-[#0C2340]">
               {hasOptimized ? 'Optimized 24-Hour Schedule (Constraints Respected)' : 'Baseline 24-Hour Routine (Edit Constraints)'}
@@ -709,76 +713,78 @@ export const DayTwinWorkspace: React.FC = () => {
               return (
                 <div
                   key={act.id}
-                  className={`rounded-xl border px-3 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs ${
+                  className={`rounded-xl border px-3 py-2 text-xs space-y-1.5 ${
                     wasModified ? 'bg-[#ECFDF5]/80 border-[#A7F3D0]' : 'bg-[#F8FBFF] border-[#E5EEF6]'
                   }`}
                 >
-                  <div className="min-w-0 space-y-0.5">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="font-mono text-[11px] font-bold text-[#0369A1] bg-[#E0F2FE] px-2 py-0.5 rounded-md tabular-nums">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+                      <span className="font-mono text-[11px] font-bold text-[#0369A1] bg-[#E0F2FE] px-2 py-0.5 rounded-md tabular-nums whitespace-nowrap shrink-0">
                         {formatHr(act.startHour)} – {formatHr(act.endHour)}
                       </span>
                       <span className="font-extrabold text-[#0C2340]">{act.title}</span>
                       {wasModified && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#D1FAE5] text-[#065F46]">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#D1FAE5] text-[#065F46] whitespace-nowrap">
                           Optimized
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] text-[#5A7896] flex flex-wrap items-center gap-x-2">
+                    <span className="font-extrabold text-[#0C2340] tabular-nums whitespace-nowrap shrink-0">
+                      {act.inhaledUg} µg
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="text-[11px] text-[#5A7896] flex flex-wrap items-center gap-x-1.5 min-w-0">
                       <span className="capitalize">{act.environment}</span>
                       <span>•</span>
                       <span>{act.constraintNote}</span>
                       {act.purifierOn && <span className="text-[#059669] font-semibold">• HEPA ON</span>}
                     </div>
-                  </div>
 
-                  <div className="flex items-center flex-wrap gap-1.5 shrink-0">
-                    {!hasOptimized && act.environment === 'commute' && (
-                      <select
-                        aria-label={`${act.title} mode`}
-                        value={act.commuteMode || 'two_wheeler_open'}
-                        onChange={(e) => updateCommuteMode(act.id, e.target.value as CommuteMode)}
-                        className="bg-white border border-[#CBE0F2] rounded-lg py-1 px-2 text-[11px] font-bold text-[#0C2340] cursor-pointer"
+                    <div className="flex items-center flex-wrap gap-1.5 shrink-0">
+                      {!hasOptimized && act.environment === 'commute' && (
+                        <select
+                          aria-label={`${act.title} mode`}
+                          value={act.commuteMode || 'two_wheeler_open'}
+                          onChange={(e) => updateCommuteMode(act.id, e.target.value as CommuteMode)}
+                          className="bg-white border border-[#CBE0F2] rounded-lg py-1 px-2 text-[11px] font-bold text-[#0C2340] cursor-pointer"
+                        >
+                          <option value="two_wheeler_open">Two-Wheeler</option>
+                          <option value="auto_rickshaw">Auto</option>
+                          <option value="non_ac_bus">Non-AC Bus</option>
+                          <option value="ac_cab">AC Cab</option>
+                          <option value="ac_metro">AC Metro</option>
+                        </select>
+                      )}
+
+                      {!hasOptimized && (act.environment === 'outdoor' || act.environment === 'commute') && (
+                        <select
+                          aria-label={`${act.title} mask`}
+                          value={act.maskType}
+                          onChange={(e) => updateMaskType(act.id, e.target.value as keyof typeof MASK_EFFICIENCIES)}
+                          className="bg-white border border-[#CBE0F2] rounded-lg py-1 px-2 text-[11px] font-bold text-[#0C2340] cursor-pointer"
+                        >
+                          <option value="none">No Mask</option>
+                          <option value="surgical">Surgical</option>
+                          <option value="n95">N95</option>
+                        </select>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => toggleMovable(act.id)}
+                        aria-label={act.movable ? `Lock ${act.title} as fixed` : `Unlock ${act.title} as flexible`}
+                        className={`inline-flex items-center space-x-1 px-2 py-1 rounded-lg border text-[10.5px] font-bold cursor-pointer ${
+                          act.movable
+                            ? 'bg-white border-[#BAE6FD] text-[#0284C7]'
+                            : 'bg-slate-100 border-slate-200 text-[#476788]'
+                        }`}
                       >
-                        <option value="two_wheeler_open">Two-Wheeler</option>
-                        <option value="auto_rickshaw">Auto</option>
-                        <option value="non_ac_bus">Non-AC Bus</option>
-                        <option value="ac_cab">AC Cab</option>
-                        <option value="ac_metro">AC Metro</option>
-                      </select>
-                    )}
-
-                    {!hasOptimized && (act.environment === 'outdoor' || act.environment === 'commute') && (
-                      <select
-                        aria-label={`${act.title} mask`}
-                        value={act.maskType}
-                        onChange={(e) => updateMaskType(act.id, e.target.value as keyof typeof MASK_EFFICIENCIES)}
-                        className="bg-white border border-[#CBE0F2] rounded-lg py-1 px-2 text-[11px] font-bold text-[#0C2340] cursor-pointer"
-                      >
-                        <option value="none">No Mask</option>
-                        <option value="surgical">Surgical</option>
-                        <option value="n95">N95</option>
-                      </select>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => toggleMovable(act.id)}
-                      aria-label={act.movable ? `Lock ${act.title} as fixed` : `Unlock ${act.title} as flexible`}
-                      className={`inline-flex items-center space-x-1 px-2 py-1 rounded-lg border text-[10.5px] font-bold cursor-pointer ${
-                        act.movable
-                          ? 'bg-white border-[#BAE6FD] text-[#0284C7]'
-                          : 'bg-slate-100 border-slate-200 text-[#476788]'
-                      }`}
-                    >
-                      {act.movable ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
-                      <span>{act.movable ? 'Flexible' : 'Fixed'}</span>
-                    </button>
-
-                    <span className="font-extrabold text-[#0C2340] tabular-nums min-w-[54px] text-right">
-                      {act.inhaledUg} µg
-                    </span>
+                        {act.movable ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+                        <span>{act.movable ? 'Flexible' : 'Fixed'}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -786,69 +792,67 @@ export const DayTwinWorkspace: React.FC = () => {
           </div>
         </div>
 
-        {/* Decision Attribution ("Why This Plan Is Better") + Contextual AI */}
-        <div className="lg:col-span-6 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col space-y-3">
-          <div className="space-y-3 flex-1">
-            <h3 className="text-[14px] font-extrabold text-[#0C2340]">
-              Why This Plan Is Better
-            </h3>
+        {/* Decision Attribution ("Why This Plan Is Better") */}
+        <div className="lg:col-span-7 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col space-y-2.5">
+          <h3 className="text-[14px] font-extrabold text-[#0C2340]">
+            Why This Plan Is Better
+          </h3>
 
-            {result.hasValidData && (
-              <div className="space-y-2">
-                {result.decisions.map((d) => (
-                  <div
-                    key={d.activityId}
-                    className={`rounded-xl border px-3 py-2.5 text-xs space-y-1 ${
-                      d.changed ? 'bg-[#ECFDF5]/60 border-[#A7F3D0]' : 'bg-[#F8FBFF] border-[#E5EEF6]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-extrabold text-[#0C2340] flex items-center space-x-1.5">
-                        {d.changed ? (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" />
-                        ) : (
-                          <Shield className="w-3.5 h-3.5 text-[#5A7896] shrink-0" />
-                        )}
-                        <span>{d.activityTitle}</span>
-                      </span>
-                      <span
-                        className={`font-extrabold tabular-nums text-[11px] ${
-                          d.exposureDeltaUg > 0 ? 'text-[#059669]' : 'text-[#5A7896]'
-                        }`}
-                      >
-                        {d.exposureDeltaUg > 0 ? `-${d.exposureDeltaUg} µg` : '0 µg'}
-                      </span>
-                    </div>
-                    <div className="font-bold text-[#0369A1] text-[11px]">{d.whatChanged}</div>
-                    <p className="text-[11px] text-[#334E68] leading-snug">{d.whyChanged}</p>
-                    <p className="text-[10.5px] text-[#5A7896]">
-                      <strong>Evidence:</strong> {d.evidence} • <strong>Trade-off:</strong> {d.tradeOff}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Contextual AI Advisor Prompts */}
-          <div className="pt-3 border-t border-[#EDF5FC] space-y-2">
-            <div className="text-[11px] font-extrabold text-[#0C2340] flex items-center space-x-1.5">
-              <Bot className="w-3.5 h-3.5 text-[#0284C7]" />
-              <span>Ask AI Advisor About Your Decision Brief</span>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {contextualPrompts.map((q) => (
-                <button
-                  key={q}
-                  type="button"
-                  onClick={() => askAiWithPrompt(q)}
-                  className="text-left text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-[#F0F7FD] hover:bg-[#E0F2FE] text-[#0369A1] border border-[#DCEBF7] transition-colors cursor-pointer"
+          {result.hasValidData && (
+            <div className="space-y-1.5">
+              {result.decisions.map((d) => (
+                <div
+                  key={d.activityId}
+                  className={`rounded-xl border px-3 py-2 text-xs space-y-0.5 ${
+                    d.changed ? 'bg-[#ECFDF5]/60 border-[#A7F3D0]' : 'bg-[#F8FBFF] border-[#E5EEF6]'
+                  }`}
                 >
-                  {q}
-                </button>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-extrabold text-[#0C2340] flex items-center space-x-1.5">
+                      {d.changed ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" />
+                      ) : (
+                        <Shield className="w-3.5 h-3.5 text-[#5A7896] shrink-0" />
+                      )}
+                      <span>{d.activityTitle}</span>
+                    </span>
+                    <span
+                      className={`font-extrabold tabular-nums text-[11px] shrink-0 ${
+                        d.exposureDeltaUg > 0 ? 'text-[#059669]' : 'text-[#5A7896]'
+                      }`}
+                    >
+                      {d.exposureDeltaUg > 0 ? `-${d.exposureDeltaUg} µg` : '0 µg'}
+                    </span>
+                  </div>
+                  <div className="font-bold text-[#0369A1] text-[11px]">{d.whatChanged}</div>
+                  <p className="text-[11px] text-[#334E68] leading-snug">{d.whyChanged}</p>
+                  <p className="text-[10.5px] text-[#5A7896] leading-snug">
+                    <strong>Evidence:</strong> {d.evidence} • <strong>Trade-off:</strong> {d.tradeOff}
+                  </p>
+                </div>
               ))}
             </div>
-          </div>
+          )}
+        </div>
+      </div>
+
+      {/* Row 4B: Contextual AI Advisor Prompts */}
+      <div className="rounded-2xl bg-white border border-white px-5 py-4 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] space-y-2.5">
+        <div className="text-[12px] font-extrabold text-[#0C2340] flex items-center space-x-1.5">
+          <Bot className="w-4 h-4 text-[#0284C7] shrink-0" />
+          <span>Ask AI Advisor About Your Decision Brief</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {contextualPrompts.map((q) => (
+            <button
+              key={q}
+              type="button"
+              onClick={() => askAiWithPrompt(q)}
+              className="text-left text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-[#F0F7FD] hover:bg-[#E0F2FE] text-[#0369A1] border border-[#DCEBF7] transition-colors cursor-pointer"
+            >
+              {q}
+            </button>
+          ))}
         </div>
       </div>
 
