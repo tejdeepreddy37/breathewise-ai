@@ -50,7 +50,7 @@ function formatHr(h: number): string {
 }
 
 export const DayTwinWorkspace: React.FC = () => {
-  const { telemetry, userPreferences, askAiWithPrompt, setDayTwinSummary } = useApp();
+  const { telemetry, userPreferences, setDayTwinSummary } = useApp();
 
   const [presetId, setPresetId] = useState<string>(DAY_TWIN_PRESETS[0].id);
   const [activities, setActivities] = useState<DayActivity[]>(() =>
@@ -64,13 +64,20 @@ export const DayTwinWorkspace: React.FC = () => {
   const [obsSourceInput, setObsSourceInput] = useState<string>('');
   const [obsValidationError, setObsValidationError] = useState<string | null>(null);
   const [activeAnchor, setActiveAnchor] = useState<ObservationAnchorResult | null>(null);
+  const [lastRejectedObs, setLastRejectedObs] = useState<{
+    pm25Text: string;
+    hour: number;
+    reason: string;
+  } | null>(null);
 
+  const [selectedQuestionIdx, setSelectedQuestionIdx] = useState<number | null>(null);
   const [showEvidencePanel, setShowEvidencePanel] = useState<boolean>(false);
 
   // Clear observation when location changes so stale local readings never apply to another city
   useEffect(() => {
     setActiveAnchor(null);
     setObsValidationError(null);
+    setLastRejectedObs(null);
   }, [telemetry.city]);
 
   // 1. Original modeled pipeline
@@ -155,6 +162,7 @@ export const DayTwinWorkspace: React.FC = () => {
     setHasOptimized(false);
     setActiveAnchor(null);
     setObsValidationError(null);
+    setLastRejectedObs(null);
   };
 
   const toggleMovable = (id: string) => {
@@ -186,10 +194,13 @@ export const DayTwinWorkspace: React.FC = () => {
       source: sourceVal,
     });
     if (!anchor.valid) {
-      setObsValidationError(anchor.error || 'Invalid observation');
+      const errMsg = anchor.error || 'Invalid observation';
+      setObsValidationError(errMsg);
+      setLastRejectedObs({ pm25Text: `${pmVal} µg/m³`, hour: hourVal, reason: errMsg });
       return;
     }
     setObsValidationError(null);
+    setLastRejectedObs(null);
     setActiveAnchor(anchor);
     setHasOptimized(true);
   };
@@ -198,7 +209,13 @@ export const DayTwinWorkspace: React.FC = () => {
     e.preventDefault();
     const parsedPm = Number(obsPm25Input);
     if (!obsPm25Input.trim() || !Number.isFinite(parsedPm)) {
-      setObsValidationError('Enter a valid numeric PM2.5 reading (1 – 1000 µg/m³).');
+      const errMsg = 'Enter a valid numeric PM2.5 reading (1 – 1000 µg/m³).';
+      setObsValidationError(errMsg);
+      setLastRejectedObs({
+        pm25Text: obsPm25Input.trim() || 'empty',
+        hour: obsHourInput,
+        reason: errMsg,
+      });
       return;
     }
     applyObservation(parsedPm, obsHourInput, obsSourceInput);
@@ -207,6 +224,7 @@ export const DayTwinWorkspace: React.FC = () => {
   const handleResetObservation = () => {
     setActiveAnchor(null);
     setObsValidationError(null);
+    setLastRejectedObs(null);
     setObsPm25Input('');
     setObsSourceInput('');
   };
@@ -229,6 +247,174 @@ export const DayTwinWorkspace: React.FC = () => {
     'What could cause this recommendation to change?',
     'Why did the plan change after I entered my reading?',
   ];
+
+  const contextualInsight = useMemo(() => {
+    if (selectedQuestionIdx === null) return null;
+
+    if (!result.hasValidData) {
+      return {
+        title: 'Data Availability Notice',
+        metrics: [
+          { label: 'City', value: telemetry.city },
+          { label: 'Data Status', value: result.dataQualityLabel },
+        ],
+        explanation:
+          result.dataLimitationNote ||
+          'Hourly air-quality telemetry is currently unavailable, so exposure comparisons and schedule recommendations cannot be computed.',
+      };
+    }
+
+    if (selectedQuestionIdx === 0) {
+      const workoutDecision = result.decisions.find((d) => {
+        const act = activities.find((a) => a.id === d.activityId);
+        return act?.category === 'exercise';
+      });
+      const baseWorkout = result.baseline.activities.find((a) => a.category === 'exercise');
+      const optWorkout = result.optimized.activities.find((a) => a.category === 'exercise');
+
+      if (!workoutDecision || !baseWorkout || !optWorkout) {
+        return {
+          title: 'Workout Timing Analysis',
+          metrics: [
+            { label: 'Best Clean Window', value: result.cleanAirWindow.displayWindow },
+            { label: 'Baseline Exposure', value: `${result.baseline.totalInhaledUg} µg` },
+          ],
+          explanation:
+            'Your current routine preset does not include a flexible outdoor workout block. You can switch presets or unlock an outdoor activity as flexible to evaluate cleaner time slots.',
+        };
+      }
+
+      return {
+        title: 'Workout Timing Decision',
+        metrics: [
+          { label: 'Baseline Slot', value: `${formatHr(baseWorkout.startHour)} – ${formatHr(baseWorkout.endHour)}` },
+          { label: 'Optimized Slot', value: `${formatHr(optWorkout.startHour)} – ${formatHr(optWorkout.endHour)}` },
+          {
+            label: 'Workout Delta',
+            value: workoutDecision.exposureDeltaUg > 0 ? `-${workoutDecision.exposureDeltaUg} µg` : '0 µg',
+          },
+          { label: 'Cleanest Window', value: result.cleanAirWindow.displayWindow },
+        ],
+        explanation: `${workoutDecision.whatChanged}. ${workoutDecision.whyChanged} (${workoutDecision.evidence}; ${workoutDecision.tradeOff}).`,
+      };
+    }
+
+    if (selectedQuestionIdx === 1) {
+      return {
+        title: 'Plan Robustness Summary',
+        metrics: [
+          { label: 'Classification', value: robustness.classification },
+          { label: 'Scenario Wins', value: `${robustness.wins}/${robustness.uniqueValidScenarios}` },
+          { label: 'Median Saving', value: `${robustness.medianSavingUg} µg` },
+          {
+            label: 'Worst-Case Loss',
+            value: `${robustness.worstCaseLossUg} µg (tol. ${robustness.worstCaseLossToleranceUg} µg)`,
+          },
+        ],
+        explanation: `${robustness.classificationReason} Evaluated across magnitude scaling (×0.75–1.25), diurnal shifts (±2h, 50% flat), and combined stress scenarios.`,
+      };
+    }
+
+    if (selectedQuestionIdx === 2) {
+      const flipBadge = decisionFlip.hasPracticalCrossover
+        ? `Flip @ k≈${decisionFlip.transitions.find((t) => !t.isPracticallyNegligible)?.kCrossover}`
+        : 'Stable [0.1–1.5]';
+      const movableCount = activities.filter((a) => a.movable).length;
+
+      return {
+        title: 'Recommendation Sensitivity',
+        metrics: [
+          { label: 'Diurnal Boundary', value: flipBadge },
+          { label: 'Daily Mean PM₂.₅', value: `${decisionFlip.dailyMeanPm25} µg/m³` },
+          { label: 'Flexible Blocks', value: `${movableCount}/${activities.length}` },
+          { label: 'Anchored Reading', value: activeAnchor?.valid ? `${activeAnchor.observedPm25} µg/m³` : 'None' },
+        ],
+        explanation: `${decisionFlip.summaryText} Locking or unlocking flexible activities, changing commute/mask constraints, or entering a bounded local PM₂.₅ reading at a high-exposure hour can also shift the optimal schedule.`,
+      };
+    }
+
+    // Question 4 (index 3): "Why did the plan change after I entered my reading?"
+    if (lastRejectedObs) {
+      return {
+        title: 'Observation Impact',
+        metrics: [
+          { label: 'Entered Reading', value: `${lastRejectedObs.pm25Text} @ ${formatHr(lastRejectedObs.hour)}` },
+          { label: 'Validation Status', value: 'Rejected' },
+          { label: 'Adjustment Applied', value: 'Not applied' },
+          { label: 'Decision Impact', value: 'No change' },
+        ],
+        explanation: `Your entered reading (${lastRejectedObs.pm25Text} at ${formatHr(lastRejectedObs.hour)}) was rejected and not applied: ${lastRejectedObs.reason} Because the observation fell outside accepted validation bounds, the modeled profile and recommended routine did not change from that reading.`,
+      };
+    }
+
+    if (!activeAnchor?.valid) {
+      return {
+        title: 'Observation Impact',
+        metrics: [
+          { label: 'Entered Reading', value: 'None applied' },
+          { label: 'Modeled Reference', value: `${Math.round(modeledAt6Am)} µg/m³ @ 6 AM` },
+          { label: 'Adjustment Applied', value: '1.00× (baseline)' },
+          { label: 'Decision Impact', value: 'No comparison yet' },
+        ],
+        explanation:
+          'No local observation has been applied yet. Enter a PM₂.₅ reading (1–1000 µg/m³, within 0.33×–3.0× of the modeled hour) or select one of the demo inputs in Anchor Local Reading to compare the before-and-after schedule and exposure.',
+      };
+    }
+
+    const optExposureDiff = Number((result.optimized.totalInhaledUg - originalResult.optimized.totalInhaledUg).toFixed(1));
+    const baseExposureDiff = Number((result.baseline.totalInhaledUg - originalResult.baseline.totalInhaledUg).toFixed(1));
+    const optDiffLabel = `${optExposureDiff > 0 ? '+' : ''}${optExposureDiff} µg`;
+    const baseDiffLabel = `${baseExposureDiff > 0 ? '+' : ''}${baseExposureDiff} µg`;
+
+    const scheduleShifts: string[] = [];
+    result.optimized.activities.forEach((optAct) => {
+      const origAct = originalResult.optimized.activities.find((o) => o.id === optAct.id);
+      if (!origAct) return;
+      if (origAct.startHour !== optAct.startHour) {
+        scheduleShifts.push(
+          `${optAct.title}: moved from ${formatHr(origAct.startHour)}–${formatHr(origAct.endHour)} to ${formatHr(optAct.startHour)}–${formatHr(optAct.endHour)}`
+        );
+      } else if (origAct.commuteMode !== optAct.commuteMode) {
+        scheduleShifts.push(`${optAct.title}: mode changed (${origAct.commuteMode} → ${optAct.commuteMode})`);
+      }
+    });
+
+    if (planChangedAfterObs && scheduleShifts.length > 0) {
+      return {
+        title: 'Observation Impact',
+        metrics: [
+          { label: 'Previous Modeled', value: `${activeAnchor.modeledAtHour} µg/m³ @ ${formatHr(activeAnchor.hour)}` },
+          { label: 'Entered Reading', value: `${activeAnchor.observedPm25} µg/m³ @ ${formatHr(activeAnchor.hour)}` },
+          { label: 'Adjustment Applied', value: `${activeAnchor.ratio.toFixed(2)}× localized` },
+          { label: 'Decision Impact', value: `Plan changed (${optDiffLabel})` },
+        ],
+        explanation: `Your reading adjusted the localized pollution profile around ${formatHr(activeAnchor.hour)} by ${activeAnchor.ratio.toFixed(2)}× (baseline exposure ${originalResult.baseline.totalInhaledUg} µg → ${result.baseline.totalInhaledUg} µg, ${baseDiffLabel}; optimized ${originalResult.optimized.totalInhaledUg} µg → ${result.optimized.totalInhaledUg} µg, ${optDiffLabel}). That shift changed the lowest-exposure feasible schedule: ${scheduleShifts.join('; ')}, while keeping fixed commitments unchanged.`,
+      };
+    }
+
+    return {
+      title: 'Observation Impact',
+      metrics: [
+        { label: 'Previous Modeled', value: `${activeAnchor.modeledAtHour} µg/m³ @ ${formatHr(activeAnchor.hour)}` },
+        { label: 'Entered Reading', value: `${activeAnchor.observedPm25} µg/m³ @ ${formatHr(activeAnchor.hour)}` },
+        { label: 'Adjustment Applied', value: `${activeAnchor.ratio.toFixed(2)}× localized` },
+        { label: 'Decision Impact', value: `Routine unchanged (${optDiffLabel})` },
+      ],
+      explanation: `Your reading adjusted the modeled profile around ${formatHr(activeAnchor.hour)} by ${activeAnchor.ratio.toFixed(2)}× and updated total estimated exposure (baseline ${originalResult.baseline.totalInhaledUg} µg → ${result.baseline.totalInhaledUg} µg, ${baseDiffLabel}; optimized ${originalResult.optimized.totalInhaledUg} µg → ${result.optimized.totalInhaledUg} µg, ${optDiffLabel}). However, the recommended routine did not change because your existing optimized schedule remained the lowest-exposure feasible option under your constraints (Robustness: ${robustness.classification}).`,
+    };
+  }, [
+    selectedQuestionIdx,
+    result,
+    originalResult,
+    robustness,
+    decisionFlip,
+    activeAnchor,
+    lastRejectedObs,
+    activities,
+    telemetry.city,
+    modeledAt6Am,
+    planChangedAfterObs,
+  ]);
 
   const displayedActivities = hasOptimized ? result.optimized.activities : result.baseline.activities;
 
@@ -836,24 +1022,69 @@ export const DayTwinWorkspace: React.FC = () => {
         </div>
       </div>
 
-      {/* Row 4B: Contextual AI Advisor Prompts */}
-      <div className="rounded-2xl bg-white border border-white px-5 py-4 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] space-y-2.5">
+      {/* Row 4B: Contextual Decision Brief Questions */}
+      <div className="rounded-2xl bg-white border border-white px-5 py-4 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] space-y-3">
         <div className="text-[12px] font-extrabold text-[#0C2340] flex items-center space-x-1.5">
           <Bot className="w-4 h-4 text-[#0284C7] shrink-0" />
           <span>Ask AI Advisor About Your Decision Brief</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {contextualPrompts.map((q) => (
-            <button
-              key={q}
-              type="button"
-              onClick={() => askAiWithPrompt(q)}
-              className="text-left text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-[#F0F7FD] hover:bg-[#E0F2FE] text-[#0369A1] border border-[#DCEBF7] transition-colors cursor-pointer"
-            >
-              {q}
-            </button>
-          ))}
+          {contextualPrompts.map((q, idx) => {
+            const isSelected = selectedQuestionIdx === idx;
+            return (
+              <button
+                key={q}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => setSelectedQuestionIdx((prev) => (prev === idx ? null : idx))}
+                className={`text-left text-[11px] font-semibold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${
+                  isSelected
+                    ? 'bg-[#0EA5E9] text-white border-[#0EA5E9]'
+                    : 'bg-[#F0F7FD] hover:bg-[#E0F2FE] text-[#0369A1] border-[#DCEBF7]'
+                }`}
+              >
+                {q}
+              </button>
+            );
+          })}
         </div>
+
+        {contextualInsight && (
+          <div
+            role="region"
+            aria-label={contextualInsight.title}
+            className="rounded-xl bg-[#F8FBFF] border border-[#DCEBF7] p-4 space-y-2.5"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-[12px] font-extrabold text-[#0C2340]">
+                {contextualInsight.title}
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedQuestionIdx(null)}
+                className="inline-flex items-center space-x-1 text-[10.5px] font-semibold text-[#5A7896] hover:text-[#0C2340] cursor-pointer shrink-0"
+              >
+                <span>Hide</span>
+                <ChevronUp className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+              {contextualInsight.metrics.map((m) => (
+                <div key={m.label} className="rounded-lg bg-white border border-[#E5EEF6] px-2.5 py-2">
+                  <div className="text-[10px] font-semibold text-[#5A7896]">{m.label}</div>
+                  <div className="text-[11.5px] font-extrabold text-[#0C2340] tabular-nums mt-0.5">
+                    {m.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-[11.5px] text-[#334E68] leading-relaxed">
+              {contextualInsight.explanation}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Row 5: Expandable Evidence & Assumptions Panel */}
