@@ -683,8 +683,8 @@ export const DayTwinWorkspace: React.FC = () => {
       )}
 
       {/* Row 4: 24-Hour Routine Builder / Timeline + Why This Plan Is Better */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-        <div className="lg:col-span-7 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] space-y-3">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        <div className="lg:col-span-6 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-[14px] font-extrabold text-[#0C2340]">
               {hasOptimized ? 'Optimized 24-Hour Schedule (Constraints Respected)' : 'Baseline 24-Hour Routine (Edit Constraints)'}
@@ -694,7 +694,7 @@ export const DayTwinWorkspace: React.FC = () => {
             </span>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 flex-1">
             {displayedActivities.map((act) => {
               const baseMatch = result.baseline.activities.find((b) => b.id === act.id);
               const wasModified =
@@ -707,7 +707,7 @@ export const DayTwinWorkspace: React.FC = () => {
               return (
                 <div
                   key={act.id}
-                  className={`rounded-xl border p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs ${
+                  className={`rounded-xl border px-3 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs ${
                     wasModified ? 'bg-[#ECFDF5]/80 border-[#A7F3D0]' : 'bg-[#F8FBFF] border-[#E5EEF6]'
                   }`}
                 >
@@ -785,18 +785,18 @@ export const DayTwinWorkspace: React.FC = () => {
         </div>
 
         {/* Decision Attribution ("Why This Plan Is Better") + Contextual AI */}
-        <div className="lg:col-span-5 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-4">
-          <div className="space-y-3">
+        <div className="lg:col-span-6 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col space-y-3">
+          <div className="space-y-3 flex-1">
             <h3 className="text-[14px] font-extrabold text-[#0C2340]">
               Why This Plan Is Better
             </h3>
 
             {result.hasValidData && (
-              <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
+              <div className="space-y-2">
                 {result.decisions.map((d) => (
                   <div
                     key={d.activityId}
-                    className={`rounded-xl border p-3 text-xs space-y-1 ${
+                    className={`rounded-xl border px-3 py-2.5 text-xs space-y-1 ${
                       d.changed ? 'bg-[#ECFDF5]/60 border-[#A7F3D0]' : 'bg-[#F8FBFF] border-[#E5EEF6]'
                     }`}
                   >
