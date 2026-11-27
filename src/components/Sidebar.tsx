@@ -46,7 +46,7 @@ export const Sidebar: React.FC = () => {
   const isUnavailable = Boolean(meta.isUnavailable || telemetryError);
 
   return (
-    <aside className="hidden md:flex flex-col w-60 shrink-0 bg-white/95 backdrop-blur-xl border-r border-white px-5 pt-5 pb-16 lg:pb-24 justify-between min-h-screen sticky top-0 h-screen overflow-y-auto">
+    <aside className="hidden md:flex flex-col w-60 shrink-0 bg-white/95 backdrop-blur-xl border-r border-white p-5 gap-5 min-h-screen sticky top-0 h-screen overflow-y-auto">
       {/* Top Section: Brand + Navigation */}
       <div className="space-y-6">
         <button
@@ -92,8 +92,8 @@ export const Sidebar: React.FC = () => {
         </nav>
       </div>
 
-      {/* Bottom Utility Section: Profile, Honest Provenance & Science */}
-      <div className="space-y-3 pt-4 mt-8 border-t border-[#CBE0F2]/80 text-xs">
+      {/* Utility Section Directly Below Navigation: Profile, Honest Provenance & Science */}
+      <div className="space-y-3 pt-4 border-t border-[#CBE0F2]/80 text-xs">
         {/* Profile Selector */}
         <div className="space-y-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#5A7896] px-1">
