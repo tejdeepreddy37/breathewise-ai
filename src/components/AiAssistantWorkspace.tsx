@@ -31,10 +31,14 @@ export const AiAssistantWorkspace: React.FC = () => {
   const cityShort = telemetry.city.includes('—') ? telemetry.city.split('—')[0].trim() : telemetry.city;
 
   const getWelcomeContent = () => {
+    const modeLabel = sessionApiKey
+      ? 'Live Gemini 2.0 Flash + Deterministic Physics'
+      : 'Deterministic Offline Physics Engine (Add optional Gemini key below for live LLM synthesis)';
+    const profileText = userPreferences.vulnerabilityProfile.replace(/_/g, ' ');
     if (isUnavailable) {
-      return `Live atmospheric measurements are unavailable for ${telemetry.city}, ${telemetry.state}. Ask any exposure-protection question or select a monitoring station in the header.`;
+      return `Engine: ${modeLabel}\nLive atmospheric measurements are unavailable for ${telemetry.city}, ${telemetry.state} (no fabricated readings used). Select a calibrated station in the header or ask a general protection question.`;
     }
-    return `Based on the current air quality in ${cityShort}:\n• Current AQI: ${telemetry.current.aqi} (${telemetry.current.aqiCategory}, driven by ${telemetry.current.primaryPollutant})\n• PM₂.₅: ${telemetry.current.pm25} µg/m³\n• Optimal Exposure Window: ${cleanAirWindow.displayWindow}\n• Ask me about exercise timing, masks, indoor air, or AQI drivers.`;
+    return `Engine: ${modeLabel}\n• Situation (${cityShort}): CPCB NAQI ${telemetry.current.aqi} (${telemetry.current.aqiCategory}), driven by ${telemetry.current.primaryPollutant} | PM₂.₅ = ${telemetry.current.pm25} µg/m³\n• Best Outdoor Window: ${cleanAirWindow.displayWindow} (${cleanAirWindow.statusLabel})\n• Active Profile: ${profileText}\n\nUse Quick Questions on the right, click "Explain with AI" in any workspace, or ask your own question below.`;
   };
 
   const [messages, setMessages] = useState<ChatMessage[]>([

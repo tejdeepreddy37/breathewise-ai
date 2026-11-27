@@ -481,18 +481,39 @@ export async function askBreatheWiseAssistant(
       return `Outdoor Exercise Guidance for ${telemetry.city}:\nCurrent PM2.5 is ${pm} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}).${profileNote} If running or exercising outdoors today, time your session strictly within the diurnal minimum window (${window.displayWindow}) when atmospheric dispersion is greatest. Sensitive individuals and runners should wear a certified N95 respirator to minimize airway irritation.`;
     }
 
-    // Intent 2: Windows / Indoor Ventilation
-    if (qLower.includes('window') || qLower.includes('ventilat') || qLower.includes('flush') || qLower.includes('air out')) {
-      const scenarioNote = scenarioSummary ? `\n• Active Setup: ${scenarioSummary}` : '';
-      if (pm > 60) {
-        return `Indoor Air Safety Notice for ${telemetry.city}:\nCurrent outdoor PM2.5 is ${pm} µg/m³. Natural ventilation is strictly NOT recommended today. Opening windows will flood your home with outdoor particulates, degrading indoor air quality. Keep all exterior windows sealed, set air conditioners to internal recirculation, and run your HEPA air purifier.${scenarioNote}`;
-      }
-      return `Indoor Ventilation Protocol for ${telemetry.city}:\nOutdoor air quality is ${pm <= 30 ? 'clean' : 'moderate'} (PM2.5: ${pm} µg/m³). You may conduct a brief 15 to 20-minute cross-ventilation flush during the diurnal dispersion window (${window.displayWindow}) to evacuate indoor CO2 and cooking odors. Seal all windows before evening traffic congestion begins.${scenarioNote}`;
+    const o3Val = telemetry.current.o3;
+    const o3ExceedsCeiling = typeof o3Val === 'number' && Number.isFinite(o3Val) && o3Val > 100;
+    const profileLabel = profile.replace(/_/g, ' ');
+    const profileAdvice =
+      profile === 'pediatric'
+        ? 'Child / Pediatric lungs inhale more air per kg body weight; limit high-traffic outdoor exertion.'
+        : profile === 'senior_respiratory'
+        ? 'Senior / Asthmatic airways are hyper-reactive to PM2.5 and O3; keep rescue medication accessible and avoid traffic corridors.'
+        : profile === 'outdoor_athlete'
+        ? 'Outdoor Athletes increase minute ventilation up to 55–65 L/min during cardio, multiplying particulate dose 6–8× vs rest.'
+        : 'General Adult exposure scales directly with exertion intensity and time spent near traffic.';
+
+    // Intent 2: Windows / Indoor Ventilation / Indoor Air Scenario
+    if (
+      qLower.includes('indoor air scenario') ||
+      qLower.includes('window') ||
+      qLower.includes('ventilat') ||
+      qLower.includes('flush') ||
+      qLower.includes('air out') ||
+      qLower.includes('reduce indoor')
+    ) {
+      const ventilationBlocked = pm > 60 || o3ExceedsCeiling;
+      const sealReason = o3ExceedsCeiling
+        ? `Outdoor Ozone (${o3Val} µg/m³) exceeds the 100 µg/m³ safety ceiling.`
+        : pm > 60
+        ? `Outdoor PM2.5 (${pm} µg/m³) exceeds the 60 µg/m³ ventilation safety ceiling.`
+        : `Outdoor PM2.5 (${pm} µg/m³) is within safe bounds for controlled ventilation.`;
+      return `Indoor Air Decision Brief — ${telemetry.city} (${provenanceLabel}):\n• Situation: ${ventilationBlocked ? 'Keep windows sealed and rely on mechanical HEPA filtration.' : 'Controlled natural ventilation is safe; prioritize active indoor source control.'}\n• Evidence: Outdoor PM2.5 = ${pm} µg/m³${o3Val != null ? `, O3 = ${o3Val} µg/m³` : ''}${scenarioSummary ? ` | ${scenarioSummary}` : ''}.\n• Interpretation: ${sealReason} Indoor sources (cooking/frying +85 µg/m³, incense +110 µg/m³) accumulate rapidly in sealed rooms unless diluted by HEPA CADR or safe outdoor exchange.\n• Recommended Actions:\n  1. ${ventilationBlocked ? 'Keep exterior windows/vents closed and set AC to recirculation.' : `Open cross-ventilation during ${window.displayWindow} (${window.statusLabel}) to flush indoor CO2 and aerosols.`}\n  2. Run a True HEPA purifier (avoid ionizers) on High/Turbo during cooking or incense use.\n• Safety Caveat: Modeled indoor values use a single-zone steady-state mass-balance approximation (α = 0.45 sealed); actual levels vary with room leakage and exhaust fans.`;
     }
 
     // Intent 3: Commute / Metro / Auto / Transit
     if (qLower.includes('commute') || qLower.includes('metro') || qLower.includes('auto') || qLower.includes('traffic') || qLower.includes('bus') || qLower.includes('drive')) {
-      return `Commute Exposure Analysis for ${telemetry.city}:\nIn dense traffic corridors, open two-wheelers and auto-rickshaws expose commuters to direct tailpipe exhaust (~30% higher than ambient background). Switching to the AC Metro reduces your commute particulate exposure by up to 72% while saving ~0.88 kg of CO2 vs an auto-rickshaw (or ~2.07 kg vs a private AC cab) on a 14 km trip.`;
+      return `Commute Decision Brief — ${telemetry.city} (${provenanceLabel}):\n• Situation: Enclosed, filtered transit (Rapid AC Metro) minimizes inhaled particulate dose vs open road modes.\n• Evidence: Ambient PM2.5 = ${pm} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory})${scenarioSummary ? ` | ${scenarioSummary}` : ''}.\n• Interpretation: Open two-wheelers (~1.30× plume factor) and non-AC transit expose commuters directly to tailpipe exhaust and higher breathing rates, whereas AC Metro cuts cabin PM2.5 infiltration while lowering per-km CO2 emissions.\n• Recommended Actions:\n  1. Prefer Rapid AC Metro or enclosed AC transit with recirculation.\n  2. If traveling by two-wheeler or walking >10 min, wear a snug N95 respirator and shift flexible trips toward ${window.displayWindow}.\n• Safety Caveat: Estimates apply regional ${telemetry.metadata.provider} background PM2.5 and corridor infiltration factors; kerbside congestion hotspots can be higher (${profileAdvice}).`;
     }
 
     // Intent 4: Pediatric / Children / Family
@@ -505,8 +526,7 @@ export async function askBreatheWiseAssistant(
 
     // Intent 4B: Personal Exposure / Inhaled Dose Interpretation (before generic mask intent)
     if (qLower.includes('inhaled') || qLower.includes('exposure simulation') || qLower.includes('personal exposure') || qLower.includes('contributed most')) {
-      const scenarioNote = scenarioSummary ? `\n• Active Scenario: ${scenarioSummary}` : '';
-      return `Personal Exposure Interpretation for ${telemetry.city} (${provenanceLabel}):\n• Why this matters: Gross inhaled PM2.5 mass (M_inh = C_ambient × V_E × t × (1 - η_mask)) depends on three multipliers: ambient concentration (${pm} µg/m³), breathing rate (minute ventilation V_E, which rises from 16 L/min walking to 55 L/min running), and duration.${scenarioNote}\n• Why now: Today's lowest outdoor exposure window is ${window.displayWindow} (${window.statusLabel}); exercising or commuting outside this window exposes airways to higher peak concentrations.\n• What impact: Wearing a well-fitted N95 respirator cuts inhaled particulate mass by ~95%, while shifting vigorous activity indoors with HEPA filtration or to ${window.displayWindow} is the highest-leverage reduction.`;
+      return `Personal Exposure Decision Brief — ${telemetry.city} (${provenanceLabel}):\n• Situation: Inhaled particulate dose depends on ambient PM2.5, breathing rate (minute ventilation V_E), duration, and mask seal.\n• Evidence: City PM2.5 = ${pm} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}) | Profile: ${profileLabel}${scenarioSummary ? ` | ${scenarioSummary}` : ''}.\n• Interpretation: Vigorous exertion (55–65 L/min) multiplies particulate intake 3–4× over light walking (16 L/min). ${profileAdvice}\n• Recommended Actions:\n  1. Wear a well-fitted N95 (nominal 95% filtration) when ambient PM2.5 exceeds safe levels.\n  2. Shift outdoor exercise to ${window.displayWindow} (${window.statusLabel}) or move cardio indoors with HEPA filtration.\n• Safety Caveat: M_inh = C_ambient × V_E × t × (1 − η_mask) models gross upper-airway intake, not clinical alveolar deposition.`;
     }
 
     // Intent 5: Masks & Physical Barrier Filtration

@@ -1081,8 +1081,12 @@ async function runRealModuleTests() {
       'Exposure: light_walking for 60 min, Mask=n95'
     );
     assert(
-      exposureAiReply.includes('Personal Exposure Interpretation') && exposureAiReply.includes('Mask=n95'),
-      'Exposure contextual AI prompt grounds response in inhaled dose equation and active scenario'
+      exposureAiReply.includes('Personal Exposure Decision Brief') &&
+        exposureAiReply.includes('Evidence:') &&
+        exposureAiReply.includes('Recommended Actions:') &&
+        exposureAiReply.includes('Safety Caveat:') &&
+        exposureAiReply.includes('Mask=n95'),
+      'Exposure contextual AI prompt grounds structured decision brief in inhaled dose equation and active scenario'
     );
   } finally {
     globalThis.fetch = origFetch;
