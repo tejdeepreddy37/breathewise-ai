@@ -78,7 +78,7 @@ export const App: React.FC = () => {
   const headerMeta = getHeaderMeta();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#DDF1FE] via-[#CDE9FC] to-[#B7DFFA] flex font-sans text-[#0C2340] selection:bg-[#BAE6FD] selection:text-[#0C2340] relative overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#DDF1FE] via-[#CDE9FC] to-[#B7DFFA] flex font-sans text-[#0C2340] selection:bg-[#BAE6FD] selection:text-[#0C2340] relative overflow-x-clip">
       {/* Subtle Bottom Horizon Clouds Matching Reference Panels */}
       <div className="fixed inset-0 pointer-events-none z-0 opacity-55">
         <img

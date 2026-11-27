@@ -448,9 +448,9 @@ export const DayTwinWorkspace: React.FC = () => {
 
       {/* Row 3: Robust Decision Brief — Robustness | Shape Decision-Flip | Localized Observation Anchoring */}
       {result.hasValidData && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
           {/* Card 3A: Robustness */}
-          <div className="lg:col-span-6 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-3">
+          <div className="lg:col-span-6 h-full rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-3">
             <div className="space-y-2.5">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-[14px] font-extrabold text-[#0C2340] flex items-center space-x-1.5">
@@ -500,7 +500,7 @@ export const DayTwinWorkspace: React.FC = () => {
           </div>
 
           {/* Card 3B: Shape-Based Decision-Flip Sensitivity */}
-          <div className="lg:col-span-6 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-2.5">
+          <div className="lg:col-span-6 h-full rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-2.5">
             <div className="space-y-1">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-[14px] font-extrabold text-[#0C2340] flex items-center space-x-1.5">
@@ -689,8 +689,8 @@ export const DayTwinWorkspace: React.FC = () => {
       )}
 
       {/* Row 4: 24-Hour Routine Builder / Timeline + Why This Plan Is Better */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        <div className="lg:col-span-5 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col space-y-3">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+        <div className="lg:col-span-5 h-full rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-[14px] font-extrabold text-[#0C2340]">
               {hasOptimized ? 'Optimized 24-Hour Schedule (Constraints Respected)' : 'Baseline 24-Hour Routine (Edit Constraints)'}
@@ -793,7 +793,7 @@ export const DayTwinWorkspace: React.FC = () => {
         </div>
 
         {/* Decision Attribution ("Why This Plan Is Better") */}
-        <div className="lg:col-span-7 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col space-y-2.5">
+        <div className="lg:col-span-7 h-full rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col space-y-2.5">
           <h3 className="text-[14px] font-extrabold text-[#0C2340]">
             Why This Plan Is Better
           </h3>
