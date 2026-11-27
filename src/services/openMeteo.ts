@@ -32,8 +32,6 @@ export async function fetchOpenMeteoTelemetry(
       fetch(weatherUrl, { signal: controller.signal }).catch(() => null),
     ]);
 
-    clearTimeout(timeoutId);
-
     if (!aqRes.ok) {
       throw new Error(`Open-Meteo Air Quality API error: ${aqRes.status} ${aqRes.statusText}`);
     }
@@ -193,8 +191,7 @@ export async function fetchOpenMeteoTelemetry(
         attribution: 'Open-Meteo / Copernicus Atmosphere Monitoring Service (ECMWF CAMS)',
       },
     };
-  } catch (err) {
+  } finally {
     clearTimeout(timeoutId);
-    throw err;
   }
 }

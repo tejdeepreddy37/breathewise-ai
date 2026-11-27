@@ -87,7 +87,7 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
 
           <div className="space-y-2.5 flex-1 flex flex-col justify-center">
             {/* Activity */}
-            <div className="relative rounded-xl bg-white border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
+            <div className="relative rounded-xl bg-white border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5 focus-within:ring-2 focus-within:ring-[#0EA5E9] focus-within:border-[#0EA5E9] transition-shadow">
               <div className="w-7 h-7 rounded-full bg-[#EAF4FD] flex items-center justify-center shrink-0">
                 <Activity className="w-3.5 h-3.5 text-[#0284C7]" />
               </div>
@@ -118,7 +118,7 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
             </div>
 
             {/* Duration */}
-            <div className="relative rounded-xl bg-white border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
+            <div className="relative rounded-xl bg-white border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5 focus-within:ring-2 focus-within:ring-[#0EA5E9] focus-within:border-[#0EA5E9] transition-shadow">
               <div className="w-7 h-7 rounded-full bg-[#EAF4FD] flex items-center justify-center shrink-0">
                 <Clock className="w-3.5 h-3.5 text-[#0284C7]" />
               </div>
@@ -148,7 +148,7 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
             </div>
 
             {/* Air Quality (PM2.5) */}
-            <div className="relative rounded-xl bg-white border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
+            <div className="relative rounded-xl bg-white border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5 focus-within:ring-2 focus-within:ring-[#0EA5E9] focus-within:border-[#0EA5E9] transition-shadow">
               <div className="w-7 h-7 rounded-full bg-[#EAF4FD] flex items-center justify-center shrink-0">
                 <Wind className="w-3.5 h-3.5 text-[#0284C7]" />
               </div>
@@ -180,7 +180,7 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
             </div>
 
             {/* Mask Protection */}
-            <div className="relative rounded-xl bg-white border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5">
+            <div className="relative rounded-xl bg-white border border-[#DCEBF7] px-3 py-2 flex items-center space-x-2.5 focus-within:ring-2 focus-within:ring-[#0EA5E9] focus-within:border-[#0EA5E9] transition-shadow">
               <div className="w-7 h-7 rounded-full bg-[#EAF4FD] flex items-center justify-center shrink-0">
                 <svg className="w-3.5 h-3.5 text-[#0284C7]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 10c2-2 12-2 14 0v4c0 3-3.5 5-7 5s-7-2-7-5v-4Z" />

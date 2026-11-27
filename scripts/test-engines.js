@@ -1022,6 +1022,26 @@ async function runRealModuleTests() {
       })
     );
     assert(fallbackReply.includes('Outdoor Exercise Guidance') && !fallbackReply.includes('LIVE_'), 'Gemini failure gracefully falls back to deterministic response');
+
+    console.log('\n--- 24. Testing Open-Meteo Timeout Cleanup on Early Failure ---');
+    let clearTimeoutCalled = false;
+    const origClearTimeout = globalThis.clearTimeout;
+    globalThis.clearTimeout = (id) => {
+      clearTimeoutCalled = true;
+      return origClearTimeout(id);
+    };
+    globalThis.fetch = async () => {
+      throw new Error('Simulated early network rejection');
+    };
+    let rejectedCleanly = false;
+    try {
+      await mod.fetchOpenMeteoTelemetry(12.97, 77.59, 'Bengaluru', 'Karnataka');
+    } catch (e) {
+      rejectedCleanly = e instanceof Error && e.message.includes('Simulated early network rejection');
+    } finally {
+      globalThis.clearTimeout = origClearTimeout;
+    }
+    assert(rejectedCleanly && clearTimeoutCalled, 'fetchOpenMeteoTelemetry clears timeout via finally on early network rejection');
   } finally {
     globalThis.fetch = origFetch;
     fs.rmSync(tmpDir, { recursive: true, force: true });
