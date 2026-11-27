@@ -37,7 +37,11 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
   const roomVolumeM3 = +(roomAreaM2 * ceilingHeightM).toFixed(1);
   const infiltrationAlpha = ventilationAch <= 0.5 ? 0.45 : ventilationAch <= 1.5 ? 0.65 : 0.85;
   const sourceBonus = indoorSource === 'cooking_frying' ? 85 : indoorSource === 'incense_smoke' ? 110 : 0;
-  const rawIndoorBeforePurifier = safeOutdoor * infiltrationAlpha + sourceBonus;
+  // Single-zone steady-state mass balance: higher ACH admits more outdoor air (alpha) while diluting indoor sources
+  const activeDilution = 1 / (1 + Math.max(0, ventilationAch - 0.5) * 0.45);
+  const vent3Dilution = 1 / (1 + (3.0 - 0.5) * 0.45);
+
+  const rawIndoorBeforePurifier = safeOutdoor * infiltrationAlpha + sourceBonus * activeDilution;
   const purifierAch = usingPurifier ? purifierCadr / Math.max(10, roomVolumeM3) : 0;
   const effectiveReductionRatio = purifierAch > 0 ? purifierAch / (purifierAch + ventilationAch + 0.5) : 0;
 
@@ -45,19 +49,28 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
     ? Math.max(2, Math.round(rawIndoorBeforePurifier * (1 - effectiveReductionRatio)))
     : null;
   const modeledIndoorPm10 = ambientPm10 != null
-    ? Math.max(4, Math.round((ambientPm10 * infiltrationAlpha + sourceBonus * 1.2) * (1 - effectiveReductionRatio * 0.85)))
+    ? Math.max(4, Math.round((ambientPm10 * infiltrationAlpha + sourceBonus * 1.2 * activeDilution) * (1 - effectiveReductionRatio * 0.85)))
     : null;
 
   const indoorAqiResult = modeledIndoorPm25 != null ? calculateCpcbAqi({ pm25: modeledIndoorPm25 }) : null;
   const indoorColors = getCpcbSemanticColors(indoorAqiResult?.aqi ?? 0, indoorAqiResult?.category ?? 'Good');
 
   const baselineSealedPm25 = safeOutdoor * 0.45 + sourceBonus;
-  const vent3Pm25 = safeOutdoor * 0.85 + sourceBonus;
+  const vent3Pm25 = safeOutdoor * 0.85 + sourceBonus * vent3Dilution;
   const ventDeltaPct =
     baselineSealedPm25 > 0
       ? Math.round(((vent3Pm25 - baselineSealedPm25) / baselineSealedPm25) * 100)
       : 0;
   const purifierDeltaPct = -Math.round((purifierCadr / Math.max(10, roomVolumeM3) / (purifierCadr / Math.max(10, roomVolumeM3) + ventilationAch + 0.5)) * 100);
+
+  const ventilationExplanation =
+    ambientPm25 == null
+      ? ''
+      : ventDeltaPct > 0
+      ? ambientPm25 <= 30
+        ? ` Opening windows admits outdoor air (+${ventDeltaPct}% vs sealed), yet indoor PM2.5 stays Clean (~${Math.round(vent3Pm25)} µg/m³) while flushing CO₂.`
+        : ` Opening windows raises indoor PM2.5 (+${ventDeltaPct}% vs sealed) by admitting outdoor pollution.`
+      : ` Opening windows dilutes indoor ${indoorSource !== 'none' ? 'source emissions' : 'air'} (${ventDeltaPct}% vs sealed).`;
 
   const gaugePct = indoorAqiResult ? Math.min(1, Math.max(0.14, indoorAqiResult.aqi / 220)) : 0;
   const arcLen = Math.PI * 64;
@@ -367,7 +380,7 @@ export const IndoorCoachView: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
             <p className="text-[#334E68] font-medium mt-0.5 leading-snug">
               {ambientPm25 == null
                 ? 'Live outdoor PM2.5 unavailable for this location. Keep HEPA filtration active indoors if haze is visible.'
-                : `${rec.safetyReason} Purifier recommended on ${rec.purifierRecommendation.recommendedSpeed} speed (target clean-down ~${rec.purifierRecommendation.estimatedPostCleanPm25} µg/m³).`}
+                : `${rec.safetyReason}${ventilationExplanation} Purifier recommended on ${rec.purifierRecommendation.recommendedSpeed} speed (target clean-down ~${rec.purifierRecommendation.estimatedPostCleanPm25} µg/m³).`}
             </p>
           </div>
         </div>

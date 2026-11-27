@@ -420,18 +420,27 @@ export async function askBreatheWiseAssistant(
 
     // Intent 1: Outdoor Exercise / Running / Cardio
     if (qLower.includes('run') || qLower.includes('jog') || qLower.includes('exercise') || qLower.includes('workout') || (qLower.includes('bike') && qLower.includes('exercise'))) {
+      const profileNote =
+        profile === 'pediatric'
+          ? ' For children/pediatric lungs (higher breathing rate per kg body weight), restrict high-traffic outdoor exertion.'
+          : profile === 'senior_respiratory'
+          ? ' For senior or asthmatic airways, keep rescue medication accessible and prefer light, low-traffic timing.'
+          : profile === 'outdoor_athlete'
+          ? ' For athletes, aerobic exertion multiplies minute ventilation from ~8 L/min up to 55+ L/min.'
+          : '';
       if (pm > 120) {
-        return `Outdoor Exercise Safety Alert for ${telemetry.city}:\nCurrent PM2.5 is ${pm} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}). Under aerobic exertion, your minute ventilation rises to over 55 L/min, dramatically accelerating micro-particulate intake.\n\nRecommendation: Cancel outdoor cardio workouts today. Shift exercise indoors to a room with HEPA filtration active. Even during the diurnal minimum (${window.displayWindow}), PM2.5 remains hazardous for aerobic respiration.`;
+        return `Outdoor Exercise Safety Alert for ${telemetry.city}:\nCurrent PM2.5 is ${pm} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}). Under aerobic exertion, your minute ventilation rises to over 55 L/min, dramatically accelerating micro-particulate intake.${profileNote}\n\nRecommendation: Cancel outdoor cardio workouts today. Shift exercise indoors to a room with HEPA filtration active. Even during the diurnal minimum (${window.displayWindow}), PM2.5 remains hazardous for aerobic respiration.`;
       }
-      return `Outdoor Exercise Guidance for ${telemetry.city}:\nCurrent PM2.5 is ${pm} µg/m³. If running or exercising outdoors today, time your session strictly within the diurnal minimum window (${window.displayWindow}) when atmospheric dispersion is greatest. Sensitive individuals and runners should wear a certified N95 respirator to minimize airway irritation.`;
+      return `Outdoor Exercise Guidance for ${telemetry.city}:\nCurrent PM2.5 is ${pm} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}).${profileNote} If running or exercising outdoors today, time your session strictly within the diurnal minimum window (${window.displayWindow}) when atmospheric dispersion is greatest. Sensitive individuals and runners should wear a certified N95 respirator to minimize airway irritation.`;
     }
 
     // Intent 2: Windows / Indoor Ventilation
     if (qLower.includes('window') || qLower.includes('ventilat') || qLower.includes('flush') || qLower.includes('air out')) {
+      const scenarioNote = scenarioSummary ? `\n• Active Setup: ${scenarioSummary}` : '';
       if (pm > 60) {
-        return `Indoor Air Safety Notice for ${telemetry.city}:\nCurrent outdoor PM2.5 is ${pm} µg/m³. Natural ventilation is strictly NOT recommended today. Opening windows will flood your home with outdoor particulates, degrading indoor air quality. Keep all exterior windows sealed, set air conditioners to internal recirculation, and run your HEPA air purifier.`;
+        return `Indoor Air Safety Notice for ${telemetry.city}:\nCurrent outdoor PM2.5 is ${pm} µg/m³. Natural ventilation is strictly NOT recommended today. Opening windows will flood your home with outdoor particulates, degrading indoor air quality. Keep all exterior windows sealed, set air conditioners to internal recirculation, and run your HEPA air purifier.${scenarioNote}`;
       }
-      return `Indoor Ventilation Protocol for ${telemetry.city}:\nOutdoor air quality is relatively moderate (PM2.5: ${pm} µg/m³). You may conduct a brief 15 to 20-minute cross-ventilation flush during the diurnal dispersion window (${window.displayWindow}) to evacuate indoor CO2 and cooking odors. Seal all windows before evening traffic congestion begins.`;
+      return `Indoor Ventilation Protocol for ${telemetry.city}:\nOutdoor air quality is ${pm <= 30 ? 'clean' : 'moderate'} (PM2.5: ${pm} µg/m³). You may conduct a brief 15 to 20-minute cross-ventilation flush during the diurnal dispersion window (${window.displayWindow}) to evacuate indoor CO2 and cooking odors. Seal all windows before evening traffic congestion begins.${scenarioNote}`;
     }
 
     // Intent 3: Commute / Metro / Auto / Transit

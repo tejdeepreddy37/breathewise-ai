@@ -47,10 +47,12 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
     cityPm25 != null ? scenarioState.exposure.pm25Source : 'benchmark'
   );
 
+  const effectivePm25Source = pm25Source === 'city' && cityPm25 == null ? 'benchmark' : pm25Source;
+
   const activePm25 =
-    pm25Source === 'severe'
+    effectivePm25Source === 'severe'
       ? 250
-      : pm25Source === 'benchmark'
+      : effectivePm25Source === 'benchmark'
       ? 100
       : cityPm25 ?? 100;
 
@@ -67,9 +69,9 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
   ];
 
   const pm25Display =
-    pm25Source === 'severe'
+    effectivePm25Source === 'severe'
       ? 'Severe (250 µg/m³)'
-      : pm25Source === 'benchmark'
+      : effectivePm25Source === 'benchmark'
       ? 'Benchmark (100 µg/m³)'
       : `${cityPm25} µg/m³ (City)`;
 
@@ -159,7 +161,7 @@ export const WhatIfSimulator: React.FC<{ isDedicatedWorkspace?: boolean }> = () 
               <ChevronDown className="w-3.5 h-3.5 text-[#5A7896] shrink-0" />
               <select
                 aria-label="Ambient PM2.5 Concentration"
-                value={pm25Source}
+                value={effectivePm25Source}
                 onChange={(e) => {
                   const val = e.target.value as 'city' | 'benchmark' | 'severe';
                   setPm25Source(val);

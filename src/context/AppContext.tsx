@@ -244,6 +244,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const latestRequestIdRef = useRef<number>(0);
+  const profileRef = useRef<VulnerabilityProfile>(userPreferences.vulnerabilityProfile);
+  const sessionApiKeyRef = useRef<string>(sessionApiKey);
+  profileRef.current = userPreferences.vulnerabilityProfile;
+  sessionApiKeyRef.current = sessionApiKey;
 
   const loadTelemetry = useCallback(async (loc: IndiaLocation) => {
     const requestId = ++latestRequestIdRef.current;
@@ -266,8 +270,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const plan = await fetchGeminiLivingPlan(
         data,
         window,
-        userPreferences.vulnerabilityProfile,
-        sessionApiKey
+        profileRef.current,
+        sessionApiKeyRef.current
       );
       if (requestId !== latestRequestIdRef.current) return;
 
@@ -329,7 +333,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsLoadingTelemetry(false);
       }
     }
-  }, [userPreferences.vulnerabilityProfile, sessionApiKey, isDemoMode]);
+  }, [isDemoMode]);
 
   useEffect(() => {
     loadTelemetry(selectedLocation);
