@@ -1,4 +1,4 @@
-import{u as fe,j as c}from"./index-p7_uBwCc.js";import{r as $,I as ge,J as pe,U as me,K as ve,O as be,A as ye,H as Ce,p as Ee,P as we,Q as xe}from"./lucide-vendor-DlgYtwmu.js";import"./recharts-vendor-BV5NmB9R.js";var q;(function(e){e.STRING="string",e.NUMBER="number",e.INTEGER="integer",e.BOOLEAN="boolean",e.ARRAY="array",e.OBJECT="object"})(q||(q={}));/**
+import{u as fe,j as c}from"./index-Bo0l4s7N.js";import{r as $,I as ge,J as pe,U as me,K as ve,O as be,A as ye,H as Ce,p as Ee,P as we,Q as xe}from"./lucide-vendor-DlgYtwmu.js";import"./recharts-vendor-BV5NmB9R.js";var q;(function(e){e.STRING="string",e.NUMBER="number",e.INTEGER="integer",e.BOOLEAN="boolean",e.ARRAY="array",e.OBJECT="object"})(q||(q={}));/**
  * @license
  * Copyright 2024 Google LLC
  *
@@ -231,7 +231,7 @@ ${r?`• Your active scenario context: ${r}`:""}`;const u=a||(H==null?void 0:H.V
 • Safety Caveat: A single user observation adjusts the profile locally and does not establish the full day's error pattern.`:o.includes("limitations")?`Air Day Twin Limitations & Data Provenance (${t.city}):
 • Situation: All Day Twin savings are modeled estimates from ${g}, not personal wearable measurements.
 • Evidence: ${b}
-• Interpretation: Regional 0.25° CAMS forecasts smooth out hyper-local kerbside exhaust spikes; indoor blocks assume closed concrete infiltration (α = 0.45) and ~78% HEPA steady-state reduction when active.
+• Interpretation: Regional CAMS Global 0.4° (~40–45 km) forecasts smooth out hyper-local kerbside exhaust spikes; indoor blocks assume closed concrete infiltration (α = 0.45) and ~78% HEPA steady-state reduction when active.
 • Recommended Actions: Treat percentage deltas as directional decision support—use an N95 in heavy traffic even if regional AQI looks moderate.
 • Safety Caveat: Always follow physician guidance for asthma or cardiovascular conditions.`:o.includes("cannot change my commute")?`Day Twin Alternative Without Changing Commute (${t.city}):
 • Situation: If your transit mode is fixed, two high-leverage levers remain: shifting flexible outdoor exercise into ${i.displayWindow} and wearing an N95 during your commute.
@@ -247,7 +247,7 @@ ${r?`• Your active scenario context: ${r}`:""}`;const u=a||(H==null?void 0:H.V
 • Provider: ${t.metadata.provider}
 • Standard: ${t.current.aqiStandard}
 
-${t.metadata.isLive?"Current readings reflect live gridded Copernicus Atmosphere Monitoring Service (CAMS 0.25°) telemetry and meteorological observations.":"Note: Live network telemetry is not active for this snapshot; values reflect cached or calibrated regional baseline data rather than a fresh real-time observation."}`;if(o.includes("why")&&o.includes("aqi")||o.includes("pm2.5 is low")||o.includes("pm25 is low")){const v=t.current.primaryPollutant||"PM2.5";return`Why CPCB NAQI Can Be High Even When PM2.5 Is Moderate/Low:
+${t.metadata.isLive?"Current readings reflect live gridded CAMS Global 0.4° (~40–45 km) atmospheric model forecasts and meteorological observations (not local street-level stations).":"Note: Live network telemetry is not active for this snapshot; values reflect cached or calibrated regional baseline data rather than a fresh real-time observation."}`;if(o.includes("why")&&o.includes("aqi")||o.includes("pm2.5 is low")||o.includes("pm25 is low")){const v=t.current.primaryPollutant||"PM2.5";return`Why CPCB NAQI Can Be High Even When PM2.5 Is Moderate/Low:
 Under India's Central Pollution Control Board (CPCB) NAQI standard, the overall AQI is the MAXIMUM sub-index across all monitored pollutants (PM2.5, PM10, NO2, SO2, CO, O3) — not an average.
 
 In ${t.city} right now:
