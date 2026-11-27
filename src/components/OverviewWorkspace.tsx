@@ -60,10 +60,20 @@ export const OverviewWorkspace: React.FC = () => {
   const isPoor = hasAqi && (aqiCat === 'Poor' || ((aqiVal ?? 0) >= 201 && (aqiVal ?? 0) <= 300));
   const isModerate = hasAqi && aqiCat === 'Moderate';
 
+  const latestChartPoint = hourly.length > 0 ? hourly[hourly.length - 1] : null;
   const latestChartAqi =
-    hourly.length > 0 && typeof hourly[hourly.length - 1]?.cpcbAqi === 'number'
-      ? hourly[hourly.length - 1].cpcbAqi
+    latestChartPoint && typeof latestChartPoint.cpcbAqi === 'number'
+      ? latestChartPoint.cpcbAqi
       : aqiVal;
+  const latestChartHourLabel = latestChartPoint
+    ? latestChartPoint.hour === 0
+      ? '12 AM'
+      : latestChartPoint.hour === 12
+      ? '12 PM'
+      : latestChartPoint.hour > 12
+      ? `${latestChartPoint.hour - 12} PM`
+      : `${latestChartPoint.hour} AM`
+    : null;
 
   const lastIndex = Math.max(0, hourly.length - 1);
 
@@ -195,13 +205,22 @@ export const OverviewWorkspace: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Left 7 Columns: AQI Trend Chart */}
         <div className="lg:col-span-7 rounded-2xl bg-white border border-white p-5 shadow-[0_12px_32px_-8px_rgba(14,165,233,0.16),0_2px_6px_rgba(15,44,76,0.05)] flex flex-col justify-between space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <h3 className="text-[14px] font-extrabold text-[#0C2340]">
               AQI Trend (Last 24 Hours)
             </h3>
             {latestChartAqi != null && (
-              <span className="px-3.5 py-0.5 rounded-full bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] text-white text-xs font-extrabold tabular-nums shadow-xs">
-                {latestChartAqi}
+              <span
+                className="px-3 py-0.5 rounded-full bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] text-white text-xs font-extrabold tabular-nums shadow-xs whitespace-nowrap"
+                title={
+                  aqiVal != null && latestChartAqi !== aqiVal
+                    ? `Current AQI is ${aqiVal}; chart ends at ${latestChartHourLabel} (${latestChartAqi})`
+                    : undefined
+                }
+              >
+                {latestChartHourLabel && aqiVal != null && latestChartAqi !== aqiVal
+                  ? `${latestChartHourLabel}: ${latestChartAqi}`
+                  : latestChartAqi}
               </span>
             )}
           </div>
