@@ -11,6 +11,7 @@ import {
   RefreshCw,
   User,
   ChevronDown,
+  CalendarClock,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -29,6 +30,7 @@ export const Sidebar: React.FC = () => {
 
   const navItems: Array<{ id: NavigationTab; label: string; icon: React.ReactNode }> = [
     { id: 'overview', label: 'Overview', icon: <Home className="w-4 h-4" /> },
+    { id: 'daytwin', label: 'Day Twin', icon: <CalendarClock className="w-4 h-4" /> },
     { id: 'commute', label: 'Commute', icon: <Car className="w-4 h-4" /> },
     { id: 'indoor', label: 'Indoor', icon: <Building2 className="w-4 h-4" /> },
     { id: 'exposure', label: 'Exposure', icon: <Activity className="w-4 h-4" /> },

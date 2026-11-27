@@ -10,6 +10,9 @@ import { AlertTriangle, RefreshCw, FlaskConical } from 'lucide-react';
 const OverviewWorkspace = lazy(() =>
   import('./components/OverviewWorkspace').then((m) => ({ default: m.OverviewWorkspace }))
 );
+const DayTwinWorkspace = lazy(() =>
+  import('./components/DayTwinWorkspace').then((m) => ({ default: m.DayTwinWorkspace }))
+);
 const CommuteSimulator = lazy(() =>
   import('./components/CommuteSimulator').then((m) => ({ default: m.CommuteSimulator }))
 );
@@ -36,6 +39,12 @@ export const App: React.FC = () => {
   }
 
   const getHeaderMeta = () => {
+    if (activeTab === 'daytwin') {
+      return {
+        title: 'Air Day Twin — Your Day, Reimagined',
+        subtitle: 'Optimize your 24-hour routine around hourly air quality while respecting fixed constraints',
+      };
+    }
     if (activeTab === 'commute') {
       return {
         title: 'Commute Intelligence',
@@ -159,6 +168,7 @@ export const App: React.FC = () => {
             }
           >
             {activeTab === 'overview' && <OverviewWorkspace />}
+            {activeTab === 'daytwin' && <DayTwinWorkspace />}
             {activeTab === 'commute' && <CommuteSimulator isDedicatedWorkspace={true} />}
             {activeTab === 'indoor' && <IndoorCoachView isDedicatedWorkspace={true} />}
             {(activeTab === 'exposure' || activeTab === 'simulator') && (

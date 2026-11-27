@@ -402,6 +402,8 @@ export function normalizeGeminiHistory(history: ChatMessage[] | undefined | null
   return normalized;
 }
 
+export const ACTIVE_GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'] as const;
+
 export async function askBreatheWiseAssistant(
   question: string,
   history: ChatMessage[],
@@ -410,31 +412,44 @@ export async function askBreatheWiseAssistant(
   profile: VulnerabilityProfile,
   customApiKey?: string,
   scenarioSummary?: string,
-  chatModelFactory?: (apiKey: string, systemInstruction: string) => GeminiChatModelLike
+  chatModelFactory?: (apiKey: string, systemInstruction: string, modelId?: string) => GeminiChatModelLike
 ): Promise<string> {
   const qLower = (question || '').toLowerCase();
   const isUnavailable = Boolean(telemetry.metadata.isUnavailable);
   const pm = typeof telemetry.current.pm25 === 'number' && Number.isFinite(telemetry.current.pm25) ? telemetry.current.pm25 : 0;
 
   // CRITICAL SAFETY GATE: Medical Triage, Clinical Diagnosis & Prescription Refusal
-  // Executes UNCONDITIONALLY before API key evaluation, before network calls, before LLM request
-  if (
+  // Executes UNCONDITIONALLY before API key evaluation, before network calls, before LLM request.
+  // Allows legitimate environmental science queries ("inhaled dose", "particulate dose", "exposure dose")
+  // while strictly intercepting medication/dosage/clinical symptom queries.
+  const isScientificDoseQuery =
+    qLower.includes('inhaled dose') ||
+    qLower.includes('particulate dose') ||
+    qLower.includes('exposure dose') ||
+    qLower.includes('dose difference') ||
+    qLower.includes('dose reduction');
+
+  const isClinicalOrMedicationQuery =
     qLower.includes('inhaler') ||
     qLower.includes('puff') ||
     qLower.includes('dosage') ||
-    qLower.includes('dose') ||
-    qLower.includes('medicine') ||
     qLower.includes('medication') ||
+    qLower.includes('medicine') ||
     qLower.includes('steroid') ||
     qLower.includes('albuterol') ||
     qLower.includes('budecort') ||
     qLower.includes('foracort') ||
     qLower.includes('asthma attack') ||
     qLower.includes('chest pain') ||
+    qLower.includes('chest tightness') ||
+    qLower.includes('wheez') ||
     qLower.includes('diagnos') ||
     qLower.includes('prescri') ||
-    qLower.includes('shortness of breath')
-  ) {
+    qLower.includes('shortness of breath') ||
+    qLower.includes('difficulty breathing') ||
+    (qLower.includes('dose') && !isScientificDoseQuery);
+
+  if (isClinicalOrMedicationQuery) {
     const telemetryStatus = isUnavailable
       ? `Live atmospheric readings are currently unavailable for ${telemetry.city}.`
       : `In ${telemetry.city}, current PM2.5 is ${pm} µg/m³ (CPCB NAQI ${telemetry.current.aqi} — ${telemetry.current.aqiCategory}).`;
@@ -454,6 +469,29 @@ export async function askBreatheWiseAssistant(
     : `Calibrated Regional Baseline (${telemetry.metadata.fetchTimestamp})`;
 
   const deterministicResponse = (): string => {
+    // Intent 0C: Air Day Twin Schedule Optimization Questions
+    if (
+      qLower.includes('day twin') ||
+      qLower.includes('move my workout') ||
+      qLower.includes('cannot change my commute') ||
+      qLower.includes('biggest benefit') ||
+      qLower.includes('original schedule') ||
+      qLower.includes('worth the inconvenience') ||
+      qLower.includes('limitations of this plan')
+    ) {
+      const hasDayTwinCtx = Boolean(scenarioSummary && scenarioSummary.includes('Day Twin'));
+      const ctxLine = hasDayTwinCtx
+        ? scenarioSummary
+        : `City PM2.5 = ${pm} µg/m³ (CPCB NAQI ${telemetry.current.aqi}), Diurnal Window = ${window.displayWindow} (${window.statusLabel}).`;
+      if (qLower.includes('limitations')) {
+        return `Air Day Twin Limitations & Data Provenance (${telemetry.city}):\n• Situation: All Day Twin savings are modeled estimates from ${provenanceLabel}, not personal wearable measurements.\n• Evidence: ${ctxLine}\n• Interpretation: Regional 0.25° CAMS forecasts smooth out hyper-local kerbside exhaust spikes; indoor blocks assume closed concrete infiltration (α = 0.45) and ~78% HEPA steady-state reduction when active.\n• Recommended Actions: Treat percentage deltas as directional decision support—use an N95 in heavy traffic even if regional AQI looks moderate.\n• Safety Caveat: Always follow physician guidance for asthma or cardiovascular conditions.`;
+      }
+      if (qLower.includes('cannot change my commute')) {
+        return `Day Twin Alternative Without Changing Commute (${telemetry.city}):\n• Situation: If your transit mode is fixed, two high-leverage levers remain: shifting flexible outdoor exercise into ${window.displayWindow} and wearing an N95 during your commute.\n• Evidence: ${ctxLine}\n• Interpretation: Wearing a fitted N95 on an unchanged commute cuts road-plume particulate intake by ~95%, while enabling indoor HEPA filtration during sleep/home hours cuts overnight α=0.45 infiltration.\n• Recommended Actions: Lock your commute block in Day Twin, keep your workout flexible, and select N95 on the commute row to verify the exact µg reduction.`;
+      }
+      return `Air Day Twin Optimization Brief (${telemetry.city} — ${provenanceLabel}):\n• Situation: The Day Twin optimizer minimizes cumulative 24-hour inhaled PM2.5 (µg) without moving fixed work/sleep blocks.\n• Evidence: ${ctxLine}\n• Interpretation: High-intensity outdoor exercise (55 L/min) and open-road commutes (1.30× exhaust plume) dominate daily inhaled dose. Moving flexible outdoor blocks into ${window.displayWindow}, upgrading open transit to AC Metro, and enabling indoor HEPA filtration when outdoor PM2.5 > 30 µg/m³ yield the largest verifiable drops.\n• Recommended Actions: Review the "Why This Plan Is Better" attribution cards in Day Twin, or test the "Original Schedule + N95" alternative if you cannot shift times.\n• Safety Caveat: Natural window ventilation remains blocked whenever PM2.5 > 60 µg/m³ or O3 > 100 µg/m³.`;
+    }
+
     // Intent 0A: Data Provenance / Live Data Inquiry
     if (qLower.includes('live data') || qLower.includes('real-time') || qLower.includes('realtime') || qLower.includes('source') || qLower.includes('fresh')) {
       return `Data Provenance & Freshness for ${telemetry.city} (${telemetry.metadata.latitude.toFixed(2)}°N, ${telemetry.metadata.longitude.toFixed(2)}°E):\n• Status: ${provenanceLabel}\n• Provider: ${telemetry.metadata.provider}\n• Standard: ${telemetry.current.aqiStandard}\n\n${telemetry.metadata.isLive ? 'Current readings reflect live gridded Copernicus Atmosphere Monitoring Service (CAMS 0.25°) telemetry and meteorological observations.' : 'Note: Live network telemetry is not active for this snapshot; values reflect cached or calibrated regional baseline data rather than a fresh real-time observation.'}`;
@@ -606,23 +644,34 @@ STRICT RULES:
 4. Never diagnose diseases or prescribe medications.
 Keep responses direct, actionable, and grounded in the exact numbers above.`;
 
-    const model: GeminiChatModelLike = chatModelFactory
-      ? chatModelFactory(apiKey, systemInstruction)
-      : new GoogleGenerativeAI(apiKey).getGenerativeModel({
-          model: 'gemini-2.0-flash',
-          systemInstruction,
+    const normalizedHistory = normalizeGeminiHistory(history);
+    let lastError: unknown = null;
+
+    for (const modelId of ACTIVE_GEMINI_MODELS) {
+      try {
+        const model: GeminiChatModelLike = chatModelFactory
+          ? chatModelFactory(apiKey, systemInstruction, modelId)
+          : new GoogleGenerativeAI(apiKey).getGenerativeModel({
+              model: modelId,
+              systemInstruction,
+            });
+
+        const chat = model.startChat({
+          history: normalizedHistory,
         });
 
-    const chat = model.startChat({
-      history: normalizeGeminiHistory(history),
-    });
-
-    const result = await withTimeout(chat.sendMessage(question), AI_TIMEOUT_MS, 'Gemini assistant');
-    const responseText = result.response.text()?.trim();
-    if (!responseText) {
-      throw new Error('Empty response from Gemini');
+        const result = await withTimeout(chat.sendMessage(question), AI_TIMEOUT_MS, `Gemini assistant (${modelId})`);
+        const responseText = result.response.text()?.trim();
+        if (responseText) {
+          return responseText;
+        }
+        lastError = new Error(`Empty response from ${modelId}`);
+      } catch (modelErr) {
+        lastError = modelErr;
+      }
     }
-    return responseText;
+
+    throw lastError || new Error('All configured Gemini models failed');
   } catch (err) {
     console.warn('[BreatheWise] Gemini chat error, using deterministic response.', err);
     return deterministicResponse();

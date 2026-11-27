@@ -8,7 +8,7 @@ import { calculateCleanAirWindow } from '../engines/windowSafe';
 import { FALLBACK_TELEMETRY } from '../data/staticFallback';
 import { INDIA_LOCATIONS, IndiaLocation } from '../data/indiaLocations';
 
-export type NavigationTab = 'landing' | 'overview' | 'diurnal' | 'commute' | 'indoor' | 'simulator' | 'assistant' | 'exposure' | 'advisor';
+export type NavigationTab = 'landing' | 'overview' | 'daytwin' | 'diurnal' | 'commute' | 'indoor' | 'simulator' | 'assistant' | 'exposure' | 'advisor';
 
 export interface ActiveScenarioState {
   commute: {
@@ -85,6 +85,8 @@ interface AppContextType {
   pendingAiPrompt: string | null;
   askAiWithPrompt: (prompt: string) => void;
   clearPendingAiPrompt: () => void;
+  dayTwinSummary: string;
+  setDayTwinSummary: (summary: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -125,6 +127,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [scenarioState, setScenarioState] = useState<ActiveScenarioState>(DEFAULT_SCENARIO_STATE);
   const [pendingAiPrompt, setPendingAiPrompt] = useState<string | null>(null);
+  const [dayTwinSummary, setDayTwinSummary] = useState<string>('');
 
   const clearPendingAiPrompt = useCallback(() => {
     setPendingAiPrompt(null);
@@ -170,7 +173,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {}
   };
 
-  const VALID_TABS: NavigationTab[] = ['landing', 'overview', 'commute', 'indoor', 'simulator', 'assistant', 'exposure', 'advisor'];
+  const VALID_TABS: NavigationTab[] = ['landing', 'overview', 'daytwin', 'commute', 'indoor', 'simulator', 'assistant', 'exposure', 'advisor'];
 
   const [activeTab, setActiveTabState] = useState<NavigationTab>(() => {
     try {
@@ -423,6 +426,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setActiveTab('advisor');
         },
         clearPendingAiPrompt,
+        dayTwinSummary,
+        setDayTwinSummary,
       }}
     >
       {children}

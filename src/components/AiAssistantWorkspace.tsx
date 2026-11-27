@@ -25,6 +25,7 @@ export const AiAssistantWorkspace: React.FC = () => {
     scenarioState,
     pendingAiPrompt,
     clearPendingAiPrompt,
+    dayTwinSummary,
   } = useApp();
 
   const isUnavailable = Boolean(telemetry.metadata.isUnavailable);
@@ -32,7 +33,7 @@ export const AiAssistantWorkspace: React.FC = () => {
 
   const getWelcomeContent = () => {
     const modeLabel = sessionApiKey
-      ? 'Live Gemini 2.0 Flash + Deterministic Physics'
+      ? 'Live Gemini 3.8 Flash + Deterministic Physics'
       : 'Deterministic Offline Physics Engine (Add optional Gemini key below for live LLM synthesis)';
     const profileText = userPreferences.vulnerabilityProfile.replace(/_/g, ' ');
     if (isUnavailable) {
@@ -84,7 +85,8 @@ export const AiAssistantWorkspace: React.FC = () => {
     const c = scenarioState.commute;
     const i = scenarioState.indoor;
     const e = scenarioState.exposure;
-    return `Commute: ${c.origin} -> ${c.destination} (${c.distanceKm} km via ${c.mode}); Indoor: ${i.roomType} ${i.roomAreaM2}m² at ${i.ventilationAch} ACH, Purifier ${i.usingPurifier ? `ON (${i.purifierCadr} m³/h CADR)` : 'OFF'}, Source=${i.indoorSource}; Exposure: ${e.activity} for ${e.durationMinutes} min, Mask=${e.maskType}.`;
+    const base = `Commute: ${c.origin} -> ${c.destination} (${c.distanceKm} km via ${c.mode}); Indoor: ${i.roomType} ${i.roomAreaM2}m² at ${i.ventilationAch} ACH, Purifier ${i.usingPurifier ? `ON (${i.purifierCadr} m³/h CADR)` : 'OFF'}, Source=${i.indoorSource}; Exposure: ${e.activity} for ${e.durationMinutes} min, Mask=${e.maskType}.`;
+    return dayTwinSummary ? `${dayTwinSummary} | ${base}` : base;
   };
 
   const handleSend = async (questionText?: string) => {
@@ -267,7 +269,7 @@ export const AiAssistantWorkspace: React.FC = () => {
             <span>
               Engine:{' '}
               <strong className={sessionApiKey ? 'text-[#059669]' : 'text-[#0284C7]'}>
-                {sessionApiKey ? 'Gemini 2.0 Flash (Live Key Active)' : 'Deterministic Physics Engine (Add Key for Live Gemini)'}
+                {sessionApiKey ? 'Gemini 3.8 Flash (Live Key Active)' : 'Deterministic Physics Engine (Add Key for Live Gemini)'}
               </strong>
             </span>
             <span className="hidden sm:inline text-[#7B97B2]">Profile: {userPreferences.vulnerabilityProfile.replace('_', ' ')}</span>

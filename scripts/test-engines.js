@@ -513,6 +513,7 @@ async function runRealModuleTests() {
       `export * from ${JSON.stringify(path.join(rootDir, 'src/engines/inhaledDose.ts'))};`,
       `export * from ${JSON.stringify(path.join(rootDir, 'src/engines/commuteSwap.ts'))};`,
       `export * from ${JSON.stringify(path.join(rootDir, 'src/engines/indoorCoach.ts'))};`,
+      `export * from ${JSON.stringify(path.join(rootDir, 'src/engines/dayTwin.ts'))};`,
       `export * from ${JSON.stringify(path.join(rootDir, 'src/services/openMeteo.ts'))};`,
       `export * from ${JSON.stringify(path.join(rootDir, 'src/services/telemetryService.ts'))};`,
       `export * from ${JSON.stringify(path.join(rootDir, 'src/services/gemini.ts'))};`,
@@ -1087,6 +1088,102 @@ async function runRealModuleTests() {
         exposureAiReply.includes('Safety Caveat:') &&
         exposureAiReply.includes('Mask=n95'),
       'Exposure contextual AI prompt grounds structured decision brief in inhaled dose equation and active scenario'
+    );
+
+    console.log('\n--- 26. Testing Air Day Twin Optimization, Constraints, Attribution & Edge Cases ---');
+    // A. Invalid schedule detection (overlap, invalid bounds, empty)
+    const overlapErr = mod.validateDaySchedule([
+      { ...mod.DAY_TWIN_PRESETS[0].activities[0], startHour: 0, endHour: 8 },
+      { ...mod.DAY_TWIN_PRESETS[0].activities[1], startHour: 7, endHour: 9 },
+    ]);
+    assert(typeof overlapErr === 'string' && overlapErr.includes('overlap'), 'validateDaySchedule rejects overlapping activities');
+    assert(mod.validateDaySchedule([]) !== null, 'validateDaySchedule rejects empty schedule');
+
+    // B. Deterministic optimization on high-pollution diurnal curve
+    const smogHourly = Array.from({ length: 24 }, (_, h) => {
+      const pm = h >= 12 && h <= 15 ? 75 : h >= 6 && h <= 9 ? 260 : h >= 18 && h <= 22 ? 240 : 180;
+      return { time: `2026-11-27T${String(h).padStart(2, '0')}:00`, hour: h, pm25: pm, pm10: pm * 1.5, no2: 45, o3: 35, usAqi: 200, cpcbAqi: 320, boundaryLayerHeight: null };
+    });
+    const smogTelemetry = { ...testTelemetry, current: { ...testTelemetry.current, pm25: 220, aqi: 376, aqiCategory: 'Very Poor' }, hourly: smogHourly };
+    const presetActs = mod.DAY_TWIN_PRESETS[0].activities;
+    const opt1 = mod.optimizeDayRoutine(presetActs, smogTelemetry, 'normal_adult');
+    const opt2 = mod.optimizeDayRoutine(presetActs, smogTelemetry, 'normal_adult');
+
+    assert(opt1.hasValidData === true, 'Day Twin marks valid hourly telemetry as hasValidData=true');
+    assert(opt1.baseline.totalInhaledUg > opt1.optimized.totalInhaledUg && opt1.exposureSavedUg > 0, `Day Twin reduces cumulative exposure (${opt1.baseline.totalInhaledUg} -> ${opt1.optimized.totalInhaledUg} µg)`);
+    assert(mod.validateDaySchedule(opt1.optimized.activities) === null, 'Optimized 24h schedule has zero overlaps and valid bounds');
+    assert(opt1.baseline.totalInhaledUg === opt2.baseline.totalInhaledUg && opt1.optimized.totalInhaledUg === opt2.optimized.totalInhaledUg, 'Day Twin optimizer is deterministically reproducible');
+
+    // Fixed work blocks must not move
+    const baseWorkAm = opt1.baseline.activities.find((a) => a.id === 'work-am');
+    const optWorkAm = opt1.optimized.activities.find((a) => a.id === 'work-am');
+    assert(baseWorkAm && optWorkAm && baseWorkAm.startHour === optWorkAm.startHour && baseWorkAm.endHour === optWorkAm.endHour, 'Fixed morning work hours remain immovable');
+
+    // Outdoor run should move from 6 AM peak into cleaner midday window (12-1 PM)
+    const optRun = opt1.optimized.activities.find((a) => a.id === 'morning-run');
+    assert(optRun && optRun.startHour === 12 && optRun.endHour === 13, `Movable 6 AM run shifts to cleaner 12 PM window (got ${optRun?.startHour}:00)`);
+
+    // Commute should upgrade from two_wheeler_open to ac_metro with CO2 savings
+    const optCommute = opt1.optimized.activities.find((a) => a.id === 'commute-am');
+    assert(optCommute && optCommute.commuteMode === 'ac_metro' && opt1.carbonSavedKg > 0, 'Commute upgrades to AC Metro with verified CO2 savings');
+
+    // Ventilation safety lock must remain sealed during >60 µg/m³ smog
+    const sleepDecision = opt1.decisions.find((d) => d.activityId === 'sleep-am');
+    assert(sleepDecision && sleepDecision.whatChanged.includes('Windows Sealed'), 'Indoor sleep decision enforces WindowSafe seal when PM2.5 > 60 µg/m³');
+
+    // Alternative N95 plan
+    assert(opt1.alternativePlan.totalInhaledUg < opt1.baseline.totalInhaledUg, 'Alternative N95 plan lowers exposure vs baseline');
+
+    // C. No-improvement case (uniform ultra-clean air + Metro already selected)
+    const cleanHourly = Array.from({ length: 24 }, (_, h) => ({
+      time: `2026-11-27T${String(h).padStart(2, '0')}:00`, hour: h, pm25: 5, pm10: 10, no2: 8, o3: 20, usAqi: 20, cpcbAqi: 8, boundaryLayerHeight: null,
+    }));
+    const cleanTelemetry = { ...testTelemetry, current: { ...testTelemetry.current, pm25: 5, aqi: 8, aqiCategory: 'Good' }, hourly: cleanHourly };
+    const alreadyCleanActs = presetActs.map((a) => (a.environment === 'commute' ? { ...a, commuteMode: 'ac_metro' } : a));
+    const noImp = mod.optimizeDayRoutine(alreadyCleanActs, cleanTelemetry, 'normal_adult');
+    assert(noImp.noMeaningfulImprovement === true && noImp.exposureSavedUg === 0, 'Clean uniform day with Metro reports zero improvement honestly');
+
+    // D. Missing / unavailable telemetry
+    const unavailDayTwin = mod.optimizeDayRoutine(presetActs, unavailableTelemetry, 'normal_adult');
+    assert(unavailDayTwin.hasValidData === false && unavailDayTwin.exposureSavedUg === 0, 'Unavailable telemetry prevents fabricated Day Twin optimization');
+
+    console.log('\n--- 27. Testing Clinical Triage False-Positive Fix & Active Gemini Model Ladder ---');
+    const sciDoseReply = await mod.askBreatheWiseAssistant(
+      'Explain my inhaled dose and exposure dose difference for Metro vs Car',
+      [],
+      testTelemetry,
+      testWindow,
+      'normal_adult',
+      ''
+    );
+    assert(!sciDoseReply.includes('Medical & Clinical Triage Notice'), 'Scientific inhaled dose query is NOT falsely blocked by clinical triage');
+
+    const seenModels = [];
+    const ladderReply = await mod.askBreatheWiseAssistant(
+      'Why did you move my workout?',
+      [],
+      testTelemetry,
+      testWindow,
+      'normal_adult',
+      'AIzaFakeKey123',
+      'Day Twin: Baseline=200 µg -> Optimized=90 µg',
+      (_key, _sys, modelId) => {
+        seenModels.push(modelId);
+        return {
+          startChat: () => ({
+            sendMessage: async () => {
+              if (modelId === 'gemini-3.8-flash') {
+                throw new Error('Model temporarily unavailable');
+              }
+              return { response: { text: () => `LIVE_LADDER_OK (${modelId})` } };
+            },
+          }),
+        };
+      }
+    );
+    assert(
+      seenModels[0] === 'gemini-3.8-flash' && seenModels[1] === 'gemini-3.5-flash-lite' && ladderReply.includes('LIVE_LADDER_OK (gemini-3.5-flash-lite)'),
+      'Gemini model ladder falls back from gemini-3.8-flash to gemini-3.5-flash-lite cleanly'
     );
   } finally {
     globalThis.fetch = origFetch;

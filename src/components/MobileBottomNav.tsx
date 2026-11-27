@@ -1,16 +1,17 @@
 import React from 'react';
 import { useApp, NavigationTab } from '../context/AppContext';
-import { Home, Car, Building2, Activity, Bot } from 'lucide-react';
+import { Home, Car, Building2, Activity, Bot, CalendarClock } from 'lucide-react';
 
 export const MobileBottomNav: React.FC = () => {
   const { activeTab, setActiveTab } = useApp();
 
   const tabs: Array<{ id: NavigationTab; label: string; icon: React.ReactNode }> = [
     { id: 'overview', label: 'Overview', icon: <Home className="w-4 h-4" /> },
+    { id: 'daytwin', label: 'Day Twin', icon: <CalendarClock className="w-4 h-4" /> },
     { id: 'commute', label: 'Commute', icon: <Car className="w-4 h-4" /> },
     { id: 'indoor', label: 'Indoor', icon: <Building2 className="w-4 h-4" /> },
     { id: 'exposure', label: 'Exposure', icon: <Activity className="w-4 h-4" /> },
-    { id: 'advisor', label: 'AI Advisor', icon: <Bot className="w-4 h-4" /> },
+    { id: 'advisor', label: 'Advisor', icon: <Bot className="w-4 h-4" /> },
   ];
 
   return (
