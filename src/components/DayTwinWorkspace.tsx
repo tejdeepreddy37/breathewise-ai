@@ -322,43 +322,45 @@ export const DayTwinWorkspace: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="rounded-xl bg-[#F8FBFF] border border-[#E5EEF6] p-3">
-                  <div className="text-[10.5px] font-bold text-[#5A7896] uppercase">Baseline Day</div>
-                  <div className="text-2xl font-extrabold text-[#0C2340] tabular-nums mt-0.5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-stretch">
+                <div className="rounded-xl bg-[#F8FBFF] border border-[#E5EEF6] p-3 flex flex-col h-full">
+                  <div className="text-[10.5px] font-bold text-[#5A7896] uppercase leading-tight min-h-[28px]">
+                    Baseline Day
+                  </div>
+                  <div className="text-2xl font-extrabold text-[#0C2340] tabular-nums mt-1 leading-none">
                     {result.baseline.totalInhaledUg} µg
                   </div>
-                  <div className="text-[10.5px] text-[#5A7896] mt-0.5 truncate">
+                  <div className="text-[10.5px] text-[#5A7896] mt-2 leading-snug min-h-[30px]">
                     Peak: {formatHr(result.baseline.peakRiskHour)} ({result.baseline.peakRiskUg} µg/h)
                   </div>
                 </div>
 
                 <div
-                  className={`rounded-xl border p-3 transition-all ${
+                  className={`rounded-xl border p-3 transition-all flex flex-col h-full ${
                     hasOptimized ? 'bg-[#ECFDF5] border-[#A7F3D0]' : 'bg-[#F8FBFF] border-[#E5EEF6]'
                   }`}
                 >
-                  <div className="text-[10.5px] font-bold text-[#059669] uppercase">
+                  <div className="text-[10.5px] font-bold text-[#059669] uppercase leading-tight min-h-[28px]">
                     {hasOptimized ? 'Optimized Day' : 'Potential Optimized'}
                   </div>
-                  <div className="text-2xl font-extrabold text-[#065F46] tabular-nums mt-0.5">
+                  <div className="text-2xl font-extrabold text-[#065F46] tabular-nums mt-1 leading-none">
                     {result.optimized.totalInhaledUg} µg
                   </div>
-                  <div className="text-[10.5px] font-bold text-[#059669] mt-0.5 tabular-nums">
+                  <div className="text-[10.5px] font-bold text-[#059669] mt-2 leading-snug min-h-[30px] tabular-nums">
                     {result.noMeaningfulImprovement
                       ? '0 µg meaningful reduction'
                       : `-${result.exposureSavedUg} µg (-${result.exposureSavedPercent}%) • -${result.carbonSavedKg} kg CO₂`}
                   </div>
                 </div>
 
-                <div className="rounded-xl bg-[#F0F7FD] border border-[#DCEBF7] p-3">
-                  <div className="text-[10.5px] font-bold text-[#0369A1] uppercase">
+                <div className="rounded-xl bg-[#F0F7FD] border border-[#DCEBF7] p-3 flex flex-col h-full">
+                  <div className="text-[10.5px] font-bold text-[#0369A1] uppercase leading-tight min-h-[28px]">
                     Alt: Keep Times + N95
                   </div>
-                  <div className="text-2xl font-extrabold text-[#0C2340] tabular-nums mt-0.5">
+                  <div className="text-2xl font-extrabold text-[#0C2340] tabular-nums mt-1 leading-none">
                     {result.alternativePlan.totalInhaledUg} µg
                   </div>
-                  <div className="text-[10.5px] text-[#476788] mt-0.5 tabular-nums">
+                  <div className="text-[10.5px] text-[#476788] mt-2 leading-snug min-h-[30px] tabular-nums">
                     -{result.alternativePlan.exposureSavedUg} µg (-{result.alternativePlan.exposureSavedPercent}%)
                   </div>
                 </div>
